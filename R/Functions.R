@@ -31,9 +31,9 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, downwind_lmm_for
 
   #Compute Point Estimates for Attribution - using Ray Winsorize or Proposed Estimates
 
-  #Perform Bootstrap Inference on the attribution estimates (could use parallelization)
+  #Perform Bootstrap Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() and glm() directly instead of using fit_upwind_downwind_models() in each bootstrap run
 
-  #Perform Permutation Inference on the attribution estimates (could use parallelization)
+  #Perform Permutation Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() directly instead of using fit_upwind_downwind_models() in each permutation run
 
 
   return(list(
