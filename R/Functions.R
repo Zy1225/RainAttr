@@ -1,20 +1,20 @@
-data = oman
-upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay)
-instr_pred_name = 'natural_pred'
-downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
-downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02
-
-rain_col_name = 'Rain.Gauge.Measurement'
-gauge_day_type_col_name = 'Gauge.Day.Type'
-upwind_type = 'Upwind'
-downwind_target_type = 'Target'
-downwind_control_type = 'Control'
-
-x_downwind_name = c('Gauge.Elevation','natural_pred')
-target_only = TRUE
-attr_type = 'Ray Winsorize'
-
-bootstrap_zero = TRUE
+# data = oman
+# upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay)
+# instr_pred_name = 'natural_pred'
+# downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
+# downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02
+#
+# rain_col_name = 'Rain.Gauge.Measurement'
+# gauge_day_type_col_name = 'Gauge.Day.Type'
+# upwind_type = 'Upwind'
+# downwind_target_type = 'Target'
+# downwind_control_type = 'Control'
+#
+# x_downwind_name = c('Gauge.Elevation','natural_pred')
+# target_only = TRUE
+# attr_type = 'Ray Winsorize'
+#
+# bootstrap_zero = TRUE
 
 #data is the full data
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, downwind_lmm_formula, downwind_logistic_formula = NULL,
