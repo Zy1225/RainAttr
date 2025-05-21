@@ -1,3 +1,4 @@
+# load("data/oman.rda")
 # data = oman
 # upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay)
 # instr_pred_name = 'natural_pred'
@@ -5,66 +6,97 @@
 # downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02
 #
 # rain_col_name = 'Rain.Gauge.Measurement'
-# gauge_day_type_col_name = 'Gauge.Day.Type'
-# upwind_type = 'Upwind'
-# downwind_target_type = 'Target'
-# downwind_control_type = 'Control'
+#
+# #Old way
+# # gauge_day_type_col_name = 'Gauge.Day.Type'
+# # upwind_type = 'Upwind'
+# # downwind_target_type = 'Target'
+# # downwind_control_type = 'Control'
+#
+#
+# ##New way
+# upwind_subset = Gauge.Day.Type == 'Upwind'
+# downwind_subset = Gauge.Day.Type  %in% c('Target','Control')
+# downwind_target_subset = Gauge.Day.Type == 'Target'
+# downwind_control_subset = Gauge.Day.Type == 'Control'
 #
 # x_downwind_name = c('Gauge.Elevation','natural_pred')
-# target_only = TRUE
+# target_only = FALSE
 # attr_type = 'Ray Winsorize'
 #
 # bootstrap_zero = TRUE
 
+
+
 #data is the full data
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, downwind_lmm_formula, downwind_logistic_formula = NULL,
-                     rain_col_name,gauge_day_type_col_name, upwind_type, downwind_target_type, downwind_control_type,
+                     rain_col_name,
+                     upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset,
                      attr_type, x_downwind_name, target_only,
                      bootstrap_zero
                      ){
+
   if(!bootstrap_zero){
     downwind_logistic_formula = NULL
   }
 
   #Define different subsets of the data
-  upwind = (data[,gauge_day_type_col_name] == upwind_type)
-  downwind = (data[,gauge_day_type_col_name] %in% c(downwind_target_type, downwind_control_type))
+  #Binary indicator of length N, indicating whether or not each observation is an upwind observation
+  upwind = eval(substitute(upwind_subset), data, parent.frame())
+
+  #Binary indicator of length N, indicating whether or not each observation is a downwind observation
+  downwind = eval(substitute(downwind_subset), data, parent.frame())
+
+  #Binary indicator of length N, indicating whether or not each observation has positive rainfall
+  #Could consider to replace this by positive = (!is.na(data[,all.vars(downwind_lmm_formula)[1]])), which allow us to drop rain_col_name, but we still need rain_col_name to compute the attribution estimate anyway
   positive = ( data[,rain_col_name] > 0)
-  downwind_positive_target = data[downwind & positive, gauge_day_type_col_name] == downwind_target_type
-  downwind_positive_control = data[downwind & positive, gauge_day_type_col_name] == downwind_control_type
+
+  #Binary indicator of length N_downwind_positive, indicating whether or not each downwind positive observation is target observation
+  downwind_positive_target = eval(substitute(downwind_target_subset), data[downwind & positive,], parent.frame())
+
+  #Binary indicator of length N_downwind_positive, indicating whether or not each downwind positive observation is control observation
+  downwind_positive_control = eval(substitute(downwind_control_subset), data[downwind & positive,], parent.frame())
 
   #Fit Upwind LMM and get the instrumental prediction, then fit Downwind LMM, and Downwind Logistic Model
   fitted_models = fit_upwind_downwind_models(data, upwind_lmm_formula, instr_pred_name, downwind_lmm_formula, downwind_logistic_formula, upwind, downwind, positive)
   data = fitted_models$data
 
   #Compute Point Estimates for Attribution - using Ray Winsorize or Proposed Estimates
-  hatattr = attr_est(attr_type, data, downwind, positive, rain_col_name, gauge_day_type_col_name, downwind_target_type, downwind_control_type,
+  hatattr = attr_est(attr_type, data, downwind, positive, rain_col_name, downwind_positive_target, downwind_positive_control,
                      x_downwind_name, target_only = FALSE, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
 
   #Perform Bootstrap Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() and glm() directly instead of using fit_upwind_downwind_models() in each bootstrap run
+  #Bootstrap function can follow similar attribute_bootstrap() in D:\Postdoc\Simulation\Replicate ISR Results\Bootstrap Analysis with generate_zero_T and scaled_h_sampling and Correct Scaling REB1 using Oman Data.R
+  #as well as D:\Postdoc\Bootstrap Paper\R Codes\Functions_realdata.R
+  #Also look at Overleaf/Rainfall Enhancement/Ray's implementation.tex
+
+  #Bootstrap function should allow for the choice of bootstrap_type (REB0/1/2, PREB0/1/2, MREB-1), as well as whether or not to bootstrap zero.
 
   #Perform Permutation Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() directly instead of using fit_upwind_downwind_models() in each permutation run
 
 
   return(list(
     fitted_models = list(
-      upwind_lmm_fit = upwind_lmm_fit,
-      downwind_lmm_fit = downwind_lmm_fit
-    )
+      upwind_lmm_fit = fitted_models$upwind_lmm_fit,
+      downwind_lmm_fit = fitted_models$downwind_lmm_fit,
+      downwind_logistic_fit = fitted_models$downwind_logistic_fit
+    ),
+    hatattr = hatattr
   ))
 }
+
 
 
 #Note that hatu should be for downwind positive (i,t) regardless of target_only
 #Optional input arguments: hatalphabeta, hatu
 #Note that for attr_type == 'Proposed', the hatSigma_beta matrix is ALWAYS obtained from downwind_lmm_fit
-attr_est = function(attr_type, data, downwind, positive, rain_col_name, gauge_day_type_col_name, downwind_target_type, downwind_control_type,
+attr_est = function(attr_type, data, downwind, positive, rain_col_name, downwind_positive_target, downwind_positive_control,
                     x_downwind_name, target_only, downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL){
   if(target_only){
-    downwind_positive_useful_row = data[downwind & positive, gauge_day_type_col_name] %in%  c(downwind_target_type)
+    downwind_positive_useful_row = downwind_positive_target
   }else{
-    downwind_positive_useful_row = data[downwind & positive, gauge_day_type_col_name] %in%  c(downwind_target_type,downwind_control_type)
+    downwind_positive_useful_row = (downwind_positive_target | downwind_positive_control)
   }
 
   y_vec = data[downwind & positive,rain_col_name][downwind_positive_useful_row]
@@ -179,3 +211,67 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
     data = data
   ))
 }
+
+#For checking: apo should be 0.111206, apl should be 0.1251201 for attr_type = 'Ray Winsorize'
+# apo  = 0.06265952, apl =  0.0668482 for attr_type = 'Proposed'
+#
+#Upwind:
+#> asd$fitted_models$upwind_lmm_fit
+# Linear mixed model fit by REML ['lmerMod']
+# Formula: LogRain ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals +      PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure +      (1 | TrialDay)
+# Data: data[upwind & positive, ]
+# REML criterion at convergence: 5345.72
+# Random effects:
+#   Groups   Name        Std.Dev.
+# TrialDay (Intercept) 0.6449
+# Residual             1.2650
+# Number of obs: 1545, groups:  TrialDay, 292
+# Fixed Effects:
+#   (Intercept)            Gauge.Elevation        Steering.Wind.Speed               Total.Totals        PC2.Dry.Temperature      PC1.Relative.Humidity  PC1.Ground.Level.Pressure
+# -1.43966                    0.43401                   -0.09641                    0.03268                    0.14478                    0.17787                   -0.05232
+
+
+#> asd$fitted_models$downwind_lmm_fit
+# Linear mixed model fit by REML ['lmerMod']
+# Formula: LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 +      Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 +
+#   Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 +      Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+# Data: data[downwind & positive, ]
+# REML criterion at convergence: 14764.41
+# Random effects:
+#   Groups   Name        Std.Dev.
+# TrialDay (Intercept) 0.5232
+# Residual             1.3623
+# Number of obs: 4168, groups:  TrialDay, 488
+# Fixed Effects:
+#   (Intercept)              Gauge.Elevation                 natural_pred                  Target.H.01                  Target.H.02                  Target.H.03
+# 0.27975                     -0.12503                      0.85569                      0.28922                      0.25764                      0.23818
+# Target.H.04                  Target.H.05                  Target.H.06                  Target.H.07                  Target.H.08                  Target.H.09
+# -0.15266                      0.43253                     -0.20325                      0.22201                      0.05850                      0.48147
+# Target.H.10  Gauge.Elevation:Target.H.01  Gauge.Elevation:Target.H.02
+# 0.03444                     -0.08662                     -0.21665
+
+
+data = oman
+upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay)
+instr_pred_name = 'natural_pred'
+downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
+downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02
+
+rain_col_name = 'Rain.Gauge.Measurement'
+#
+
+asd  = rain_attr(data = oman,
+                 upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+                 instr_pred_name = 'natural_pred',
+                 downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+                 downwind_logistic_formula = NULL,
+                 rain_col_name = 'Rain.Gauge.Measurement',
+                 upwind_subset = Gauge.Day.Type == 'Upwind',
+                 downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+                 downwind_target_subset = Gauge.Day.Type == 'Target',
+                 downwind_control_subset = Gauge.Day.Type == 'Control',
+                 attr_type = 'Proposed',
+                 x_downwind_name = c('Gauge.Elevation','natural_pred'),
+                 target_only = FALSE,
+                 bootstrap_zero = FALSE)
+
