@@ -1,43 +1,61 @@
-# load("data/oman.rda")
-# data = oman
-# upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay)
-# instr_pred_name = 'natural_pred'
-# downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
-# downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02
-#
-# rain_col_name = 'Rain.Gauge.Measurement'
-#
-# #Old way
-# # gauge_day_type_col_name = 'Gauge.Day.Type'
-# # upwind_type = 'Upwind'
-# # downwind_target_type = 'Target'
-# # downwind_control_type = 'Control'
-#
-#
-# ##New way
-# upwind_subset = Gauge.Day.Type == 'Upwind'
-# downwind_subset = Gauge.Day.Type  %in% c('Target','Control')
-# downwind_target_subset = Gauge.Day.Type == 'Target'
-# downwind_control_subset = Gauge.Day.Type == 'Control'
-#
-# x_downwind_name = c('Gauge.Elevation','natural_pred')
-# target_only = FALSE
-# attr_type = 'Ray Winsorize'
-#
-# bootstrap_zero = TRUE
+load("data/oman.rda")
+data = oman
+upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay)
+instr_pred_name = 'natural_pred'
+downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
+downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02
+
+rain_col_name = 'Rain.Gauge.Measurement'
+
+#Old way
+# gauge_day_type_col_name = 'Gauge.Day.Type'
+# upwind_type = 'Upwind'
+# downwind_target_type = 'Target'
+# downwind_control_type = 'Control'
+
+
+##New way
+upwind_subset = Gauge.Day.Type == 'Upwind'
+downwind_subset = Gauge.Day.Type  %in% c('Target','Control')
+downwind_target_subset = Gauge.Day.Type == 'Target'
+downwind_control_subset = Gauge.Day.Type == 'Control'
+
+x_downwind_name = c('Gauge.Elevation','natural_pred')
+target_only = FALSE
+attr_type = 'Ray Winsorize'
+
+bootstrap_zero = TRUE
 
 
 
 #data is the full data
-rain_attr = function(data, upwind_lmm_formula, instr_pred_name, downwind_lmm_formula, downwind_logistic_formula = NULL,
+#To use instr_pred or natural_pred as an offset, just specify the response to be LogRain - natural_pred in downwind_lmm_formula
+#To fit first-stage model to Control^#, jut specify upwind_subset = Gauge.Day.Type == 'Control'
+
+rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
+                     downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
                      rain_col_name,
                      upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset,
                      attr_type, x_downwind_name, target_only,
                      bootstrap_zero
                      ){
 
+
   if(!bootstrap_zero){
     downwind_logistic_formula = NULL
+  }
+
+  if(!instr_pred_name %in% all.vars(downwind_lmm_formula)){
+    stop("instr_pred_name cannot be found in downwind_lmm_formula")
+  }
+
+  if(formula.tools::lhs(downwind_propensity_formula) != substitute(downwind_target_subset)){
+    stop("The definition of Target provided in  downwind_target_subsetis not consistent with the RHS of downwind_propensity_formula")
+  }
+
+  #instr_pred is always treated as one of the x-covariate, instead of z-covariate in the downwind LMM
+  if(!instr_pred_name %in% x_downwind_name){
+    x_downwind_name = c(x_downwind_name, instr_pred_name)
   }
 
   #Define different subsets of the data
@@ -58,13 +76,18 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, downwind_lmm_for
   downwind_positive_control = eval(substitute(downwind_control_subset), data[downwind & positive,], parent.frame())
 
   #Fit Upwind LMM and get the instrumental prediction, then fit Downwind LMM, and Downwind Logistic Model
-  fitted_models = fit_upwind_downwind_models(data, upwind_lmm_formula, instr_pred_name, downwind_lmm_formula, downwind_logistic_formula, upwind, downwind, positive)
+  fitted_models = fit_upwind_downwind_models(data, upwind_lmm_formula, instr_pred_name, instr_pred_type, downwind_lmm_formula, downwind_logistic_formula, upwind, downwind, positive)
   data = fitted_models$data
 
   #Compute Point Estimates for Attribution - using Ray Winsorize or Proposed Estimates
   hatattr = attr_est(attr_type, data, downwind, positive, rain_col_name, downwind_positive_target, downwind_positive_control,
                      x_downwind_name, target_only = FALSE, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
+  #CONTINUE FROM HERE
+  #Compute downwind_separate_formula based on the input downwind_lmm_formula and x_downwind_name to remove the z covariate vector
+  formula.tools::rhs(downwind_lmm_formula)
+
+  #Compute Points Estimats for SATE - using different types of SATE estimates
 
   #Perform Bootstrap Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() and glm() directly instead of using fit_upwind_downwind_models() in each bootstrap run
   #Bootstrap function can follow similar attribute_bootstrap() in D:\Postdoc\Simulation\Replicate ISR Results\Bootstrap Analysis with generate_zero_T and scaled_h_sampling and Correct Scaling REB1 using Oman Data.R
@@ -72,6 +95,10 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, downwind_lmm_for
   #Also look at Overleaf/Rainfall Enhancement/Ray's implementation.tex
 
   #Bootstrap function should allow for the choice of bootstrap_type (REB0/1/2, PREB0/1/2, MREB-1), as well as whether or not to bootstrap zero.
+  #When bootstrap_zero = T, need to check Ray's original code and my implementation of MQ bootstrap to see how we get bootstrap distribution of SATE - more specifically, did we refit the propensity logistic model for each bootstrap dataset?
+
+  #For bootstrapping, need to be careful when we are using instr_pred as offset - the generation of y_b data should be different in this case, if not, maybe need to keep in mind we are modelling LogRain - natural_pred
+
 
   #Perform Permutation Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() directly instead of using fit_upwind_downwind_models() in each permutation run
 
@@ -91,6 +118,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, downwind_lmm_for
 #Note that hatu should be for downwind positive (i,t) regardless of target_only
 #Optional input arguments: hatalphabeta, hatu
 #Note that for attr_type == 'Proposed', the hatSigma_beta matrix is ALWAYS obtained from downwind_lmm_fit
+#When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{conditional}
 attr_est = function(attr_type, data, downwind, positive, rain_col_name, downwind_positive_target, downwind_positive_control,
                     x_downwind_name, target_only, downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL){
   if(target_only){
@@ -192,11 +220,54 @@ attr_est = function(attr_type, data, downwind, positive, rain_col_name, downwind
   ))
 }
 
+#Compute different types of SATE estimate in Chambers et al. (2022)
+#When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{conditional}
+#Note that when the instr_pred or natural_pred is used as an offset term, the sate.ipw is computed using LogRain - natural_pred, instead of LogRain only
+sate_est = function(data, downwind, positive, rain_col_name, downwind_positive_target, downwind_positive_control, downwind_propensity_formula, downwind_separate_formula,
+                    x_downwind_name, downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL){
+  downwind_propensity_fit = glm(downwind_propensity_formula, family = binomial, data = data[downwind & positive,])
+  hatpi = predict(downwind_propensity_fit, type = "response")
+  hatw_1 = (1/hatpi)/( sum( (1/hatpi) * as.numeric(downwind_propensity_fit$y) )   )
+  hatw_0 = (1/(1-hatpi))/( sum( (1/ (1-hatpi)  ) * (1-as.numeric(downwind_propensity_fit$y))  )   )
+
+
+  x_z_mat = model.matrix(downwind_lmm_fit, data = data, type = 'fixed')
+  z_mat = x_z_mat[,-which(colnames(x_z_mat) %in%  c('(Intercept)',x_downwind_name) )]
+
+  if(is.null(hatalphabeta)){
+    hatalpha_downwind = lme4::fixef(downwind_lmm_fit)[c('(Intercept)',x_downwind_name)]
+    hatbeta_downwind = lme4::fixef(downwind_lmm_fit)[setdiff(names(lme4::fixef(downwind_lmm_fit)), c('(Intercept)',x_downwind_name))]
+  }else{
+    hatalpha_downwind = hatalphabeta[c('(Intercept)',x_downwind_name)]
+    hatbeta_downwind = hatalphabeta[setdiff(names(hatalphabeta), c('(Intercept)',x_downwind_name))]
+  }
+
+
+  sate.mb = sum( as.numeric(downwind_propensity_fit$y) * as.vector(z_mat %*% hatbeta_downwind))/sum( as.numeric(downwind_propensity_fit$y)  )
+  sate.ipw = sum( hatw_1 * as.numeric(downwind_propensity_fit$y) * lme4::getME(downwind_lmm_fit, 'y')  ) - sum( hatw_0 * ( 1- as.numeric(downwind_propensity_fit$y)) * lme4::getME(downwind_lmm_fit, 'y'  ) )
+  sate.ipw.l = sum( hatw_1 * as.numeric(downwind_propensity_fit$y) * as.vector(z_mat %*% hatbeta_downwind)  )
+
+  #CONTINUE FROM HERE
+  #Fit separate LMM to downwind_positive_target and downwind_positive_control
+  to_remove = setdiff(names(lme4::fixef(downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
+  terms(formula.tools::rhs(formula(downwind_lmm_fit)))
+}
+
 #data is the full data
 #optional input arguments: downwind_logistic_formula
-fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name, downwind_lmm_formula, downwind_logistic_formula = NULL, upwind, downwind, positive){
+fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type, downwind_lmm_formula, downwind_logistic_formula = NULL, upwind, downwind, positive){
   upwind_lmm_fit = lme4::lmer(upwind_lmm_formula, data = data[upwind & positive,])
-  data = cbind(data, predict(upwind_lmm_fit, data, re.form = NA))
+
+  if(!instr_pred_type %in% c('Unconditional','Conditional')){
+    stop("instr_pred_type should be either 'Unconditional' or 'Conditional'")
+  }
+
+  if(instr_pred_type == 'Unconditional'){
+    data = cbind(data, predict(upwind_lmm_fit, data, re.form = NA))
+  }
+  if(instr_pred_type == 'Conditional'){
+    data = cbind(data, predict(upwind_lmm_fit, data, re.form = NULL, allow.new.levels = T))
+  }
   colnames(data)[ncol(data)] = instr_pred_name
   downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
   if(is.null(downwind_logistic_formula)){
@@ -210,6 +281,42 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
     downwind_logistic_fit = downwind_logistic_fit,
     data = data
   ))
+}
+
+#CONTINUE FROM HERE
+#TODO: fix the error
+#Function to remove some variables from a given formula - this is used to obtain the formula for fitting separate LMM to downwind_positive_target and downwind_positive_control
+remove_fixed_terms <- function(input_formula, vars_to_remove) {
+  # Flatten input_formula to a single string
+  f_str <- paste(deparse(input_formula), collapse = "")
+
+  random_effects <- regmatches(f_str, gregexpr("\\([^()]*\\|[^()]*\\)", f_str))[[1]]
+
+  fixed_effects_str <- f_str
+  for (re in random_effects) {
+    escaped_re <- gsub("([\\^$.|()\\[\\]\\\\*+?])", "\\\\\\1", re)
+    fixed_effects_str <- gsub(paste0("\\s*\\+?\\s*", escaped_re, "\\s*\\+?\\s*"), " ", fixed_effects_str)
+  }
+
+  # Extract fixed effects terms (split by '+')
+  fixed_rhs <- trimws(strsplit(gsub(".*~", "", fixed_effects_str), "\\+")[[1]])
+
+  # Create regex pattern for variables to remove
+  pattern <- paste(vars_to_remove, collapse = "|")
+
+  # Keep only fixed effect terms NOT involving variables to remove
+  fixed_terms_keep <- fixed_rhs[!grepl(pattern, fixed_rhs)]
+
+  # If nothing left, use intercept-only
+  fixed_part <- if (length(fixed_terms_keep) == 0) "1" else paste(fixed_terms_keep, collapse = " + ")
+
+  # Combine fixed and random parts
+  random_part <- if (length(random_effects) > 0) paste(random_effects, collapse = " + ") else NULL
+
+  rhs_final <- paste(c(fixed_part, random_part), collapse = " + ")
+
+  # Build new input_formula
+  as.formula(paste(deparse(input_formula[[2]]), "~", rhs_final))
 }
 
 #For checking: apo should be 0.111206, apl should be 0.1251201 for attr_type = 'Ray Winsorize'
