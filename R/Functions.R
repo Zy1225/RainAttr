@@ -49,14 +49,14 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     stop("instr_pred_name cannot be found in downwind_lmm_formula")
   }
 
-  if(formula.tools::lhs(downwind_propensity_formula) != substitute(downwind_target_subset)){
-    stop("The definition of Target provided in  downwind_target_subsetis not consistent with the RHS of downwind_propensity_formula")
+  if(formula.tools::lhs(as.formula(gsub("[()]", "", downwind_propensity_formula))) != substitute(downwind_target_subset)){
+    stop("The definition of Target provided in  downwind_target_subset is not consistent with the LHS of downwind_propensity_formula")
   }
 
-  #instr_pred is always treated as one of the x-covariate, instead of z-covariate in the downwind LMM
-  if(!instr_pred_name %in% x_downwind_name){
-    x_downwind_name = c(x_downwind_name, instr_pred_name)
+  if(mean(x_downwind_name %in% all.vars(formula.tools::rhs(downwind_lmm_formula)) )!=1 ){
+    stop("At least one variable in x_downwind_name cannot be found on RHS of downwind_lmm_formula")
   }
+
 
   #Define different subsets of the data
   #Binary indicator of length N, indicating whether or not each observation is an upwind observation
@@ -83,11 +83,14 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   hatattr = attr_est(attr_type, data, downwind, positive, rain_col_name, downwind_positive_target, downwind_positive_control,
                      x_downwind_name, target_only = FALSE, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
-  #CONTINUE FROM HERE
-  #Compute downwind_separate_formula based on the input downwind_lmm_formula and x_downwind_name to remove the z covariate vector
-  formula.tools::rhs(downwind_lmm_formula)
 
-  #Compute Points Estimats for SATE - using different types of SATE estimates
+
+
+  #Compute Points Estimates for SATE - using different types of SATE estimates
+  z_downwind_name = setdiff(names(lme4::fixef(fitted_models$downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
+  downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+  hatsate = sate_est(data, downwind, positive, rain_col_name, downwind_positive_target, downwind_positive_control, downwind_propensity_formula, downwind_separate_formula,
+                     x_downwind_name, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
   #Perform Bootstrap Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() and glm() directly instead of using fit_upwind_downwind_models() in each bootstrap run
   #Bootstrap function can follow similar attribute_bootstrap() in D:\Postdoc\Simulation\Replicate ISR Results\Bootstrap Analysis with generate_zero_T and scaled_h_sampling and Correct Scaling REB1 using Oman Data.R
@@ -109,7 +112,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
       downwind_lmm_fit = fitted_models$downwind_lmm_fit,
       downwind_logistic_fit = fitted_models$downwind_logistic_fit
     ),
-    hatattr = hatattr
+    hatattr = hatattr,
+    hatsate = hatsate
   ))
 }
 
@@ -220,6 +224,9 @@ attr_est = function(attr_type, data, downwind, positive, rain_col_name, downwind
   ))
 }
 
+#CONTINUE FROM HERE: check the expressions of different sate estimates below, and cross-check their estimated values with my previous results (either bootstrap paper or the MQ linear regression) or Ray's previous results
+#It seems like our sate estimates here are different from those using MQ linear regression, this is because those settings in MQ Linear regression only considers LMM in the first stage but the second stage is ALWAYS MQ!
+
 #Compute different types of SATE estimate in Chambers et al. (2022)
 #When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{conditional}
 #Note that when the instr_pred or natural_pred is used as an offset term, the sate.ipw is computed using LogRain - natural_pred, instead of LogRain only
@@ -247,10 +254,27 @@ sate_est = function(data, downwind, positive, rain_col_name, downwind_positive_t
   sate.ipw = sum( hatw_1 * as.numeric(downwind_propensity_fit$y) * lme4::getME(downwind_lmm_fit, 'y')  ) - sum( hatw_0 * ( 1- as.numeric(downwind_propensity_fit$y)) * lme4::getME(downwind_lmm_fit, 'y'  ) )
   sate.ipw.l = sum( hatw_1 * as.numeric(downwind_propensity_fit$y) * as.vector(z_mat %*% hatbeta_downwind)  )
 
-  #CONTINUE FROM HERE
+
   #Fit separate LMM to downwind_positive_target and downwind_positive_control
-  to_remove = setdiff(names(lme4::fixef(downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
-  terms(formula.tools::rhs(formula(downwind_lmm_fit)))
+  downwind_positive_target_lmm_fit = lme4::lmer(downwind_separate_formula, data = data[downwind & positive,][downwind_positive_target,])
+  downwind_positive_control_lmm_fit = lme4::lmer(downwind_separate_formula, data = data[downwind & positive,][downwind_positive_control,])
+  hatm_1 = predict(downwind_positive_target_lmm_fit, newdata = data[downwind & positive,], re.form = NA)
+  hatm_0 = predict(downwind_positive_control_lmm_fit, newdata = data[downwind & positive,], re.form = NA)
+  sate.ipw.ma = mean(hatm_1) - mean(hatm_0) + sum(hatw_1 * as.numeric(downwind_propensity_fit$y) * (lme4::getME(downwind_lmm_fit, 'y') - hatm_1)  ) - sum( hatw_0 * (1 - as.numeric(downwind_propensity_fit$y) ) * (lme4::getME(downwind_lmm_fit, 'y'  ) - hatm_0)  )
+  sate.aipw = sum( hatw_1 * ( as.numeric(downwind_propensity_fit$y) * lme4::getME(downwind_lmm_fit, 'y') - ( (as.numeric(downwind_propensity_fit$y) - hatpi ) * hatm_1   )  )  ) - sum( hatw_0 * ( (1 - as.numeric(downwind_propensity_fit$y)) *  lme4::getME(downwind_lmm_fit, 'y'  ) -  ( (as.numeric(downwind_propensity_fit$y) - hatpi ) * hatm_0   )   )   )
+
+  #CONTINUE FROM HERE: check why we can't recover the relationship between AIPW and IPW.MA as claimed below equation (7) of Ray causal paper
+  check = sate.aipw - sate.ipw.ma
+  check2 = sum( hatm_1 * ( 1/(sum( (1/hatpi) *as.numeric(downwind_propensity_fit$y)  ) ) - 1/sum(downwind & positive)   ) ) -  sum(hatm_0 * ( 1/( sum( (1/(1-hatpi)) * (1 - as.numeric(downwind_propensity_fit$y))  ) ) - 1/sum(downwind & positive)  ) )
+  browser()
+
+  return(list(
+    sate.mb = sate.mb,
+    sate.ipw = sate.ipw,
+    sate.ipw.l = sate.ipw.l,
+    sate.ipw.ma = sate.ipw.ma,
+    sate.aipw = sate.aipw
+  ))
 }
 
 #data is the full data
@@ -283,40 +307,19 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
   ))
 }
 
-#CONTINUE FROM HERE
-#TODO: fix the error
+# Note that this function requires downwind_lmm_formula to not use the interaction syntax such as x1*x2, but instead it should always use x1 + x2 + x1:x2
 #Function to remove some variables from a given formula - this is used to obtain the formula for fitting separate LMM to downwind_positive_target and downwind_positive_control
-remove_fixed_terms <- function(input_formula, vars_to_remove) {
+remove_fixed_terms <- function(input_formula, vars_to_remove){
   # Flatten input_formula to a single string
-  f_str <- paste(deparse(input_formula), collapse = "")
+  rhs_str = paste(deparse(formula.tools::rhs(input_formula)), collapse = "")
+  rhs_terms = trimws(unlist(strsplit(rhs_str,'\\+')))
+  rhs_terms = rhs_terms[!rhs_terms %in% vars_to_remove]
 
-  random_effects <- regmatches(f_str, gregexpr("\\([^()]*\\|[^()]*\\)", f_str))[[1]]
-
-  fixed_effects_str <- f_str
-  for (re in random_effects) {
-    escaped_re <- gsub("([\\^$.|()\\[\\]\\\\*+?])", "\\\\\\1", re)
-    fixed_effects_str <- gsub(paste0("\\s*\\+?\\s*", escaped_re, "\\s*\\+?\\s*"), " ", fixed_effects_str)
-  }
-
-  # Extract fixed effects terms (split by '+')
-  fixed_rhs <- trimws(strsplit(gsub(".*~", "", fixed_effects_str), "\\+")[[1]])
-
-  # Create regex pattern for variables to remove
-  pattern <- paste(vars_to_remove, collapse = "|")
-
-  # Keep only fixed effect terms NOT involving variables to remove
-  fixed_terms_keep <- fixed_rhs[!grepl(pattern, fixed_rhs)]
-
-  # If nothing left, use intercept-only
-  fixed_part <- if (length(fixed_terms_keep) == 0) "1" else paste(fixed_terms_keep, collapse = " + ")
-
-  # Combine fixed and random parts
-  random_part <- if (length(random_effects) > 0) paste(random_effects, collapse = " + ") else NULL
-
-  rhs_final <- paste(c(fixed_part, random_part), collapse = " + ")
+  new_rhs_str = paste(rhs_terms, collapse = ' + ')
+  lhs_str = paste(deparse(formula.tools::lhs(input_formula)), collapse = "")
 
   # Build new input_formula
-  as.formula(paste(deparse(input_formula[[2]]), "~", rhs_final))
+  return(as.formula(paste(lhs_str, "~", new_rhs_str)))
 }
 
 #For checking: apo should be 0.111206, apl should be 0.1251201 for attr_type = 'Ray Winsorize'
@@ -363,22 +366,25 @@ upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.To
 instr_pred_name = 'natural_pred'
 downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
 downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02
-
+downwind_propensity_formula = Gauge.Day.Type == 'Target' ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure
 rain_col_name = 'Rain.Gauge.Measurement'
 #
 
 asd  = rain_attr(data = oman,
                  upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
                  instr_pred_name = 'natural_pred',
-                 downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+                 instr_pred_type = 'Unconditional',
+                 downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
                  downwind_logistic_formula = NULL,
+                 downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
                  rain_col_name = 'Rain.Gauge.Measurement',
                  upwind_subset = Gauge.Day.Type == 'Upwind',
                  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
                  downwind_target_subset = Gauge.Day.Type == 'Target',
                  downwind_control_subset = Gauge.Day.Type == 'Control',
-                 attr_type = 'Proposed',
-                 x_downwind_name = c('Gauge.Elevation','natural_pred'),
+                 attr_type = 'Ray Winsorize',
+                 x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
                  target_only = FALSE,
                  bootstrap_zero = FALSE)
 
+asd$hatsate$sate.ipw
