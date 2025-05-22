@@ -227,6 +227,8 @@ attr_est = function(attr_type, data, downwind, positive, rain_col_name, downwind
 #CONTINUE FROM HERE: check the expressions of different sate estimates below, and cross-check their estimated values with my previous results (either bootstrap paper or the MQ linear regression) or Ray's previous results
 #It seems like our sate estimates here are different from those using MQ linear regression, this is because those settings in MQ Linear regression only considers LMM in the first stage but the second stage is ALWAYS MQ!
 
+#ALSO, check the equivalance between IPW.MA and MB when we set hatm_0 = y - hatlambda, and hatm_1 = hatlambda + hatm_0 = y + (1-I) * hatlambda
+
 #Compute different types of SATE estimate in Chambers et al. (2022)
 #When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{conditional}
 #Note that when the instr_pred or natural_pred is used as an offset term, the sate.ipw is computed using LogRain - natural_pred, instead of LogRain only
