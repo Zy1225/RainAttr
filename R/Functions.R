@@ -495,6 +495,7 @@ asd$hatattr$apl; asd$hatattr$apo
 B_bootstrap = 3
 bootstrap_type = 'REB0'
 bootstrap_zero = TRUE
+positive_prob_threshold = NULL
 discretize_rain = TRUE
 winsorize_rain = TRUE
 
@@ -503,8 +504,8 @@ ori_data = asd$data
 #upwind = oman$Gauge.Day.Type == 'Upwind'
 downwind = oman$Gauge.Day.Type  %in% c('Target','Control')
 ori_positive = oman$Rain.Gauge.Measurement > 0
-ori_downwind_positive_target = oman[ori_downwind & ori_positive,]$Gauge.Day.Type == 'Target'
-ori_downwind_positive_control = oman[ori_downwind & ori_positive,]$Gauge.Day.Type == 'Control'
+ori_downwind_positive_target = oman[downwind & ori_positive,]$Gauge.Day.Type == 'Target'
+ori_downwind_positive_control = oman[downwind & ori_positive,]$Gauge.Day.Type == 'Control'
 rain_col_name = 'Rain.Gauge.Measurement'
 x_downwind_name = c('Gauge.Elevation', 'natural_pred')
 ori_attr_est = asd$hatattr
@@ -536,7 +537,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     }
   }
 
-  ori_downwind_data = ori_data[downwind,]
+
   r_vec <- lme4::getME(ori_fitted_models$downwind_lmm_fit, 'y')  - predict(ori_fitted_models$downwind_lmm_fit, re.form = NA)
   ori_downwind_positive_group = ori_data[downwind & ori_positive , names(lme4::getME(ori_fitted_models$downwind_lmm_fit, "flist"))]
   ori_downwind_positive_group_label = unique(ori_downwind_positive_group)
@@ -557,8 +558,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     final.hat.e = hat.e
   }
 
-  #CONTINUE FROM HERE: check if we can also include PREB-1 and MREB-1 type for below 'if' loop
-  if(bootstrap_type == 'REB1'){
+  if(bootstrap_type %in%  c('REB1','PREB1', 'MREB1')){
     hat.u = sapply(ori_downwind_positive_group_label, function(x){
       mean(r_vec[ori_downwind_positive_group == x])
     })
@@ -572,16 +572,42 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     vc_df <- as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))
     hatsigma2.u = vc_df[vc_df$grp == names(lme4::getME(ori_fitted_models$downwind_lmm_fit, "flist")), "vcov"]
     hat.u.c = hat.u - mean(hat.u)
-    hat.u.cs = ( sqrt(hatsigma2.u) / sqrt( mean(hat.u^2)  )    ) * hat.u.c
+    if(bootstrap_type == 'REB1'){
+      hat.u.cs = ( sqrt(hatsigma2.u) / sqrt( mean(hat.u^2)  )    ) * hat.u.c
+    }
+
+    if(bootstrap_type %in% c('PREB1','MREB1')){
+      hat.u.cs = ( sqrt(hatsigma2.u) / sqrt( mean(hat.u.c^2)  )    ) * hat.u.c
+    }
 
 
     hatsigma2.e = vc_df[vc_df$grp == "Residual", "vcov"]
-    hat.e.s = ( sqrt(hatsigma2.e) / sqrt( mean(hat.e^2)  )    ) * hat.e
+    if(bootstrap_type %in% c('REB1','PREB1')){
+      hat.e.s = ( sqrt(hatsigma2.e) / sqrt( mean(hat.e^2)  )    ) * hat.e
+    }
+    if(bootstrap_type == 'MREB1'){
+      ni_vec = sapply(ori_downwind_positive_group, FUN = function(x){sum(ori_downwind_positive_group == x)})
+      hat.e.s = ( sqrt(hatsigma2.e) / sqrt( sum( (1/ori_D_groups) * (1/ni_vec) * (hat.e^2)  )  )    ) * hat.e
+    }
+
 
     final.hat.u = hat.u.cs
     final.hat.e = hat.e.s
   }
 
+  #
+  if(bootstrap_type %in% c('REB0','REB1','REB2','MREB1')){
+    cluster_sample_prob = rep(1/ori_D_groups, ori_D_groups)
+  }
 
+  if(bootstrap_type %in% c('PREB0', 'PREB1', 'PREB2')){
+    cluster_sample_prob = sapply(ori_downwind_positive_group_label, function(x){ mean(ori_downwind_positive_group  == x) })
+  }
+
+  #CONTINUE FROM HERE: Start writing for loop for each bootstrap run, noting we might need to add 'downwind_target_subset' and 'downwind_control_subset' as arguments
+  #to allow us to form b_downwind_positive_target and b_downwind_positive_control
+
+  #Also, we extract ori_downwind_data since our following simulated 'b_downwind_positive_vec' should be of length N_Downwind instead of N
+  ori_downwind_data = ori_data[downwind,]
 
 }
