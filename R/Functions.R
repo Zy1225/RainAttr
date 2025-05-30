@@ -31,19 +31,15 @@
 #data is the full data
 #To use instr_pred or natural_pred as an offset, just specify the response to be LogRain - natural_pred in downwind_lmm_formula
 #To fit first-stage model to Control^#, jut specify upwind_subset = Gauge.Day.Type == 'Control'
-
+rm(list=ls())
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
                      rain_col_name,
                      upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset,
-                     attr_type, x_downwind_name, target_only,
-                     bootstrap_zero
+                     attr_type, x_downwind_name, target_only
                      ){
 
 
-  if(!bootstrap_zero){
-    downwind_logistic_formula = NULL
-  }
 
   if(!instr_pred_name %in% all.vars(downwind_lmm_formula)){
     stop("instr_pred_name cannot be found in downwind_lmm_formula")
@@ -115,7 +111,9 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
       downwind_positive_control_lmm_fit = hatsate$fitted_models$downwind_positive_control_lmm_fit
     ),
     hatattr = hatattr,
-    hatsate = hatsate$estimates
+    hatsate = hatsate$estimates,
+    #temporary
+    data = data
   ))
 }
 
@@ -368,8 +366,20 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
   return(as.formula(paste(lhs_str, "~", new_rhs_str)))
 }
 
+
+
+
 #For checking: apo should be 0.111206, apl should be 0.1251201 for attr_type = 'Ray Winsorize'
 # apo  = 0.06265952, apl =  0.0668482 for attr_type = 'Proposed'
+# # > asd$hatsate$sate.mb; asd$hatsate$sate.ipw; asd$hatsate$sate.ipw.l
+# [1] 0.1143799
+# [1] 0.07401868
+# [1] 0.1122864
+#
+# > asd$hatsate$sate.ipw.ma; asd$hatsate$sate.aipw
+# [1] 0.06543017
+# [1] 0.07736621
+
 #
 #Upwind:
 #> asd$fitted_models$upwind_lmm_fit
@@ -421,7 +431,7 @@ asd  = rain_attr(data = oman,
                  instr_pred_name = 'natural_pred',
                  instr_pred_type = 'Unconditional',
                  downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
-                 downwind_logistic_formula = NULL,
+                 downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
                  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
                  rain_col_name = 'Rain.Gauge.Measurement',
                  upwind_subset = Gauge.Day.Type == 'Upwind',
@@ -430,8 +440,7 @@ asd  = rain_attr(data = oman,
                  downwind_control_subset = Gauge.Day.Type == 'Control',
                  attr_type = 'Proposed',
                  x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
-                 target_only = FALSE,
-                 bootstrap_zero = FALSE)
+                 target_only = FALSE)
 
 asd$hatsate$sate.mb; asd$hatsate$sate.ipw; asd$hatsate$sate.ipw.l
 asd$hatsate$sate.ipw.ma; asd$hatsate$sate.aipw
@@ -453,8 +462,7 @@ asd$hatattr$apl; asd$hatattr$apo
 #                              downwind_control_subset = Gauge.Day.Type == 'Control',
 #                              attr_type = 'Proposed',
 #                              x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
-#                              target_only = FALSE,
-#                              bootstrap_zero = FALSE)
+#                              target_only = FALSE)
 #
 #
 # #Table 1 of JRSSA
@@ -484,3 +492,96 @@ asd$hatattr$apl; asd$hatattr$apo
 #
 # lme4::fixef(replicate_table6$fitted_models$upwind_lmm_fit)
 
+B_bootstrap = 3
+bootstrap_type = 'REB0'
+bootstrap_zero = TRUE
+discretize_rain = TRUE
+winsorize_rain = TRUE
+
+ori_data = asd$data
+
+#upwind = oman$Gauge.Day.Type == 'Upwind'
+downwind = oman$Gauge.Day.Type  %in% c('Target','Control')
+ori_positive = oman$Rain.Gauge.Measurement > 0
+ori_downwind_positive_target = oman[ori_downwind & ori_positive,]$Gauge.Day.Type == 'Target'
+ori_downwind_positive_control = oman[ori_downwind & ori_positive,]$Gauge.Day.Type == 'Control'
+rain_col_name = 'Rain.Gauge.Measurement'
+x_downwind_name = c('Gauge.Elevation', 'natural_pred')
+ori_attr_est = asd$hatattr
+ori_sate_est = asd$hatsate
+ori_fitted_models = asd$fitted_models
+
+
+bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_rain,
+                              ori_data, downwind, ori_positive, rain_col_name, ori_downwind_positive_target, ori_downwind_positive_control, ori_fitted_models,
+                              x_downwind_name, ori_attr_est, ori_sate_est){
+
+  if(!bootstrap_type %in% c('REB0','REB1','REB2','PREB0','PREB1','PREB2','MREB1')){
+    stop("bootstrap_type should be one of c('REB0','REB1','REB2','PREB0','PREB1','PREB2','MREB1')")
+  }
+
+  #To store bootstrapped estimates for attribution and SATE
+  bootstrap_attr_matrix = matrix(data = NA, nrow = B_bootstrap, ncol = 2, dimnames = list(NULL, c('apo','apl')))
+  bootstrap_sate_matrix = matrix(data = NA, nrow = B_bootstrap, ncol = 5, dimnames = list(NULL, c('sate.mb','sate.ipw','sate.ipw.l','sate.ipw.ma','sate.aipw')))
+
+  #Pre-compute hat{P}_{it} which will be used later on to simulate zero vs non-zero rainfall events
+  if(bootstrap_zero){
+    init_downwind_positive_prob = predict(ori_fitted_models$downwind_logistic_fit,type = 'response')
+    if(!is.null(positive_prob_threshold)){
+      downwind_positive_prob = init_downwind_positive_prob
+      downwind_positive_prob[downwind_positive_prob < positive_prob_threshold] = 0
+      downwind_positive_prob[downwind_positive_prob >= positive_prob_threshold] = downwind_positive_prob[downwind_positive_prob >= positive_prob_threshold]* sum(init_downwind_positive_prob)/ sum(downwind_positive_prob[downwind_positive_prob >= positive_prob_threshold])
+    }else{
+      downwind_positive_prob = init_downwind_positive_prob
+    }
+  }
+
+  ori_downwind_data = ori_data[downwind,]
+  r_vec <- lme4::getME(ori_fitted_models$downwind_lmm_fit, 'y')  - predict(ori_fitted_models$downwind_lmm_fit, re.form = NA)
+  ori_downwind_positive_group = ori_data[downwind & ori_positive , names(lme4::getME(ori_fitted_models$downwind_lmm_fit, "flist"))]
+  ori_downwind_positive_group_label = unique(ori_downwind_positive_group)
+  ori_D_groups =  length(ori_downwind_positive_group_label)
+
+  if(bootstrap_type %in% c('REB0', 'REB2', 'PREB0', 'PREB2')){
+    hat.u = sapply(ori_downwind_positive_group_label, function(x){
+      mean(r_vec[ori_downwind_positive_group == x])
+    })
+
+
+    hat.e <- rep(0,sum(downwind & ori_positive))
+    for(h in 1:ori_D_groups){
+      hat.e[ori_downwind_positive_group==ori_downwind_positive_group_label[h]] <- r_vec[ori_downwind_positive_group==ori_downwind_positive_group_label[h]]- hat.u[h]
+    }
+
+    final.hat.u = hat.u
+    final.hat.e = hat.e
+  }
+
+  #CONTINUE FROM HERE: check if we can also include PREB-1 and MREB-1 type for below 'if' loop
+  if(bootstrap_type == 'REB1'){
+    hat.u = sapply(ori_downwind_positive_group_label, function(x){
+      mean(r_vec[ori_downwind_positive_group == x])
+    })
+
+    hat.e <- rep(0,sum(downwind & ori_positive))
+    for(h in 1:ori_D_groups){
+      hat.e[ori_downwind_positive_group==ori_downwind_positive_group_label[h]] <- r_vec[ori_downwind_positive_group==ori_downwind_positive_group_label[h]]- hat.u[h]
+    }
+
+
+    vc_df <- as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))
+    hatsigma2.u = vc_df[vc_df$grp == names(lme4::getME(ori_fitted_models$downwind_lmm_fit, "flist")), "vcov"]
+    hat.u.c = hat.u - mean(hat.u)
+    hat.u.cs = ( sqrt(hatsigma2.u) / sqrt( mean(hat.u^2)  )    ) * hat.u.c
+
+
+    hatsigma2.e = vc_df[vc_df$grp == "Residual", "vcov"]
+    hat.e.s = ( sqrt(hatsigma2.e) / sqrt( mean(hat.e^2)  )    ) * hat.e
+
+    final.hat.u = hat.u.cs
+    final.hat.e = hat.e.s
+  }
+
+
+
+}
