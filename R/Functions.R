@@ -77,7 +77,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 
   #Compute Point Estimates for Attribution - using Ray Winsorize or Proposed Estimates
   hatattr = attr_est(attr_type, data, downwind, positive, rain_col_name, downwind_positive_target, downwind_positive_control,
-                     x_downwind_name, target_only = FALSE, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
+                     x_downwind_name, target_only = target_only, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
 
 
