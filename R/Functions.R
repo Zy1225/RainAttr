@@ -713,7 +713,8 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       b_hatattr = attr_est(attr_type, b_downwind_positive_data, rain_col_name, b_downwind_positive_target, b_downwind_positive_control,
                            x_downwind_name, target_only, downwind_lmm_fit = b_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
-      #TODO: Add code to compute b_sate
+      #TODO: Add code to compute b_sate - remember to check Ray's original code to see if we need to refit b_downwind_propensity_model and use different IPW weights for every bootstrap run
+      #or use the same original IPW weights for all bootstrap runs without refitting the b_downwind_propensity_model
 
       #TODO: Add code to save all bootstrapped quantities
 
