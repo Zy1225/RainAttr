@@ -36,7 +36,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
                      rain_col_name,
                      upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset,
-                     attr_type, x_downwind_name, target_only
+                     attr_type, x_downwind_name, target_only,
+                     bootstrap = FALSE, bootstrap_option = NULL
                      ){
 
 
@@ -51,6 +52,10 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 
   if(mean(x_downwind_name %in% all.vars(formula.tools::rhs(downwind_lmm_formula)) )!=1 ){
     stop("At least one variable in x_downwind_name cannot be found on RHS of downwind_lmm_formula")
+  }
+
+  if(!attr_type %in% c('Ray Winsorize','Proposed', 'No')){
+    stop("attr_type should be one of 'Ray Winsorize','Proposed', or 'No''")
   }
 
 
@@ -73,8 +78,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 
   #Fit Upwind LMM and get the instrumental prediction, then fit Downwind LMM, and Downwind Logistic Model
   fitted_models = fit_upwind_downwind_models(data, upwind_lmm_formula, instr_pred_name, instr_pred_type, downwind_lmm_formula, downwind_logistic_formula, upwind, downwind, positive)
-  data = fitted_models$data
-  downwind_positive_data = data[downwind & positive, ]
+
+  downwind_positive_data = fitted_models$data[downwind & positive, ]
   #Compute Point Estimates for Attribution - using Ray Winsorize or Proposed Estimates
   hatattr = attr_est(attr_type, downwind_positive_data, rain_col_name, downwind_positive_target, downwind_positive_control,
                      x_downwind_name, target_only = target_only, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
@@ -96,25 +101,61 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   #Bootstrap function should allow for the choice of bootstrap_type (REB0/1/2, PREB0/1/2, MREB-1), as well as whether or not to bootstrap zero.
   #When bootstrap_zero = T, need to check Ray's original code and my implementation of MQ bootstrap to see how we get bootstrap distribution of SATE - more specifically, did we refit the propensity logistic model for each bootstrap dataset?
 
-  #For bootstrapping, need to be careful when we are using instr_pred as offset - the generation of y_b data should be different in this case, if not, maybe need to keep in mind we are modelling LogRain - natural_pred
+  all_fitted_models = list(
+    upwind_lmm_fit = fitted_models$upwind_lmm_fit,
+    downwind_lmm_fit = fitted_models$downwind_lmm_fit,
+    downwind_logistic_fit = fitted_models$downwind_logistic_fit,
+    downwind_propensity_fit = hatsate$fitted_models$downwind_propensity_fit,
+    downwind_positive_target_lmm_fit = hatsate$fitted_models$downwind_positive_target_lmm_fit,
+    downwind_positive_control_lmm_fit = hatsate$fitted_models$downwind_positive_control_lmm_fit
+  )
 
+  #For bootstrapping, need to be careful when we are using instr_pred as offset - the generation of y_b data should be different in this case, if not, maybe need to keep in mind we are modelling LogRain - natural_pred
+  if(bootstrap){
+    bootstrap_result = bootstrap_downwind(B_bootstrap = bootstrap_option$B_bootstrap,
+                                          bootstrap_type = bootstrap_option$bootstrap_type,
+                                          bootstrap_zero = bootstrap_option$bootstrap_zero,
+                                          positive_prob_threshold = bootstrap_option$positive_prob_threshold,
+                                          discretize_rain = bootstrap_option$discretize_rain,
+                                          winsorize_individual_rain = bootstrap_option$winsorize_individual_rain,
+                                          winsorize_total_rain = bootstrap_option$winsorize_total_rain,
+                                          ori_data = fitted_models$data,
+                                          downwind = downwind,
+                                          ori_positive = positive,
+                                          rain_col_name = rain_col_name,
+                                          downwind_target_subset = downwind_target_subset,
+                                          downwind_control_subset = downwind_control_subset,
+                                          ori_fitted_models = all_fitted_models,
+                                          downwind_lmm_formula = downwind_lmm_formula, attr_type = attr_type, x_downwind_name = x_downwind_name, target_only = target_only,
+                                          downwind_propensity_formula = downwind_propensity_formula, downwind_separate_formula = downwind_separate_formula,
+                                          ori_attr_est = c(hatattr$apo,hatattr$apl),
+                                          ori_sate_est = c(hatsate$estimates$sate.mb, hatsate$estimates$sate.ipw, hatsate$estimates$sate.ipw.l, hatsate$estimates$sate.ipw.ma, hatsate$estimates$sate.aipw)
+                                          )
+  }
+
+  #Compute bootstrap percentile intervals, bootstrap p-values, and optionally plot the bootstrap distributions based on bootstrap_result
 
   #Perform Permutation Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() directly instead of using fit_upwind_downwind_models() in each permutation run
 
-  return(list(
-    fitted_models = list(
-      upwind_lmm_fit = fitted_models$upwind_lmm_fit,
-      downwind_lmm_fit = fitted_models$downwind_lmm_fit,
-      downwind_logistic_fit = fitted_models$downwind_logistic_fit,
-      downwind_propensity_fit = hatsate$fitted_models$downwind_propensity_fit,
-      downwind_positive_target_lmm_fit = hatsate$fitted_models$downwind_positive_target_lmm_fit,
-      downwind_positive_control_lmm_fit = hatsate$fitted_models$downwind_positive_control_lmm_fit
-    ),
-    hatattr = hatattr,
-    hatsate = hatsate$estimates,
-    #temporary
-    data = data
-  ))
+  if(bootstrap){
+    return(list(
+      all_fitted_models = all_fitted_models,
+      hatattr = hatattr,
+      hatsate = hatsate$estimates,
+      #temporary
+      data = fitted_models$data,
+      bootstrap_result = bootstrap_result
+    ))
+  }else{
+    return(list(
+      all_fitted_models = all_fitted_models,
+      hatattr = hatattr,
+      hatsate = hatsate$estimates,
+      #temporary
+      data = fitted_models$data,
+      bootstrap_result = NULL
+    ))
+  }
 }
 
 
@@ -195,6 +236,19 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
     zT_Sigma_beta_z = diag(z_mat %*% Sigma_beta %*% t(z_mat))
 
     lambda = exp(0.5 * zT_Sigma_beta_z)
+
+    #Compute hatR_it = y_it * exp(-z_it %*% beta ) * exp(-(1/2) z_it^T %*% Sigma_beta %*% z_it ), for PDR (i,t) or PDR Target (i,t)
+    hatR = y_vec / (exp(log_hatd) * lambda )
+
+    #compute hatA_it = y_it - hatR_it, for PDR (i,t) or PDR Target (i,t)
+    hatA = y_vec - hatR
+  }
+
+  if(attr_type == 'No'){
+    #compute log_hatd = z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
+    log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
+
+    lambda = 1
 
     #Compute hatR_it = y_it * exp(-z_it %*% beta ) * exp(-(1/2) z_it^T %*% Sigma_beta %*% z_it ), for PDR (i,t) or PDR Target (i,t)
     hatR = y_vec / (exp(log_hatd) * lambda )
@@ -351,171 +405,13 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
   ))
 }
 
-# Note that this function requires downwind_lmm_formula to not use the interaction syntax such as x1*x2, but instead it should always use x1 + x2 + x1:x2
-#Function to remove some variables from a given formula - this is used to obtain the formula for fitting separate LMM to downwind_positive_target and downwind_positive_control
-remove_fixed_terms <- function(input_formula, vars_to_remove){
-  # Flatten input_formula to a single string
-  rhs_str = paste(deparse(formula.tools::rhs(input_formula)), collapse = "")
-  rhs_terms = trimws(unlist(strsplit(rhs_str,'\\+')))
-  rhs_terms = rhs_terms[!rhs_terms %in% vars_to_remove]
-
-  new_rhs_str = paste(rhs_terms, collapse = ' + ')
-  lhs_str = paste(deparse(formula.tools::lhs(input_formula)), collapse = "")
-
-  # Build new input_formula
-  return(as.formula(paste(lhs_str, "~", new_rhs_str)))
-}
-
-
-
-
-#For checking: apo should be 0.111206, apl should be 0.1251201 for attr_type = 'Ray Winsorize'
-# apo  = 0.06265952, apl =  0.0668482 for attr_type = 'Proposed'
-# # > asd$hatsate$sate.mb; asd$hatsate$sate.ipw; asd$hatsate$sate.ipw.l
-# [1] 0.1143799
-# [1] 0.07401868
-# [1] 0.1122864
-#
-# > asd$hatsate$sate.ipw.ma; asd$hatsate$sate.aipw
-# [1] 0.06543017
-# [1] 0.07736621
-
-#
-#Upwind:
-#> asd$fitted_models$upwind_lmm_fit
-# Linear mixed model fit by REML ['lmerMod']
-# Formula: LogRain ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals +      PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure +      (1 | TrialDay)
-# Data: data[upwind & positive, ]
-# REML criterion at convergence: 5345.72
-# Random effects:
-#   Groups   Name        Std.Dev.
-# TrialDay (Intercept) 0.6449
-# Residual             1.2650
-# Number of obs: 1545, groups:  TrialDay, 292
-# Fixed Effects:
-#   (Intercept)            Gauge.Elevation        Steering.Wind.Speed               Total.Totals        PC2.Dry.Temperature      PC1.Relative.Humidity  PC1.Ground.Level.Pressure
-# -1.43966                    0.43401                   -0.09641                    0.03268                    0.14478                    0.17787                   -0.05232
-
-
-#> asd$fitted_models$downwind_lmm_fit
-# Linear mixed model fit by REML ['lmerMod']
-# Formula: LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 +      Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 +
-#   Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 +      Gauge.Elevation:Target.H.02 + (1 | TrialDay)
-# Data: data[downwind & positive, ]
-# REML criterion at convergence: 14764.41
-# Random effects:
-#   Groups   Name        Std.Dev.
-# TrialDay (Intercept) 0.5232
-# Residual             1.3623
-# Number of obs: 4168, groups:  TrialDay, 488
-# Fixed Effects:
-#   (Intercept)              Gauge.Elevation                 natural_pred                  Target.H.01                  Target.H.02                  Target.H.03
-# 0.27975                     -0.12503                      0.85569                      0.28922                      0.25764                      0.23818
-# Target.H.04                  Target.H.05                  Target.H.06                  Target.H.07                  Target.H.08                  Target.H.09
-# -0.15266                      0.43253                     -0.20325                      0.22201                      0.05850                      0.48147
-# Target.H.10  Gauge.Elevation:Target.H.01  Gauge.Elevation:Target.H.02
-# 0.03444                     -0.08662                     -0.21665
-
-load('data/oman.rda')
-data = oman
-upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay)
-instr_pred_name = 'natural_pred'
-downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
-downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02
-downwind_propensity_formula = Gauge.Day.Type == 'Target' ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure
-rain_col_name = 'Rain.Gauge.Measurement'
-#
-
-asd  = rain_attr(data = oman,
-                 upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
-                 instr_pred_name = 'natural_pred',
-                 instr_pred_type = 'Unconditional',
-                 downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
-                 downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
-                 downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
-                 rain_col_name = 'Rain.Gauge.Measurement',
-                 upwind_subset = Gauge.Day.Type == 'Upwind',
-                 downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
-                 downwind_target_subset = Gauge.Day.Type == 'Target',
-                 downwind_control_subset = Gauge.Day.Type == 'Control',
-                 attr_type = 'Proposed',
-                 x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
-                 target_only = FALSE)
-
-asd$hatsate$sate.mb; asd$hatsate$sate.ipw; asd$hatsate$sate.ipw.l
-asd$hatsate$sate.ipw.ma; asd$hatsate$sate.aipw
-asd$hatattr$apl; asd$hatattr$apo
-
-
-#To replicate Table 6 of JRSSA
-# oman_in = oman
-# replicate_table6 = rain_attr(data = oman_in,
-#                              upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
-#                              instr_pred_name = 'natural_pred',
-#                              instr_pred_type = 'Unconditional',
-#                              downwind_lmm_formula = LogRain ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
-#                              downwind_logistic_formula = NULL,
-#                              downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
-#                              rain_col_name = 'Rain.Gauge.Measurement',
-#                              upwind_subset = Gauge.Day.Type == 'Upwind' & Year!= 2013,
-#                              downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
-#                              downwind_target_subset = Gauge.Day.Type == 'Target',
-#                              downwind_control_subset = Gauge.Day.Type == 'Control',
-#                              attr_type = 'Proposed',
-#                              x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
-#                              target_only = FALSE)
-#
-#
-# #Table 1 of JRSSA
-# replicate_table6$fitted_models$downwind_propensity_fit
-#
-# #Table 2 of JRSSA
-# lme4::fixef(replicate_table6$fitted_models$downwind_lmm_fit)
-#
-# #Table 3 of JRSSA
-# as.data.frame(lme4::VarCorr(replicate_table6$fitted_models$downwind_lmm_fit))
-#
-# #Table 4 of JRSSA
-# replicate_table6$fitted_models$downwind_positive_target_lmm_fit
-# replicate_table6$fitted_models$downwind_positive_control_lmm_fit
-#
-# #Table 5
-# as.data.frame(lme4::VarCorr(replicate_table6$fitted_models$downwind_positive_target_lmm_fit))
-# as.data.frame(lme4::VarCorr(replicate_table6$fitted_models$downwind_positive_control_lmm_fit))
-#
-# #DONE: Check why our AIPW estimate is different from Table 6 in JRSSA which gives 0.073 but here we get 0.07583943
-# #ANS: The reason is probably because Ray was computing sate.aipw using the incorrect expression (relationship between AIPW and MB) below equation (7) instead of directly using his equation (7).
-# #     This can be verified since our wrong.sate.aipw (computed using the incorrect relationship between AIPW and MB below equation (7) ) gives 0.07288667 which is same as the reported 0.073 of AIPW in Table 6
-#
-# #Estimate row for Table 6 of LogRain
-# unlist(replicate_table6$hatsate)
-#
-#
-# lme4::fixef(replicate_table6$fitted_models$upwind_lmm_fit)
-
-B_bootstrap = 3
-bootstrap_type = 'REB0'
-bootstrap_zero = TRUE
-positive_prob_threshold = NULL
-discretize_rain = TRUE
-winsorize_individual_rain = TRUE
-winsorize_total_rain = TRUE
-
-ori_data = asd$data
-
-#upwind = oman$Gauge.Day.Type == 'Upwind'
-downwind = oman$Gauge.Day.Type  %in% c('Target','Control')
-ori_positive = oman$Rain.Gauge.Measurement > 0
-rain_col_name = 'Rain.Gauge.Measurement'
-x_downwind_name = c('Gauge.Elevation', 'natural_pred')
-ori_attr_est = asd$hatattr
-ori_sate_est = asd$hatsate
-ori_fitted_models = asd$fitted_models
-
-
+#TODO: Consider to add another variation of 'PREB2' and 'REB2' for adjusting downwind_lmm_fit's fixef as well as random effects, and plug these corrected estimates to compute hatattr and hatsate, rather than directly centering hatattr and hatsate
+#TODO: Consider adding a parallelization option
 bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_individual_rain, winsorize_total_rain,
                               ori_data, downwind, ori_positive, rain_col_name, downwind_target_subset, downwind_control_subset, ori_fitted_models,
-                              attr_type, x_downwind_name, target_only, ori_attr_est, ori_sate_est){
+                              downwind_lmm_formula, attr_type, x_downwind_name, target_only,
+                              downwind_propensity_formula, downwind_separate_formula,
+                              ori_attr_est, ori_sate_est){
 
   if(!bootstrap_type %in% c('REB0','REB1','REB2','PREB0','PREB1','PREB2','MREB1')){
     stop("bootstrap_type should be one of c('REB0','REB1','REB2','PREB0','PREB1','PREB2','MREB1')")
@@ -612,16 +508,35 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
   #To store bootstrapped estimates for attribution and SATE
   bootstrap_attr_matrix = matrix(data = NA, nrow = B_bootstrap, ncol = 2, dimnames = list(NULL, c('apo','apl')))
   bootstrap_sate_matrix = matrix(data = NA, nrow = B_bootstrap, ncol = 5, dimnames = list(NULL, c('sate.mb','sate.ipw','sate.ipw.l','sate.ipw.ma','sate.aipw')))
+  bootstrap_downwind_lmm_param_matrix = matrix(data = NA, nrow = B_bootstrap,
+                                               ncol = length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']),
+                                               dimnames = list(NULL, c(names(lme4::fixef(ori_fitted_models$downwind_lmm_fit)), paste0('VarComponent_',as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'grp'] ) )))
+  if(bootstrap_zero){bootstrap_downwind_logistic_param_matrix = matrix(data = NA, nrow = B_bootstrap,
+                                                                       ncol = length(coef(ori_fitted_models$downwind_logistic_fit)),
+                                                                       dimnames = list(NULL, names(coef(ori_fitted_models$downwind_logistic_fit))))}
+  bootstrap_downwind_propensity_param_matrix = matrix(data = NA, nrow = B_bootstrap,
+                                                      ncol = length(coef(ori_fitted_models$downwind_propensity_fit)),
+                                                      dimnames = list(NULL, names(coef(ori_fitted_models$downwind_propensity_fit))))
+  bootstrap_downwind_positive_target_lmm_param_matrix = matrix(data = NA, nrow = B_bootstrap,
+                                                               ncol = length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov']),
+                                                               dimnames = list(NULL, c(names(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)), paste0('VarComponent_',as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'grp'] ) )))
+  bootstrap_downwind_positive_control_lmm_param_matrix = matrix(data = NA, nrow = B_bootstrap,
+                                                                ncol = length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov']),
+                                                                dimnames = list(NULL, c(names(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)), paste0('VarComponent_',as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'grp'] ) )))
+
   bootstrap_downwind_response_matrix = matrix(data = NA, nrow = B_bootstrap, ncol = num_downwind)
 
 
+  #browser()
   for(b in 1:B_bootstrap){
-    tryCatch({
+    #tryCatch({
 
       if(bootstrap_zero){
         b_downwind_positive = (runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
+        b_downwind_logistic_fit = glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, data = ori_data[downwind,], family = 'binomial')
+        bootstrap_downwind_logistic_param_matrix[b,] = coef(b_downwind_logistic_fit)
       }else{
-        b_downwind_positive = ori_positive
+        b_downwind_positive = ori_positive[downwind]
       }
 
       b_downwind_positive_data = ori_downwind_data[b_downwind_positive,]
@@ -701,29 +616,340 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       b_downwind_lmm_fit = lme4::lmer(update.formula(downwind_lmm_formula, bootstrapped_y ~ . ),
                                       data = b_downwind_positive_data)
 
+      bootstrap_downwind_lmm_param_matrix[b,] = c(lme4::fixef(b_downwind_lmm_fit),
+                                                  as.data.frame(lme4::VarCorr(b_downwind_lmm_fit))[,'vcov'])
+
 
 
       bootstrap_downwind_response_matrix[b, b_downwind_positive] = b_y
       bootstrap_downwind_response_matrix[b, !b_downwind_positive] = NA
 
 
-      b_downwind_positive_target = eval(substitute(downwind_target_subset), b_downwind_positive_data, parent.frame())
-      b_downwind_positive_control = eval(substitute(downwind_control_subset), b_downwind_positive_data, parent.frame())
+      b_downwind_positive_target = b_downwind_positive_data$Gauge.Day.Type == 'Target'
+      b_downwind_positive_control = b_downwind_positive_data$Gauge.Day.Type == 'Control'
+      #b_downwind_positive_target = eval(substitute(downwind_target_subset), b_downwind_positive_data, parent.frame())
+      #b_downwind_positive_control = eval(substitute(downwind_control_subset), b_downwind_positive_data, parent.frame())
 
       b_hatattr = attr_est(attr_type, b_downwind_positive_data, rain_col_name, b_downwind_positive_target, b_downwind_positive_control,
                            x_downwind_name, target_only, downwind_lmm_fit = b_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
-      #TODO: Add code to compute b_sate - remember to check Ray's original code to see if we need to refit b_downwind_propensity_model and use different IPW weights for every bootstrap run
-      #or use the same original IPW weights for all bootstrap runs without refitting the b_downwind_propensity_model
+      b_hatsate = sate_est(b_downwind_positive_data, rain_col_name, b_downwind_positive_target, b_downwind_positive_control, downwind_propensity_formula, downwind_separate_formula,
+                           x_downwind_name, downwind_lmm_fit = b_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
+
+      bootstrap_downwind_propensity_param_matrix[b,] = coef(b_hatsate$fitted_models$downwind_propensity_fit)
+      bootstrap_downwind_positive_target_lmm_param_matrix[b,] = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_target_lmm_fit),
+                                                                  as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])
+      bootstrap_downwind_positive_control_lmm_param_matrix[b,] = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_control_lmm_fit),
+                                                                   as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])
 
       #TODO: Add code to save all bootstrapped quantities
+      bootstrap_attr_matrix[b,] = c(b_hatattr$apo, b_hatattr$apl)
+      bootstrap_sate_matrix[b,] = c(b_hatsate$estimates$sate.mb, b_hatsate$estimates$sate.ipw, b_hatsate$estimates$sate.ipw.l, b_hatsate$estimates$sate.ipw.ma, b_hatsate$estimates$sate.aipw)
 
       #TODO: Add code to mean-correct everything if bootstrap_type %in% c('REB2', 'PREB2')
 
 
 
-    },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+    #},error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   }
 
+  if(bootstrap_type %in% c('REB2','PREB2')){
+    #Perform correction based on the original estimates for each bootstrapped estimates matrix
+    bootstrap_attr_matrix = bootstrap_attr_matrix + matrix( data = rep(ori_attr_est - apply(bootstrap_attr_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+                                                            nrow = B_bootstrap, ncol = ncol(bootstrap_attr_matrix), byrow = TRUE)
 
+    bootstrap_sate_matrix = bootstrap_sate_matrix + matrix( data = rep(ori_sate_est - apply(bootstrap_sate_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+                                                            nrow = B_bootstrap, ncol = ncol(bootstrap_sate_matrix), byrow = TRUE)
+
+    bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit))] =
+      bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit))] +
+      matrix( data = rep( lme4::fixef(ori_fitted_models$downwind_lmm_fit) - apply(bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit))],2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit))]), byrow = TRUE)
+
+    if(bootstrap_zero){
+      bootstrap_downwind_logistic_param_matrix = bootstrap_downwind_logistic_param_matrix + matrix(data = rep( coef(ori_fitted_models$downwind_logistic_fit) - apply(bootstrap_downwind_logistic_param_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+                                                                                                   nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_logistic_param_matrix), byrow = TRUE)
+    }
+
+    bootstrap_downwind_propensity_param_matrix = bootstrap_downwind_propensity_param_matrix + matrix(data = rep( coef(ori_fitted_models$downwind_propensity_fit) - apply(bootstrap_downwind_propensity_param_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+                                                                                                     nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_propensity_param_matrix), byrow = TRUE)
+
+    bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))] =
+      bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))] +
+      matrix( data = rep( lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit) - apply(bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))], 2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))]), byrow = TRUE)
+
+    bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))] =
+      bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))] +
+      matrix( data = rep( lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit) - apply(bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))], 2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))]), byrow = TRUE)
+  }
+
+  if(bootstrap_zero){
+    return(list(
+      bootstrap_attr_matrix = bootstrap_attr_matrix,
+      bootstrap_sate_matrix = bootstrap_sate_matrix,
+      bootstrap_downwind_lmm_param_matrix = bootstrap_downwind_lmm_param_matrix,
+      bootstrap_downwind_logistic_param_matrix = bootstrap_downwind_logistic_param_matrix,
+      bootstrap_downwind_propensity_param_matrix = bootstrap_downwind_propensity_param_matrix,
+      bootstrap_downwind_positive_target_lmm_param_matrix = bootstrap_downwind_positive_target_lmm_param_matrix,
+      bootstrap_downwind_positive_control_lmm_param_matrix = bootstrap_downwind_positive_control_lmm_param_matrix,
+      bootstrap_downwind_response_matrix = bootstrap_downwind_response_matrix
+    ))
+  }else{
+    return(list(
+      bootstrap_attr_matrix = bootstrap_attr_matrix,
+      bootstrap_sate_matrix = bootstrap_sate_matrix,
+      bootstrap_downwind_lmm_param_matrix = bootstrap_downwind_lmm_param_matrix,
+      bootstrap_downwind_logistic_param_matrix = NULL,
+      bootstrap_downwind_propensity_param_matrix = bootstrap_downwind_propensity_param_matrix,
+      bootstrap_downwind_positive_target_lmm_param_matrix = bootstrap_downwind_positive_target_lmm_param_matrix,
+      bootstrap_downwind_positive_control_lmm_param_matrix = bootstrap_downwind_positive_control_lmm_param_matrix,
+      bootstrap_downwind_response_matrix = bootstrap_downwind_response_matrix
+    ))
+  }
 }
+
+# Note that this function requires downwind_lmm_formula to not use the interaction syntax such as x1*x2, but instead it should always use x1 + x2 + x1:x2
+#Function to remove some variables from a given formula - this is used to obtain the formula for fitting separate LMM to downwind_positive_target and downwind_positive_control
+remove_fixed_terms <- function(input_formula, vars_to_remove){
+  # Flatten input_formula to a single string
+  rhs_str = paste(deparse(formula.tools::rhs(input_formula)), collapse = "")
+  rhs_terms = trimws(unlist(strsplit(rhs_str,'\\+')))
+  rhs_terms = rhs_terms[!rhs_terms %in% vars_to_remove]
+
+  new_rhs_str = paste(rhs_terms, collapse = ' + ')
+  lhs_str = paste(deparse(formula.tools::lhs(input_formula)), collapse = "")
+
+  # Build new input_formula
+  return(as.formula(paste(lhs_str, "~", new_rhs_str)))
+}
+
+
+
+
+#For checking: apo should be 0.111206, apl should be 0.1251201 for attr_type = 'Ray Winsorize'
+# apo  = 0.06265952, apl =  0.0668482 for attr_type = 'Proposed'
+# # > asd$hatsate$sate.mb; asd$hatsate$sate.ipw; asd$hatsate$sate.ipw.l
+# [1] 0.1143799
+# [1] 0.07401868
+# [1] 0.1122864
+#
+# > asd$hatsate$sate.ipw.ma; asd$hatsate$sate.aipw
+# [1] 0.06543017
+# [1] 0.07736621
+
+#
+#Upwind:
+#> asd$fitted_models$upwind_lmm_fit
+# Linear mixed model fit by REML ['lmerMod']
+# Formula: LogRain ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals +      PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure +      (1 | TrialDay)
+# Data: data[upwind & positive, ]
+# REML criterion at convergence: 5345.72
+# Random effects:
+#   Groups   Name        Std.Dev.
+# TrialDay (Intercept) 0.6449
+# Residual             1.2650
+# Number of obs: 1545, groups:  TrialDay, 292
+# Fixed Effects:
+#   (Intercept)            Gauge.Elevation        Steering.Wind.Speed               Total.Totals        PC2.Dry.Temperature      PC1.Relative.Humidity  PC1.Ground.Level.Pressure
+# -1.43966                    0.43401                   -0.09641                    0.03268                    0.14478                    0.17787                   -0.05232
+
+
+#> asd$fitted_models$downwind_lmm_fit
+# Linear mixed model fit by REML ['lmerMod']
+# Formula: LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 +      Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 +
+#   Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 +      Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+# Data: data[downwind & positive, ]
+# REML criterion at convergence: 14764.41
+# Random effects:
+#   Groups   Name        Std.Dev.
+# TrialDay (Intercept) 0.5232
+# Residual             1.3623
+# Number of obs: 4168, groups:  TrialDay, 488
+# Fixed Effects:
+#   (Intercept)              Gauge.Elevation                 natural_pred                  Target.H.01                  Target.H.02                  Target.H.03
+# 0.27975                     -0.12503                      0.85569                      0.28922                      0.25764                      0.23818
+# Target.H.04                  Target.H.05                  Target.H.06                  Target.H.07                  Target.H.08                  Target.H.09
+# -0.15266                      0.43253                     -0.20325                      0.22201                      0.05850                      0.48147
+# Target.H.10  Gauge.Elevation:Target.H.01  Gauge.Elevation:Target.H.02
+# 0.03444                     -0.08662                     -0.21665
+
+load('data/oman.rda')
+data = oman
+upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay)
+instr_pred_name = 'natural_pred'
+downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
+downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02
+downwind_propensity_formula = Gauge.Day.Type == 'Target' ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure
+rain_col_name = 'Rain.Gauge.Measurement'
+#
+
+asd  = rain_attr(data = oman,
+                 upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+                 instr_pred_name = 'natural_pred',
+                 instr_pred_type = 'Unconditional',
+                 downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+                 downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
+                 downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+                 rain_col_name = 'Rain.Gauge.Measurement',
+                 upwind_subset = Gauge.Day.Type == 'Upwind',
+                 downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+                 downwind_target_subset = Gauge.Day.Type == 'Target',
+                 downwind_control_subset = Gauge.Day.Type == 'Control',
+                 attr_type = 'Proposed',
+                 x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
+                 target_only = FALSE)
+
+asd$hatsate$sate.mb; asd$hatsate$sate.ipw; asd$hatsate$sate.ipw.l
+asd$hatsate$sate.ipw.ma; asd$hatsate$sate.aipw
+asd$hatattr$apl; asd$hatattr$apo
+
+
+#To replicate Table 6 of JRSSA
+# oman_in = oman
+# replicate_table6 = rain_attr(data = oman_in,
+#                              upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+#                              instr_pred_name = 'natural_pred',
+#                              instr_pred_type = 'Unconditional',
+#                              downwind_lmm_formula = LogRain ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+#                              downwind_logistic_formula = NULL,
+#                              downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+#                              rain_col_name = 'Rain.Gauge.Measurement',
+#                              upwind_subset = Gauge.Day.Type == 'Upwind' & Year!= 2013,
+#                              downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+#                              downwind_target_subset = Gauge.Day.Type == 'Target',
+#                              downwind_control_subset = Gauge.Day.Type == 'Control',
+#                              attr_type = 'Proposed',
+#                              x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
+#                              target_only = FALSE)
+#
+#
+# #Table 1 of JRSSA
+# replicate_table6$fitted_models$downwind_propensity_fit
+#
+# #Table 2 of JRSSA
+# lme4::fixef(replicate_table6$fitted_models$downwind_lmm_fit)
+#
+# #Table 3 of JRSSA
+# as.data.frame(lme4::VarCorr(replicate_table6$fitted_models$downwind_lmm_fit))
+#
+# #Table 4 of JRSSA
+# replicate_table6$fitted_models$downwind_positive_target_lmm_fit
+# replicate_table6$fitted_models$downwind_positive_control_lmm_fit
+#
+# #Table 5
+# as.data.frame(lme4::VarCorr(replicate_table6$fitted_models$downwind_positive_target_lmm_fit))
+# as.data.frame(lme4::VarCorr(replicate_table6$fitted_models$downwind_positive_control_lmm_fit))
+#
+# #DONE: Check why our AIPW estimate is different from Table 6 in JRSSA which gives 0.073 but here we get 0.07583943
+# #ANS: The reason is probably because Ray was computing sate.aipw using the incorrect expression (relationship between AIPW and MB) below equation (7) instead of directly using his equation (7).
+# #     This can be verified since our wrong.sate.aipw (computed using the incorrect relationship between AIPW and MB below equation (7) ) gives 0.07288667 which is same as the reported 0.073 of AIPW in Table 6
+#
+# #Estimate row for Table 6 of LogRain
+# unlist(replicate_table6$hatsate)
+#
+#
+# lme4::fixef(replicate_table6$fitted_models$upwind_lmm_fit)
+#
+# B_bootstrap = 3
+# bootstrap_type = 'REB0'
+# bootstrap_zero = TRUE
+# positive_prob_threshold = NULL
+# discretize_rain = TRUE
+# winsorize_individual_rain = TRUE
+# winsorize_total_rain = TRUE
+#
+# ori_data = asd$data
+#
+# #upwind = oman$Gauge.Day.Type == 'Upwind'
+# downwind = oman$Gauge.Day.Type  %in% c('Target','Control')
+# ori_positive = oman$Rain.Gauge.Measurement > 0
+# rain_col_name = 'Rain.Gauge.Measurement'
+# x_downwind_name = c('Gauge.Elevation', 'natural_pred')
+# ori_attr_est = asd$hatattr
+# ori_sate_est = asd$hatsate
+# ori_fitted_models = asd$fitted_models
+#
+# #
+# z_downwind_name = setdiff(names(lme4::fixef(asd$fitted_models$downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
+# downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+# target_only = F
+# attr_type = 'Proposed'
+
+asd2  = rain_attr(data = oman,
+                 upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+                 instr_pred_name = 'natural_pred',
+                 instr_pred_type = 'Unconditional',
+                 downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+                 downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
+                 downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+                 rain_col_name = 'Rain.Gauge.Measurement',
+                 upwind_subset = Gauge.Day.Type == 'Upwind',
+                 downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+                 downwind_target_subset = Gauge.Day.Type == 'Target',
+                 downwind_control_subset = Gauge.Day.Type == 'Control',
+                 attr_type = 'Proposed',
+                 x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
+                 target_only = FALSE,
+                 bootstrap =T,
+                 bootstrap_option = list(B_bootstrap = 3,
+                                         bootstrap_type = 'REB1',
+                                         bootstrap_zero = T,
+                                         positive_prob_threshold = NULL,
+                                         discretize_rain = T,
+                                         winsorize_individual_rain = T,
+                                         winsorize_total_rain = T
+                                         )
+                 )
+c(asd2$hatattr$apo, asd2$hatattr$apl)
+c(asd$hatattr$apo, asd$hatattr$apl)
+unlist(asd2$hatsate)
+unlist(asd$hatsate)
+
+asd2$bootstrap_result$bootstrap_attr_matrix
+asd2$bootstrap_result$bootstrap_sate_matrix
+asd2$bootstrap_result$bootstrap_downwind_lmm_param_matrix
+asd2$bootstrap_result$bootstrap_downwind_logistic_param_matrix
+asd2$bootstrap_result$bootstrap_downwind_propensity_param_matrix
+asd2$bootstrap_result$bootstrap_downwind_positive_target_lmm_param_matrix
+asd2$bootstrap_result$bootstrap_downwind_positive_control_lmm_param_matrix
+asd2$bootstrap_result$bootstrap_downwind_response_matrix[1:3,1:10]
+apply(asd2$bootstrap_result$bootstrap_downwind_response_matrix, 1 , function(x){sum(!is.na(x))})
+
+#Trying to replicate PREB bootstrap paper results:
+set.seed(123)
+asd3_PREB1  = rain_attr(data = oman,
+                  upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+                  instr_pred_name = 'natural_pred',
+                  instr_pred_type = 'Unconditional',
+                  downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+                  downwind_logistic_formula = NULL,
+                  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+                  rain_col_name = 'Rain.Gauge.Measurement',
+                  upwind_subset = Gauge.Day.Type == 'Upwind',
+                  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+                  downwind_target_subset = Gauge.Day.Type == 'Target',
+                  downwind_control_subset = Gauge.Day.Type == 'Control',
+                  attr_type = 'No',
+                  x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
+                  target_only = FALSE,
+                  bootstrap =T,
+                  bootstrap_option = list(B_bootstrap = 3,
+                                          bootstrap_type = 'PREB1',
+                                          bootstrap_zero = F,
+                                          positive_prob_threshold = NULL,
+                                          discretize_rain = F,
+                                          winsorize_individual_rain = F,
+                                          winsorize_total_rain = F
+                  )
+)
+#Verified to be equivalent to the first 3 bootstrap runs of bootstrap paper for PREB1
+#Only has minor difference in terms of 4th or 5th decimal points for some results, which could be due to the use of lme4::lmer() but we were using nlme::lme() in the bootstrap paper
+c(asd3_PREB1$hatattr$apo,asd3_PREB1$hatattr$apl, asd3_PREB1$hatsate$sate.mb, asd3_PREB1$hatsate$sate.ipw, asd3_PREB1$hatsate$sate.ipw.l)
+t(cbind(asd3_PREB1$bootstrap_result$bootstrap_attr_matrix,asd3_PREB1$bootstrap_result$bootstrap_sate_matrix))
+asd3_PREB1$bootstrap_result$bootstrap_downwind_lmm_param_matrix[1:3,]
+
+#TODO: verify the results with bootstrap paper for REB1 and MREB1, and then with
+#D:\Postdoc\Simulation\Replicate ISR Results\Bootstrap Analysis with generate_zero_T and scaled_h_sampling and Correct Scaling REB1 using Oman Data.R
+#particularly for bootstrap_zero = T, discretize_rain = T, winsorize_individual_rain = T, winsorize_total_rain = T - but this might need some restructuring of the bootstrap_downwind() since the ordering of sampling matters!
