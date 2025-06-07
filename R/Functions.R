@@ -138,6 +138,12 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 
     bootstrap_CI_result = lapply(bootstrap_result[-length(bootstrap_result)], function(x){bootstrap_CI(x,level = bootstrap_option$CI_level)})
     bootstrap_p_value_result = lapply(bootstrap_result[-length(bootstrap_result)], function(x){bootstrap_p_value(x)})
+    bootstrap_plot_result = list(
+      hatattr = bootstrap_plot(bootstrap_result$hatattr, c(hatattr$apo,hatattr$apl)),
+      hatsate = bootstrap_plot(bootstrap_result$hatsate, unlist(hatsate$estimates[-length(hatsate$estimates)]))
+    )
+
+
   }
 
   #Compute bootstrap percentile intervals, bootstrap p-values, and optionally plot the bootstrap distributions based on bootstrap_result
@@ -152,6 +158,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
       bootstrap_result = bootstrap_result,
       bootstrap_CI_result = bootstrap_CI_result,
       bootstrap_p_value_result = bootstrap_p_value_result,
+      bootstrap_plot_result = bootstrap_plot_result,
       #temporary - will be removed later sicne we dont need to return data. Currently included for debugging purposes
       data = fitted_models$data
     ))
@@ -163,6 +170,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
       bootstrap_result = NULL,
       bootstrap_CI_result = NULL,
       bootstrap_p_value_result = NULL,
+      bootstrap_plot_result = NULL,
       #temporary - will be removed later sicne we dont need to return data. Currently included for debugging purposes
       data = fitted_models$data
     ))
@@ -660,6 +668,8 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
                                                                    as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])
 
 
+      #TODO: try to save tor and tlr as well, to understand why the bootstrap plots for apo and apl are always the same shape
+      #Maybe can also go back and look at previous plots to see if we always have same shape for apo and apl
       bootstrap_attr_matrix[b,] = c(b_hatattr$apo, b_hatattr$apl)
       bootstrap_sate_matrix[b,] = c(b_hatsate$estimates$sate.mb, b_hatsate$estimates$sate.ipw, b_hatsate$estimates$sate.ipw.l, b_hatsate$estimates$sate.ipw.ma, b_hatsate$estimates$sate.aipw)
 
@@ -799,7 +809,21 @@ bootstrap_CI = function(bootstrap_result, level){
   }
 }
 
-bootstrap_plot
+
+
+bootstrap_plot = function(bootstrap_result, ori_est){
+  num_var = ncol(bootstrap_result)
+  lapply(1:num_var, function(i){
+    ggplot2::ggplot() +
+      ggplot2::geom_density(ggplot2::aes(x = bootstrap_result[,i])) +
+      ggplot2::geom_vline(xintercept = ori_est[i]) +
+      ggplot2::geom_vline(xintercept = 0,linetype="dotted") +
+      ggplot2::ggtitle(colnames(bootstrap_result)[i]) +
+      ggplot2::xlab('Bootstrapped Values') +
+      ggplot2::ylab('Density') +
+      ggplot2::theme_bw() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+  })
+}
 
 
 # Note that this function requires downwind_lmm_formula to not use the interaction syntax such as x1*x2, but instead it should always use x1 + x2 + x1:x2
@@ -1142,11 +1166,48 @@ asd3_REB2_bootstrap_zero  = rain_attr(data = oman,
                                                               CI_level = 0.95
                                       )
 )
-apply(asd3_REB2_bootstrap_zero$result$bootstrap_downwind_positive_target_lmm_param,2,mean)
+apply(asd3_REB2_bootstrap_zero$bootstrap_result$downwind_positive_target_lmm_param,2,mean)
 asd3_REB2_bootstrap_zero$all_fitted_models$downwind_positive_target_lmm_fit
 asd3_REB2_bootstrap_zero$bootstrap_CI_result
 asd3_REB2_bootstrap_zero$bootstrap_p_value_result
+ggpubr::ggarrange(plotlist =asd3_REB2_bootstrap_zero$bootstrap_plot_result$hatattr)
+ggpubr::ggarrange(plotlist = asd3_REB2_bootstrap_zero$bootstrap_plot_result$hatsate)
 
+set.seed(123)
+asd3_REB2_bootstrap_zero_discrete  = rain_attr(data = oman,
+                                               upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+                                               instr_pred_name = 'natural_pred',
+                                               instr_pred_type = 'Unconditional',
+                                               downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+                                               downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
+                                               downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+                                               rain_col_name = 'Rain.Gauge.Measurement',
+                                               upwind_subset = Gauge.Day.Type == 'Upwind',
+                                               downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+                                               downwind_target_subset = Gauge.Day.Type == 'Target',
+                                               downwind_control_subset = Gauge.Day.Type == 'Control',
+                                               attr_type = 'No',
+                                               x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
+                                               target_only = FALSE,
+                                               bootstrap =T,
+                                               bootstrap_option = list(B_bootstrap = 10,
+                                                                       bootstrap_type = 'REB2',
+                                                                       bootstrap_zero = T,
+                                                                       positive_prob_threshold = NULL,
+                                                                       discretize_rain = T,
+                                                                       winsorize_individual_rain = T,
+                                                                       winsorize_total_rain = T,
+                                                                       CI_level = 0.95
+                                               )
+)
+apply(asd3_REB2_bootstrap_zero_discrete$bootstrap_result$downwind_positive_target_lmm_param,2,mean)
+asd3_REB2_bootstrap_zero_discrete$all_fitted_models$downwind_positive_target_lmm_fit
+asd3_REB2_bootstrap_zero_discrete$bootstrap_CI_result
+asd3_REB2_bootstrap_zero_discrete$bootstrap_p_value_result
+ggpubr::ggarrange(plotlist =asd3_REB2_bootstrap_zero_discrete$bootstrap_plot_result$hatattr)
+ggpubr::ggarrange(plotlist = asd3_REB2_bootstrap_zero_discrete$bootstrap_plot_result$hatsate)
+
+asd3_REB2_bootstrap_zero_discrete$bootstrap_result$downwind_positive_target_lmm_param
 asd3_REB2_bootstrap_zero$bootstrap_result$downwind_positive_target_lmm_param
 asd3_REB2$bootstrap_result$downwind_positive_target_lmm_param
 asd3_PREB2$bootstrap_result$downwind_positive_target_lmm_param
