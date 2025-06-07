@@ -813,7 +813,7 @@ bootstrap_CI = function(bootstrap_result, level){
 
 bootstrap_plot = function(bootstrap_result, ori_est){
   num_var = ncol(bootstrap_result)
-  lapply(1:num_var, function(i){
+  output_plot_list = lapply(1:num_var, function(i){
     ggplot2::ggplot() +
       ggplot2::geom_density(ggplot2::aes(x = bootstrap_result[,i])) +
       ggplot2::geom_vline(xintercept = ori_est[i]) +
@@ -823,6 +823,8 @@ bootstrap_plot = function(bootstrap_result, ori_est){
       ggplot2::ylab('Density') +
       ggplot2::theme_bw() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
   })
+  names(output_plot_list) = colnames(bootstrap_result)
+  return(output_plot_list)
 }
 
 
