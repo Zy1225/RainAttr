@@ -879,7 +879,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
                                attr_type, x_downwind_name, target_only,
                                rain_col_name){
   #data_target_column_names are the column names of 'data', which correspond to the target indicators of all ionizers
-  #ionizer_operation_year_column)name is the column name of 'ionizer_operation' containing the year of each day
+  #ionizer_operation_year_column_name is the column name of 'ionizer_operation' containing the year of each day
   #ionizer_operation_day_column_name is the column name of 'ionizer_operation' containing the day of each observation, which should be the same column name in 'data'
   #Note that data_target_column_names should ahve the same ordering as colnames(ionizer_operation), as well as gaugeday_downwind
 
@@ -918,6 +918,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
       perm_ionizer_operation_day[perm_ionizer_operation_day[,ionizer_operation_year_column_name] == names(year_ionizer_list)[i], -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name) )  ] = perm_ionizer_operation_yearlist[[i]]
     }
 
+    #TODO: Check if we don't have 'Year' column in original 'data', would the following code still work nicely - Most probably yes, since 'Year' column would be carried over from perm_ionizer_operation_day i.e., the original ionizer_operation
     perm_ionizer_operation_gaugeday = dplyr::left_join(perm_data[, ionizer_operation_day_column_name, drop = FALSE], perm_ionizer_operation_day, by = ionizer_operation_day_column_name)
 
     if(permute_between_gaugeday){
