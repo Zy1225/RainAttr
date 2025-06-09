@@ -942,6 +942,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
                             x_downwind_name, target_only = target_only, downwind_lmm_fit = perm_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
   }
 
+  #TODO: Think if we want to also fit downwind_logistic_fit to the permuted data since the columns of Target.HXX have changed, and tehse are used as covariates in the downwind_logistic model
   #TODO: Continue adding code to comput perm_hatsate
 
 }
