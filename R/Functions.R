@@ -870,6 +870,8 @@ x_downwind_name = c('Gauge.Elevation', 'natural_pred')
 target_only = FALSE
 
 #TODO: Check if the following function of permutation_ionizer is correctly implementing what we want
+#TODO: Consider to remove ionizer_operation_yearlist, and directly use for loop (or lapply - maybe for loop is better since we are doing substituion of data) over unique(ionizer_operation[,ionizer_operation_year_column_name])
+#TODO: Check if our permutation_ionizer() gives similar permutation results as "D:\Postdoc\Simulation\Replicate ISR Results\Permutation Analysis using Oman Data - perm_row_between_gauge_day_F.R"
 permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_all_ionizers_between_day, permute_between_gaugeday,
                                ionizer_operation, gaugeday_downwind, year_ionizer_list,
                                data_target_column_names, ionizer_operation_year_column_name, ionizer_operation_day_column_name,
