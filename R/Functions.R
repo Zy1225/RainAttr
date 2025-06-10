@@ -40,9 +40,10 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      rain_col_name,
                      upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset,
                      attr_type, x_downwind_name, target_only,
-                     bootstrap = FALSE, bootstrap_option = NULL
+                     bootstrap = FALSE, bootstrap_option = NULL,
+                     permutation = FALSE, permutation_option = NULL
                      ){
-
+  #TODO: Add checks for permutation_option such as checking if permutation_option$ionizer_operation_year_column_name and permutation_option$ionizer_operation_day_column_name can be found in the colnames(ionizer_operation)
 
   if(!instr_pred_name %in% all.vars(downwind_lmm_formula)){
     stop("instr_pred_name cannot be found in downwind_lmm_formula")
@@ -141,42 +142,70 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     bootstrap_CI_result = lapply(bootstrap_result[-length(bootstrap_result)], function(x){bootstrap_CI(x,level = bootstrap_option$CI_level)})
     bootstrap_p_value_result = lapply(bootstrap_result[-length(bootstrap_result)], function(x){bootstrap_p_value(x)})
     bootstrap_plot_result = list(
-      hatattr = bootstrap_plot(bootstrap_result$hatattr, c(hatattr$apo,hatattr$apl)),
-      hatsate = bootstrap_plot(bootstrap_result$hatsate, unlist(hatsate$estimates[-length(hatsate$estimates)]))
+      hatattr = bootstrap_plot(bootstrap_result$hatattr, ori_est = c(hatattr$apo,hatattr$apl)),
+      hatsate = bootstrap_plot(bootstrap_result$hatsate, ori_est = c(hatsate$estimates$sate.mb, hatsate$estimates$sate.ipw, hatsate$estimates$sate.ipw.l, hatsate$estimates$sate.ipw.ma, hatsate$estimates$sate.aipw))
     )
 
 
+  }else{
+    bootstrap_result = NULL
+    bootstrap_CI_result = NULL
+    bootstrap_p_value_result = NULL
+    bootstrap_plot_result = NULL
   }
 
-  #Compute bootstrap percentile intervals, bootstrap p-values, and optionally plot the bootstrap distributions based on bootstrap_result
+
+
 
   #Perform Permutation Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() directly instead of using fit_upwind_downwind_models() in each permutation run
 
-  if(bootstrap){
-    return(list(
-      all_fitted_models = all_fitted_models,
-      hatattr = hatattr,
-      hatsate = hatsate$estimates,
-      bootstrap_result = bootstrap_result,
-      bootstrap_CI_result = bootstrap_CI_result,
-      bootstrap_p_value_result = bootstrap_p_value_result,
-      bootstrap_plot_result = bootstrap_plot_result,
-      #temporary - will be removed later sicne we dont need to return data. Currently included for debugging purposes
-      data = fitted_models$data
-    ))
+  if(permutation){
+    permutation_result = permutation_ionizer(B_permutation = permutation_option$B_permutation,
+                                             permute_between_ionizer = permutation_option$permute_between_ionizer,
+                                             permute_all_ionizers_between_day = permutation_option$permute_all_ionizers_between_day,
+                                             permute_between_gaugeday = permutation_option$permute_between_gaugeday,
+                                             ionizer_operation = permutation_option$ionizer_operation,
+                                             gaugeday_downwind = permutation_option$gaugeday_downwind,
+                                             year_ionizer_list = permutation_option$year_ionizer_list,
+                                             data_target_column_names = permutation_option$data_target_column_names,
+                                             ionizer_operation_year_column_name = permutation_option$ionizer_operation_year_column_name,
+                                             ionizer_operation_day_column_name = permutation_option$ionizer_operation_day_column_name,
+                                             data = fitted_models$data,
+                                             downwind_lmm_formula = downwind_lmm_formula,
+                                             downwind_propensity_formula = downwind_propensity_formula,
+                                             attr_type = attr_type,
+                                             x_downwind_name = x_downwind_name,
+                                             target_only = target_only,
+                                             rain_col_name = rain_col_name)
+    permutation_p_value_result = list(
+      hatattr = permutation_p_value(permutation_result$hatattr, ori_est = c(hatattr$apo,hatattr$apl)),
+      hatsate = permutation_p_value(permutation_result$hatsate, ori_est = c(hatsate$estimates$sate.mb, hatsate$estimates$sate.ipw, hatsate$estimates$sate.ipw.l, hatsate$estimates$sate.ipw.ma, hatsate$estimates$sate.aipw))
+    )
+
+    permutation_plot_result = list(
+      hatattr = permutation_plot(permutation_result$hatattr, ori_est = c(hatattr$apo,hatattr$apl)),
+      hatsate = permutation_plot(permutation_result$hatsate, ori_est = c(hatsate$estimates$sate.mb, hatsate$estimates$sate.ipw, hatsate$estimates$sate.ipw.l, hatsate$estimates$sate.ipw.ma, hatsate$estimates$sate.aipw))
+    )
   }else{
-    return(list(
-      all_fitted_models = all_fitted_models,
-      hatattr = hatattr,
-      hatsate = hatsate$estimates,
-      bootstrap_result = NULL,
-      bootstrap_CI_result = NULL,
-      bootstrap_p_value_result = NULL,
-      bootstrap_plot_result = NULL,
-      #temporary - will be removed later sicne we dont need to return data. Currently included for debugging purposes
-      data = fitted_models$data
-    ))
+    permutation_result = NULL
+    permutation_p_value_result = NULL
+    permutation_plot_result = NULL
   }
+
+  return(list(
+    all_fitted_models = all_fitted_models,
+    hatattr = hatattr,
+    hatsate = hatsate$estimates,
+    bootstrap_result = bootstrap_result,
+    bootstrap_CI_result = bootstrap_CI_result,
+    bootstrap_p_value_result = bootstrap_p_value_result,
+    bootstrap_plot_result = bootstrap_plot_result,
+    permutation_result = permutation_result,
+    permutation_p_value_result = permutation_p_value_result,
+    permutation_plot_result = permutation_plot_result,
+    #temporary - will be removed later sicne we dont need to return data. Currently included for debugging purposes
+    data = fitted_models$data
+  ))
 }
 
 
@@ -555,7 +584,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
   #browser()
   for(b in 1:B_bootstrap){
-    #tryCatch({
+    tryCatch({
 
       if(bootstrap_zero){
         b_downwind_positive = (runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
@@ -680,7 +709,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
 
 
-    #},error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+    },error=function(e){cat(b,"th","Bootstrap Run Skipped due to ERROR :",conditionMessage(e), "\n")})
   }
 
 
@@ -824,7 +853,7 @@ bootstrap_plot = function(bootstrap_result, ori_est){
       ggplot2::geom_vline(xintercept = 0,linetype="dotted") +
       ggplot2::ggtitle(colnames(bootstrap_result)[i]) +
       ggplot2::xlab('Bootstrapped Values') +
-      ggplot2::ylab('Density') +
+      ggplot2::ylab('Bootstrap Density') +
       ggplot2::theme_bw() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
   })
   names(output_plot_list) = colnames(bootstrap_result)
@@ -833,45 +862,44 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 
 #
 
-perm_HOp_gaugeday = dplyr::left_join(oman[,c('Year','TrialDay')], ionizer_operation, by = c('Year','TrialDay'))
-perm_HOp = perm_HOp_gaugeday[, -which(colnames(perm_HOp_gaugeday) %in% c('Year','TrialDay') )]
-
-#Replace Target.H.XX columns with the elementwise product between HDown and the newly permuted HOp matrix
-mean( (perm_HOp * gaugeday_downwind) == oman[,45:54])
-
-
+# perm_HOp_gaugeday = dplyr::left_join(oman[,c('Year','TrialDay')], ionizer_operation, by = c('Year','TrialDay'))
+# perm_HOp = perm_HOp_gaugeday[, -which(colnames(perm_HOp_gaugeday) %in% c('Year','TrialDay') )]
 #
-B_permutation = 5
-permute_between_ionizer = T
-permute_all_ionizers_between_day = T
-permute_between_gaugeday = T
+# #Replace Target.H.XX columns with the elementwise product between HDown and the newly permuted HOp matrix
+# mean( (perm_HOp * gaugeday_downwind) == oman[,45:54])
+#
+#
+# #
+# B_permutation = 5
+# permute_between_ionizer = T
+# permute_all_ionizers_between_day = T
+# permute_between_gaugeday = T
+#
+# ionizer_operation = ionizer_operation
+# gaugeday_downwind = gaugeday_downwind
+# year_ionizer_list =
+#   list(
+#     '2013' = c('H1','H2'),
+#     '2014' = c('H1','H2','H3','H4'),
+#     '2015' = c('H1','H2','H3','H4','H5','H6'),
+#     '2016' = c('H1','H2','H3','H4','H5','H6','H7','H8'),
+#     '2017' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10'),
+#     '2018' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10')
+#   )
+#
+# data_target_column_names = names(oman[45:54])
+# ionizer_operation_year_column_name = 'Year'
+# ionizer_operation_day_column_name = 'TrialDay'
+# data = asd3_PREB1$data
+# downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
+# downwind_propensity_formula = Gauge.Day.Type == 'Target' ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure
+# rain_col_name = 'Rain.Gauge.Measurement'
+# attr_type = 'Proposed'
+# x_downwind_name = c('Gauge.Elevation', 'natural_pred')
+# target_only = FALSE
 
-ionizer_operation = ionizer_operation
-gaugeday_downwind = gaugeday_downwind
-year_ionizer_list =
-  list(
-    '2013' = c('H1','H2'),
-    '2014' = c('H1','H2','H3','H4'),
-    '2015' = c('H1','H2','H3','H4','H5','H6'),
-    '2016' = c('H1','H2','H3','H4','H5','H6','H7','H8'),
-    '2017' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10'),
-    '2018' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10')
-  )
-
-data_target_column_names = names(oman[45:54])
-ionizer_operation_year_column_name = 'Year'
-ionizer_operation_day_column_name = 'TrialDay'
-data = asd3_PREB1$data
-downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
-downwind_propensity_formula = Gauge.Day.Type == 'Target' ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure
-rain_col_name = 'Rain.Gauge.Measurement'
-attr_type = 'Proposed'
-x_downwind_name = c('Gauge.Elevation', 'natural_pred')
-target_only = FALSE
-
-#TODO: Check if the following function of permutation_ionizer is correctly implementing what we want
-#TODO: Consider to remove ionizer_operation_yearlist, and directly use for loop (or lapply - maybe for loop is better since we are doing substituion of data) over unique(ionizer_operation[,ionizer_operation_year_column_name])
 #TODO: Check if our permutation_ionizer() gives similar permutation results as "D:\Postdoc\Simulation\Replicate ISR Results\Permutation Analysis using Oman Data - perm_row_between_gauge_day_F.R"
+#TODO: Consider to add parallelization option
 permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_all_ionizers_between_day, permute_between_gaugeday,
                                ionizer_operation, gaugeday_downwind, year_ionizer_list,
                                data_target_column_names, ionizer_operation_year_column_name, ionizer_operation_day_column_name,
@@ -882,49 +910,78 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
   #ionizer_operation_year_column_name is the column name of 'ionizer_operation' containing the year of each day
   #ionizer_operation_day_column_name is the column name of 'ionizer_operation' containing the day of each observation, which should be the same column name in 'data'
   #Note that data_target_column_names should ahve the same ordering as colnames(ionizer_operation), as well as gaugeday_downwind
+  #The rows of gaugeday_downwind should be ordered as the same as the order of rows of gauge-day observations in 'data'
+  if(length(unique(ionizer_operation[,ionizer_operation_day_column_name])) != nrow(ionizer_operation)){
+    stop('ionizer_operation has more than one rows associated to the same day')
+  }
 
-  permute_attr_matrix = matrix(data = NA, nrow = B_permutation, ncol = 2, dimnames = list(NULL, c('apo','apl')))
-  permute_sate_matrix = matrix(data = NA, nrow = B_permutation, ncol = 5, dimnames = list(NULL, c('sate.mb','sate.ipw','sate.ipw.l','sate.ipw.ma','sate.aipw')))
+  perm_attr_matrix = matrix(data = NA, nrow = B_permutation, ncol = 2, dimnames = list(NULL, c('apo','apl')))
+  perm_sate_matrix = matrix(data = NA, nrow = B_permutation, ncol = 5, dimnames = list(NULL, c('sate.mb','sate.ipw','sate.ipw.l','sate.ipw.ma','sate.aipw')))
 
-  ionizer_operation_yearlist = lapply(
-    names(year_ionizer_list), function(x){
-      ionizer_operation[ionizer_operation[,ionizer_operation_year_column_name] == x, -which(colnames(ionizer_operation) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name) )  ]
-    }
-  )
-  names(ionizer_operation_yearlist) = names(year_ionizer_list)
+  # ionizer_operation_yearlist = lapply(
+  #   names(year_ionizer_list), function(x){
+  #     ionizer_operation[ionizer_operation[,ionizer_operation_year_column_name] == x, -which(colnames(ionizer_operation) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name) )  ]
+  #   }
+  # )
+  # names(ionizer_operation_yearlist) = names(year_ionizer_list)
+
+
 
   for(b in 1:B_permutation){
+    tryCatch({
     perm_data = data
 
-    perm_ionizer_operation_yearlist = ionizer_operation_yearlist
+    perm_ionizer_operation_day = ionizer_operation
     if(permute_between_ionizer){
-      for(i in 1:length(perm_ionizer_operation_yearlist)){
-        deployed_ionizers = year_ionizer_list[[names(perm_ionizer_operation_yearlist)[i]]]
-        perm_ionizer_operation_yearlist[[i]] = t(apply(perm_ionizer_operation_yearlist[[i]], 1, function(x){
-          x[colnames(x) %in% deployed_ionizers] = sample(x[colnames(x) %in% deployed_ionizers])
-          return(x)
-        }))
+      for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
+        temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
+        deployed_ionizers = year_ionizer_list[[as.character(unique_year)]]
+        perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
+          t(apply(temp,1, FUN = function(x){
+            x[colnames(x) %in% deployed_ionizers] = sample(x[colnames(x) %in% deployed_ionizers])
+            return(x)
+          }))
       }
     }
 
     if(permute_all_ionizers_between_day){
-      for(i in 1:length(perm_ionizer_operation_yearlist)){
-        perm_ionizer_operation_yearlist[[i]] = perm_ionizer_operation_yearlist[[i]][sample(1:nrow(perm_ionizer_operation_yearlist[[i]])),]
+      for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
+        temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
+        perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
+          temp[sample(1:nrow(temp)),]
       }
     }
 
-    perm_ionizer_operation_day = ionizer_operation
-    for(i in 1:length(year_ionizer_list)){
-      perm_ionizer_operation_day[perm_ionizer_operation_day[,ionizer_operation_year_column_name] == names(year_ionizer_list)[i], -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name) )  ] = perm_ionizer_operation_yearlist[[i]]
-    }
 
-    #TODO: Check if we don't have 'Year' column in original 'data', would the following code still work nicely - Most probably yes, since 'Year' column would be carried over from perm_ionizer_operation_day i.e., the original ionizer_operation
+    # perm_ionizer_operation_yearlist = ionizer_operation_yearlist
+    # if(permute_between_ionizer){
+    #   for(i in 1:length(perm_ionizer_operation_yearlist)){
+    #     deployed_ionizers = year_ionizer_list[[names(perm_ionizer_operation_yearlist)[i]]]
+    #     perm_ionizer_operation_yearlist[[i]] = t(apply(perm_ionizer_operation_yearlist[[i]], 1, function(x){
+    #       x[colnames(x) %in% deployed_ionizers] = sample(x[colnames(x) %in% deployed_ionizers])
+    #       return(x)
+    #     }))
+    #   }
+    # }
+    #
+    # if(permute_all_ionizers_between_day){
+    #   for(i in 1:length(perm_ionizer_operation_yearlist)){
+    #     perm_ionizer_operation_yearlist[[i]] = perm_ionizer_operation_yearlist[[i]][sample(1:nrow(perm_ionizer_operation_yearlist[[i]])),]
+    #   }
+    # }
+    #
+    # perm_ionizer_operation_day = ionizer_operation
+    # for(i in 1:length(year_ionizer_list)){
+    #   perm_ionizer_operation_day[perm_ionizer_operation_day[,ionizer_operation_year_column_name] == names(year_ionizer_list)[i], -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name) )  ] = perm_ionizer_operation_yearlist[[i]]
+    # }
+
     perm_ionizer_operation_gaugeday = dplyr::left_join(perm_data[, ionizer_operation_day_column_name, drop = FALSE], perm_ionizer_operation_day, by = ionizer_operation_day_column_name)
 
     if(permute_between_gaugeday){
       for(unique_year in unique(perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name])){
+        temp = perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_day_column_name, ionizer_operation_year_column_name))  ]
         perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name))  ] =
-          perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name))  ][sample(1: sum(perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year)),]
+          temp[sample(1: nrow(temp)),]
       }
     }
 
@@ -943,11 +1000,50 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 
     perm_hatattr = attr_est(attr_type, perm_downwind_positive_data, rain_col_name, perm_downwind_positive_target, perm_downwind_positive_control,
                             x_downwind_name, target_only = target_only, downwind_lmm_fit = perm_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
+
+
+    perm_downwind_positive_data$permuted_target_indicator = as.logical(perm_downwind_positive_target)
+
+    if(b == 1){
+      z_downwind_name = setdiff(names(lme4::fixef(perm_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
+      perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+      perm_downwind_propensity_formula = update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
+    }
+
+    perm_hatsate = sate_est(perm_downwind_positive_data, perm_downwind_positive_target, perm_downwind_positive_control, perm_downwind_propensity_formula, perm_downwind_separate_formula,
+                            x_downwind_name, downwind_lmm_fit = perm_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
+
+    perm_attr_matrix[b,] = c(perm_hatattr$apo, perm_hatattr$apl)
+    perm_sate_matrix[b,] = c(perm_hatsate$estimates$sate.mb, perm_hatsate$estimates$sate.ipw, perm_hatsate$estimates$sate.ipw.l, perm_hatsate$estimates$sate.ipw.ma, perm_hatsate$estimates$sate.aipw)
+    },error=function(e){cat(b,"th","Permutation Run Skipped due to ERROR :",conditionMessage(e), "\n")})
   }
 
-  #TODO: Think if we want to also fit downwind_logistic_fit to the permuted data since the columns of Target.HXX have changed, and tehse are used as covariates in the downwind_logistic model
-  #TODO: Continue adding code to comput perm_hatsate
 
+  return(list(
+    hatattr = perm_attr_matrix,
+    hatsate = perm_sate_matrix
+  ))
+}
+
+permutation_p_value = function(permutation_result, ori_est){
+  return(sapply(1:ncol(permutation_result), FUN = function(i){
+    mean(permutation_result[,i] >= ori_est[i], na.rm = T )
+  }))
+}
+
+permutation_plot = function(permutation_result, ori_est){
+  num_var = ncol(permutation_result)
+  output_plot_list = lapply(1:num_var, function(i){
+    ggplot2::ggplot() +
+      ggplot2::geom_density(ggplot2::aes(x = permutation_result[,i])) +
+      ggplot2::geom_vline(xintercept = ori_est[i]) +
+      ggplot2::ggtitle(colnames(permutation_result)[i]) +
+      ggplot2::xlab('Permuted Values') +
+      ggplot2::ylab('Permutation Density') +
+      ggplot2::theme_bw() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+  })
+  names(output_plot_list) = colnames(permutation_result)
+  return(output_plot_list)
 }
 
 
@@ -1341,3 +1437,48 @@ asd3_PREB2$bootstrap_result$downwind_positive_target_lmm_param
 #D:\Postdoc\Simulation\Replicate ISR Results\Bootstrap Analysis with generate_zero_T and scaled_h_sampling and Correct Scaling REB1 using Oman Data.R
 #particularly for bootstrap_zero = T, discretize_rain = T, winsorize_individual_rain = T, winsorize_total_rain = T - but this might need some restructuring of the bootstrap_downwind() since the ordering of sampling matters!
 
+#
+set.seed(123)
+testing = rain_attr(data = oman,
+                    upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+                    instr_pred_name = 'natural_pred',
+                    instr_pred_type = 'Unconditional',
+                    downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+                    downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
+                    downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+                    rain_col_name = 'Rain.Gauge.Measurement',
+                    upwind_subset = Gauge.Day.Type == 'Upwind',
+                    downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+                    downwind_target_subset = Gauge.Day.Type == 'Target',
+                    downwind_control_subset = Gauge.Day.Type == 'Control',
+                    attr_type = 'No',
+                    x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
+                    target_only = FALSE,
+                    bootstrap =F,
+                    bootstrap_option = NULL,
+                    permutation = T,
+                    permutation_option = list(
+                      B_permutation = 5,
+                      permute_between_ionizer = T,
+                      permute_all_ionizers_between_day = T,
+                      permute_between_gaugeday = T,
+                      ionizer_operation = ionizer_operation,
+                      gaugeday_downwind = gaugeday_downwind,
+                      year_ionizer_list =
+                        list(
+                          '2013' = c('H1','H2'),
+                          '2014' = c('H1','H2','H3','H4'),
+                          '2015' = c('H1','H2','H3','H4','H5','H6'),
+                          '2016' = c('H1','H2','H3','H4','H5','H6','H7','H8'),
+                          '2017' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10'),
+                          '2018' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10')
+                        ),
+                      data_target_column_names = c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10"),
+                      ionizer_operation_year_column_name = 'Year',
+                      ionizer_operation_day_column_name = 'TrialDay'
+                    )
+)
+testing$permutation_result
+testing$permutation_p_value_result
+ggpubr::ggarrange(plotlist = testing$permutation_plot_result$hatattr)
+ggpubr::ggarrange(plotlist = testing$permutation_plot_result$hatsate)
