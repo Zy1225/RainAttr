@@ -36,6 +36,27 @@ load('data/oman.rda')
 load('data/ionizer_operation.rda')
 load('data/gaugeday_downwind.rda')
 #TODO: Add detailed documentation for each function
+
+
+
+#' @title
+#' Attribution and Sample Average Treatment Effect Estimation and Inference for Rainfall Enhancement Trial Data
+#'
+#' @description
+#' A short description...
+#'
+#' @details
+#' Additional details...
+#'
+#' @param name description
+#' @param name description
+#'
+#'
+#' @returns A list with
+#' \item
+#' \item
+#'
+
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
                      rain_col_name,
