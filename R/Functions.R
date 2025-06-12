@@ -40,23 +40,57 @@ load('data/gaugeday_downwind.rda')
 
 
 #' @title
-#' Attribution and Sample Average Treatment Effect Estimation and Inference for Rainfall Enhancement Trial Data
+#' Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data
 #'
 #' @description
-#' A short description...
+#' Perform estimation and inference of attribution and sample average treatment effect for rainfall enhancement trial data, based on the two-stage linear mixed model approach employed in Chambers et al. (2022).
 #'
 #' @details
 #' Additional details...
+#' Talk about the two-stage modelling approach, along with each formula + their subset of observation + their purpose (maybe only write out the expression of downwind lmm fit, so that we could use its hatbeta later on for attribution and SATE)
+#' Talk about different types of attr_type (maybe write out the expression and explain each attr_typee consider different lambda)
+#' Talk about the attribution estimates, implicitly assume the response in downwind_lmm_formula is Log(Rain)
+#' Talk about focusing on positive rainfall observations mostly, due to the idea of 'Enhancing rainfall' but not 'creating rainfall'
+#' Talk about different types of SATE estimates (maybe write out the expression for each SATE estimates)
 #'
-#' @param name description
-#' @param name description
+#' @param data A data frame containing the variables named in \code{upwind_lmm_formula}, \code{downwind_lmm_formula}, \code{downwind_logistic_formula} (if specified), and \code{downwind_propensity_formula}.
+#' It should also contain variables named in \code{rain_col_name}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, and \code{downwind_control_subset}.
+#' @param upwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the first-stage (upwind) linear mixed model.
+#' @param instr_pred_name A character string to store the variable name of the fitted values generated from the first-stage (upwind) linear mixed model.
+#' @param instr_pred_type Type of fitted values generated from the first-stage (upwind) model. If "Unconditional" the fitted values equal to only the estimated fixed effects. If "Conditional" the fitted values equal to the sum of estimated fixed effects and EBLUPs of random intercepts.
+#' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the second-stage (downwind) linear mixed model. This formula should contain the variable name specified in \code{instr_pred_name}.
+#' @param downwind_logistic_formula An optional two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a logistic model to the indicators of rainfall event. This only needs to be specified when \code{bootstrap = TRUE} and \code{bootstrap_option$bootstrap_zero = TRUE}.
+#' @param downwind_propensity_formula An optional two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of second stage (downwind) observations.
+#' @param rain_col_name A character string that refers to the column name of the raw scale rainfall in \code{data}.
+#' @param upwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the first stage (upwind) linear mixed model fitting. For example, \code{Gauge.Day.Type == 'Upwind'}.
+#' @param downwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the second stage (downwind) linear mixed model fitting. For example, \code{Gauge.Day.Type %in% c('Target','Control')}.
+#' @param downwind_target_subset A logical expression used to extract the relevant subset of second stage (downwind) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == 'Target'}.
+#' @param downwind_control_subset A logical expression used to extract the relevant subset of second stage (downwind) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == 'Control'}.
+#' @param attr_type Type of attribution estimates. Must be one of 'Ray_Winsorize', 'Proposed', or 'No'. See 'Details' for more information.
+#' @param x_downwind_name A vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to treatment (ionizers). Intercept is always included here.
+#' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only treatment observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
+#' @param bootstrap An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.
+#' @param bootstrap_option An optional list containing all bootstrap settings, used only when \code{bootstrap = TRUE}. See \code{\link{bootstrap_option}} for the default list elements and their usage.
+#' @param permutation An optional logical, If \code{TRUE} randomized permutation is carried out on the treatment (ionizer operation) schedule to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no randomized permutation is carried out.
+#' @param permutation_option An optional list containing all permutation settings, used only when \code{permutation = TRUE}. See \code{\link{permutation_option}} for the default list elements and their usage.
 #'
 #'
-#' @returns A list with
-#' \item
-#' \item
-#'
+#' @returns A list containing
+#' \describe{
+#' \item{all_fitted_models}{A list of model objects from \code{\link{lme4}{lmer}}} for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from \code{\link{stats}{glm}} for the logistic model of rainfall event indicator (\code{NULL} if \code{downwind_logistic_formula} is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.
+#' \item{hatattr}{A vector containing the attribution estimates.}
+#' \item{hatsate}{A vector containing the sample average treatment effect estimates.}
+#' \item{bootstrap_result}{}
+#' \item{bootstrap_CI_result}{}
+#' \item{bootstrap_p_value_result}{}
+#' \item{bootstrap_plot_result}{}
+#' \item{permutation_result}{}
+#' \item{permutation_p_value_result}{}
+#' \item{permutation_plot_result}{}
+#'}
 
+#TODO: add another argument to specify positive_subset
+#TODO: ADD dummy functions for bootstrap_option and permutation_option
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
                      rain_col_name,
