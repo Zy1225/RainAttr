@@ -43,31 +43,81 @@ load('data/gaugeday_downwind.rda')
 #' Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data
 #'
 #' @description
-#' Perform estimation and inference of attribution and sample average treatment effect for rainfall enhancement trial data, based on the two-stage linear mixed model approach employed in Chambers et al. (2022).
+#' Perform estimation and inference of attribution and sample average treatment effect for rainfall enhancement trial data, based on the two-stage linear mixed model (LMM) approach employed in Chambers et al. (2022).
 #'
 #' @details
-#' Additional details...
-#' Talk about the two-stage modelling approach, along with each formula + their subset of observation + their purpose (maybe only write out the expression of downwind lmm fit, so that we could use its hatbeta later on for attribution and SATE)
-#' Talk about different types of attr_type (maybe write out the expression and explain each attr_typee consider different lambda)
-#' Talk about the attribution estimates, implicitly assume the response in downwind_lmm_formula is Log(Rain)
+#' This function implements a two-stage modelling procedure via the following steps:
+#' \enumerate{
+#'  \item Fit an upwind (first stage) LMM using \code{lme4::lmer(upwind_lmm_formula)} to the subset of observations from \code{data} satisfying \code{upwind_subset & positive_subset}. This fitted LMM is used to obtain fitted values (named as \code{instr_pred_name}) to be used in the downwind (second stage) LMM.
+#'
+#'  \item Fit a downwind (second stage) LMM using  \code{lme4::lmer(downwind_lmm_formula)} to the subset of observations from \code{data} satisfying \code{downwind_subset & positive_subset}.
+#'  \deqn{y_{ij} =  x_{ij}^\top \alpha + z_{ij}^\top \beta + u_i + e_{ij}  }
+#'  where \eqn{i} indexes day (group) and \eqn{j} indexes gauge (unit within group), \eqn{x_{ij}} is a vector of covariates (with names supplied in \code{x_downwind_name}) that are not related to the ionizers (treatment), \eqn{z_{ij}} is a vector of ionizer (treatment) related covariates, \eqn{u_i} are random intercepts, and \eqn{e_{ij}} are error terms.
+#' }
+#' The fitted values obtained from the upwind (first stage) LMM can either be:
+#' \itemize{
+#'   \item Included as a covariate on the right-hand side of \code{downwind_lmm_formula}, e.g., \code{instr_pred_name = "natural_pred"} and \code{downwind_lmm_formula = LogRain ~ natural_pred + ...}, or
+#'   \item Included as an offset term by subtracting it from the response on the left-hand side, e.g., \code{instr_pred_name = "natural_pred"} and \code{downwind_lmm_formula = LogRain - natural_pred ~ ...}.
+#' }
+#'
+#' Two attribution estimates, namely \code{apo} and \code{apl} are computed based on the estimated fixed effect coefficients \eqn{\hat{\alpha}}, \eqn{\hat{\beta}} and EBLUPs \eqn{\hat{u}_i} from the fitted downwind (second stage) LMM. \code{apo} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total amount of observed downwind rainfall., while \code{apl} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total expected amount of downwind rainfall without the effect of ionizer (treatment).
+#' This function allows for three different ways of estimating \code{apo} and \code{apl} as specified by the argument \code{attr_type}:
+#' \describe{
+#' \item{\code{Ray_Winsorize}}{Attribution is estimated based on the approach of Chambers et al. (2022), to adjust for back-transformation bias due to the modelling of log-transformed rainfall.
+#'     \deqn{
+#'     \code{apo} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij}, \quad
+#'     \code{apl} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij} \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\},
+#'     }
+#'     where the summation is either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when target_only = TRUE), \eqn{Rain_{ij}} is the observed raw rainfall (contained in the column specified by \code{rain_col_name}),
+#'     \deqn{
+#'     \lambda = 1 + \frac{\sqrt{ (1+m)^2 + 4(\mu - 1)m  } - (1+m)}{2m},
+#'     },
+#'     \deqn{
+#'     m = \frac{\hat{V}( x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i ) }{\hat{V}(z_{ij}^\top \hat{\beta})},
+#'     }
+#'     with \eqn{\hat{V}(\cdot)} denoting the empirical variance either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when target_only = TRUE), and
+#'     \deqn{
+#'     \mu = \frac{1}{N} \sum_{(i,j)} \frac{Rain_{ij}}{\exp( x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i )},
+#'     }
+#'     and \eqn{N} is either the total number of observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or the total number of observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}).
+#'   }
+#'
+#' \item{\code{Proposed}}{Attribution is estimated based on an alternative adjustment using the estimated covariance matrix \eqn{\hat{\Sigma}} of \eqn{\hat{\beta}}.
+#'     \deqn{
+#'     \code{apo} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} - 0.5 z_{ij}^\top \hat{\Sigma} z_{ij} ) \}/ \sum_{(i,j)}Rain_{ij}, \quad
+#'     \code{apl} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} - 0.5 z_{ij}^\top \hat{\Sigma} z_{ij} ) \} /  \sum_{(i,j)}Rain_{ij} \exp(-z_{ij}^\top \hat{\beta} - 0.5 z_{ij}^\top \hat{\Sigma} z_{ij} ).
+#'     }
+#' }
+#'
+#' \item{\code{No}}{Attribution is estimated based on no adjustment.
+#'     \deqn{
+#'     \code{apo} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} ) \}/ \sum_{(i,j)}Rain_{ij}, \quad
+#'     \code{apl} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} ) \} /  \sum_{(i,j)}Rain_{ij} \exp(-z_{ij}^\top \hat{\beta} ).
+#'     }
+#' }
+#' }
+#' It is worth noting that all attribution estimates above implicitly assume that the upwind (first stage) and downwind (second stage) LMMs are modelling the log-transformed rainfall instead of the raw rainfall.
+#' These attribution estimates should therefore only be interpreted and used when the LHS of both \code{upwind_lmm_formula} and \code{downwind_lmm_formula} contains the log-transformed rainfall, not the raw rainfall.
+#'
 #' Talk about focusing on positive rainfall observations mostly, due to the idea of 'Enhancing rainfall' but not 'creating rainfall'
 #' Talk about different types of SATE estimates (maybe write out the expression for each SATE estimates)
 #'
 #' @param data A data frame containing the variables named in \code{upwind_lmm_formula}, \code{downwind_lmm_formula}, \code{downwind_logistic_formula} (if specified), and \code{downwind_propensity_formula}.
 #' It should also contain variables named in \code{rain_col_name}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, and \code{downwind_control_subset}.
-#' @param upwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the first-stage (upwind) linear mixed model.
-#' @param instr_pred_name A character string to store the variable name of the fitted values generated from the first-stage (upwind) linear mixed model.
-#' @param instr_pred_type Type of fitted values generated from the first-stage (upwind) model. If "Unconditional" the fitted values equal to only the estimated fixed effects. If "Conditional" the fitted values equal to the sum of estimated fixed effects and EBLUPs of random intercepts.
-#' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the second-stage (downwind) linear mixed model. This formula should contain the variable name specified in \code{instr_pred_name}.
+#' @param upwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the upwind (first stage) LMM.
+#' @param instr_pred_name A character string to store the variable name of the fitted values generated from the upwind (first stage) LMM.
+#' @param instr_pred_type Type of fitted values generated from the upwind (first stage) LMM.. If "Unconditional" the fitted values equal to only the estimated fixed effects. If "Conditional" the fitted values equal to the sum of estimated fixed effects and EBLUPs of random intercepts.
+#' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM. This formula should contain the variable name specified in \code{instr_pred_name}.
 #' @param downwind_logistic_formula An optional two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a logistic model to the indicators of rainfall event. This only needs to be specified when \code{bootstrap = TRUE} and \code{bootstrap_option$bootstrap_zero = TRUE}.
-#' @param downwind_propensity_formula An optional two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of second stage (downwind) observations.
+#' @param downwind_propensity_formula An optional two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 #' @param rain_col_name A character string that refers to the column name of the raw scale rainfall in \code{data}.
-#' @param upwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the first stage (upwind) linear mixed model fitting. For example, \code{Gauge.Day.Type == 'Upwind'}.
-#' @param downwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the second stage (downwind) linear mixed model fitting. For example, \code{Gauge.Day.Type %in% c('Target','Control')}.
-#' @param downwind_target_subset A logical expression used to extract the relevant subset of second stage (downwind) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == 'Target'}.
-#' @param downwind_control_subset A logical expression used to extract the relevant subset of second stage (downwind) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == 'Control'}.
+#' @param upwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == 'Upwind'}.
+#' @param downwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the downwind (second stage) LMM fitting. For example, \code{Gauge.Day.Type %in% c('Target','Control')}.
+#' @param downwind_target_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == 'Target'}.
+#' @param downwind_control_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == 'Control'}.
+#' @param positive_subset A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall - these are the observations that are used in the fitting of upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, and the downwind (second stage) propensity score model.
 #' @param attr_type Type of attribution estimates. Must be one of 'Ray_Winsorize', 'Proposed', or 'No'. See 'Details' for more information.
-#' @param x_downwind_name A vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to treatment (ionizers). Intercept is always included here.
+#' @param x_downwind_name A vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). Intercept is always included here.
 #' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only treatment observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #' @param bootstrap An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.
 #' @param bootstrap_option An optional list containing all bootstrap settings, used only when \code{bootstrap = TRUE}. See \code{\link{bootstrap_option}} for the default list elements and their usage.
@@ -80,24 +130,44 @@ load('data/gaugeday_downwind.rda')
 #' \item{all_fitted_models}{A list of model objects from \code{\link{lme4}{lmer}}} for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from \code{\link{stats}{glm}} for the logistic model of rainfall event indicator (\code{NULL} if \code{downwind_logistic_formula} is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.
 #' \item{hatattr}{A vector containing the attribution estimates.}
 #' \item{hatsate}{A vector containing the sample average treatment effect estimates.}
-#' \item{bootstrap_result}{}
-#' \item{bootstrap_CI_result}{}
-#' \item{bootstrap_p_value_result}{}
-#' \item{bootstrap_plot_result}{}
-#' \item{permutation_result}{}
-#' \item{permutation_p_value_result}{}
-#' \item{permutation_plot_result}{}
+#' \item{bootstrap_result}{A list of matrices with the following elements:}
+#' \describe{
+#'  \item{hatattr}{Matrix of bootstrap samples for attribution estimates.}
+#'  \item{hatsate}{Matrix of bootstrap samples for SATE estimates.}
+#'  \item{downwind_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) LMM.}
+#'  \item{downwind_logistic_param}{Matrix of bootstrap samples for regression coefficient estimates of downwind logistic model fitted to the rainfall event indicators. This is \code{NULL} if \code{downwind_logistic_formula} is not specified.}
+#'  \item{downwind_propensity_param}{Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators.}
+#'  \item{downwind_positive_target_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.}
+#'  \item{downwind_positive_control_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.}
+#'  \item{downwind_response}{Matrix of bootstrap samples for the responses used in the downwind (second stage) LMM. Observations with zero bootstrapped rainfall are represented as \code{NA}. When \code{instr_pred_name} is included as an offset term in \code{downwind_lmm_formula}, this matrix contains samples of bootstrapped \code{LogRain} - \code{instr_pred_name}.}
+#' }
+#' \item{bootstrap_CI_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_response}), containing the corresponding bootstrap percentile confidence intervals.}
+#' \item{bootstrap_p_value_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_response}), containing the corresponding proportion of bootstrap samples that are less than zero.}
+#' \item{bootstrap_plot_result}{A list of matrices with two elements:}
+#' \describe{
+#' \item{hatattr}{A list of \code{ggplot} objects, each showing the bootstrap distribution of attribution estimates. Each plot includes a dotted vertical line at zero and a solid vertical line at the original estimate based on the observed data.}
+#' \item{hatsate}{A list of \code{ggplot} objects, each showing the bootstrap distribution of SATE estimates. Each plot includes a dotted vertical line at zero and a solid vertical line at the original estimate based on the observed data.}
+#' }
+#' \item{permutation_result}{A list of matrices with the two elements:}
+#' \describe{
+#' \item{hatattr}{Matrix of permutation samples for attribution estimates.}
+#' \item{hatsate}{Matrix of permutation samples for SATE estimates.}
+#' }
+#' \item{permutation_p_value_result}{A list of matrices with same element names as in \code{permutation_result}, containing the corresponding proportion of permutation samples that are greater than or equal to the original estimate based on the observed data.}
+#' \item{permutation_plot_result}{A list of matrices with two elements:}
+#' \describe{
+#' \item{hatattr}{A list of \code{ggplot} objects, each showing the permutation distribution of attribution estimates. Each plot includes a solid vertical line at the original estimate based on the observed data.}
+#' \item{hatsate}{A list of \code{ggplot} objects, each showing the permutation distribution of SATE estimates. Each plot includes a solid vertical line at the original estimate based on the observed data.}
+#' }
 #'}
 
-#TODO: add another argument to specify positive_subset
-#TODO: ADD dummy functions for bootstrap_option and permutation_option
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
                      rain_col_name,
-                     upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset,
+                     upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset,
                      attr_type, x_downwind_name, target_only,
-                     bootstrap = FALSE, bootstrap_option = NULL,
-                     permutation = FALSE, permutation_option = NULL
+                     bootstrap = FALSE, bootstrap_option = bootstrap_option(),
+                     permutation = FALSE, permutation_option = permutation_option()
                      ){
   #TODO: Add checks for permutation_option such as checking if permutation_option$ionizer_operation_year_column_name and permutation_option$ionizer_operation_day_column_name can be found in the colnames(ionizer_operation)
 
@@ -166,7 +236,9 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 
   #Binary indicator of length N, indicating whether or not each observation has positive rainfall
   #Could consider to replace this by positive = (!is.na(data[,all.vars(downwind_lmm_formula)[1]])), which allow us to drop rain_col_name, but we still need rain_col_name to compute the attribution estimate anyway
-  positive = ( data[,rain_col_name] > 0)
+  #positive = ( data[,rain_col_name] > 0)
+  positive_expr = rlang::enquo(positive_subset)
+  positive = rlang::eval_tidy(positive_expr, data = data)
 
   #Binary indicator of length N_downwind_positive, indicating whether or not each downwind positive observation is target observation
   downwind_positive_target_expr = rlang::enquo(downwind_target_subset)
@@ -917,6 +989,28 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
   return(output)
 }
 
+
+
+bootstrap_option = function(B_bootstrap = 1000,
+                            bootstrap_type = 'PREB1',
+                            bootstrap_zero = T,
+                            positive_prob_threshold = NULL,
+                            discretize_rain = T,
+                            winsorize_individual_rain = T,
+                            winsorize_total_rain = T,
+                            CI_level = 0.95){
+  return(list(
+    B_bootstrap = B_bootstrap,
+    bootstrap_type = bootstrap_type,
+    bootstrap_zero = bootstrap_zero,
+    positive_prob_threshold = positive_prob_threshold,
+    discretize_rain = discretize_rain,
+    winsorize_individual_rain = winsorize_individual_rain,
+    winsorize_total_rain = winsorize_total_rain,
+    CI_level = CI_level
+  ))
+}
+
 #
 bootstrap_p_value = function(bootstrap_result){
   if(is.null(bootstrap_result)){
@@ -1117,6 +1211,42 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
   ))
 }
 
+list(
+
+)
+
+permutation_option = function(B_permutation = 1000,
+                              permute_between_ionizer = T,
+                              permute_all_ionizers_between_day = T,
+                              permute_between_gaugeday = T,
+                              ionizer_operation = ionizer_operation,
+                              gaugeday_downwind = gaugeday_downwind,
+                              year_ionizer_list =
+                                list(
+                                  '2013' = c('H1','H2'),
+                                  '2014' = c('H1','H2','H3','H4'),
+                                  '2015' = c('H1','H2','H3','H4','H5','H6'),
+                                  '2016' = c('H1','H2','H3','H4','H5','H6','H7','H8'),
+                                  '2017' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10'),
+                                  '2018' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10')
+                                ),
+                              data_target_column_names = c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10"),
+                              ionizer_operation_year_column_name = 'Year',
+                              ionizer_operation_day_column_name = 'TrialDay'){
+  return(list(
+    B_permutation = B_permutation,
+    permute_between_ionizer = permute_between_ionizer,
+    permute_all_ionizers_between_day = permute_all_ionizers_between_day,
+    permute_between_gaugeday = permute_between_gaugeday,
+    ionizer_operation = ionizer_operation,
+    gaugeday_downwind = gaugeday_downwind,
+    year_ionizer_list = year_ionizer_list,
+    data_target_column_names = data_target_column_names,
+    ionizer_operation_year_column_name = ionizer_operation_year_column_name,
+    ionizer_operation_day_column_name = ionizer_operation_day_column_name
+  ))
+}
+
 permutation_p_value = function(permutation_result, ori_est){
   return(sapply(1:ncol(permutation_result), FUN = function(i){
     mean(permutation_result[,i] >= ori_est[i], na.rm = T )
@@ -1225,7 +1355,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                  upwind_subset = Gauge.Day.Type == 'Upwind',
 #                  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                  downwind_target_subset = Gauge.Day.Type == 'Target',
-#                  downwind_control_subset = Gauge.Day.Type == 'Control',
+#                  downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
 #                  attr_type = 'Proposed',
 #                  x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                  target_only = FALSE)
@@ -1248,7 +1378,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                              upwind_subset = Gauge.Day.Type == 'Upwind' & Year!= 2013,
 #                              downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                              downwind_target_subset = Gauge.Day.Type == 'Target',
-#                              downwind_control_subset = Gauge.Day.Type == 'Control',
+#                              downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
 #                              attr_type = 'Proposed',
 #                              x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
 #                              target_only = FALSE)
@@ -1307,31 +1437,31 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 # attr_type = 'Proposed'
 
 # asd2  = rain_attr(data = oman,
-#                  upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
-#                  instr_pred_name = 'natural_pred',
-#                  instr_pred_type = 'Unconditional',
-#                  downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
-#                  downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
-#                  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
-#                  rain_col_name = 'Rain.Gauge.Measurement',
-#                  upwind_subset = Gauge.Day.Type == 'Upwind',
-#                  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
-#                  downwind_target_subset = Gauge.Day.Type == 'Target',
-#                  downwind_control_subset = Gauge.Day.Type == 'Control',
-#                  attr_type = 'Proposed',
-#                  x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
-#                  target_only = FALSE,
-#                  bootstrap =T,
-#                  bootstrap_option = list(B_bootstrap = 3,
-#                                          bootstrap_type = 'REB1',
-#                                          bootstrap_zero = T,
-#                                          positive_prob_threshold = NULL,
-#                                          discretize_rain = T,
-#                                          winsorize_individual_rain = T,
-#                                          winsorize_total_rain = T,
-#                                          CI_level = 0.95
-#                                          )
-#                  )
+#                   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+#                   instr_pred_name = 'natural_pred',
+#                   instr_pred_type = 'Unconditional',
+#                   downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+#                   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
+#                   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+#                   rain_col_name = 'Rain.Gauge.Measurement',
+#                   upwind_subset = Gauge.Day.Type == 'Upwind',
+#                   downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+#                   downwind_target_subset = Gauge.Day.Type == 'Target',
+#                   downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
+#                   attr_type = 'Proposed',
+#                   x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
+#                   target_only = FALSE,
+#                   bootstrap =T,
+#                   bootstrap_option = bootstrap_option(B_bootstrap = 3,
+#                                                       bootstrap_type = 'REB1',
+#                                                       bootstrap_zero = T,
+#                                                       positive_prob_threshold = NULL,
+#                                                       discretize_rain = T,
+#                                                       winsorize_individual_rain = T,
+#                                                       winsorize_total_rain = T,
+#                                                       CI_level = 0.95
+#                   )
+# )
 # c(asd2$hatattr$apo, asd2$hatattr$apl)
 # c(asd$hatattr$apo, asd$hatattr$apl)
 # unlist(asd2$hatsate)
@@ -1347,33 +1477,33 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 # asd2$bootstrap_result$downwind_response[1:3,1:10]
 # apply(asd2$bootstrap_result$downwind_response, 1 , function(x){sum(!is.na(x))})
 #
-# #Trying to replicate PREB-1 bootstrap paper results:
+#Trying to replicate PREB-1 bootstrap paper results:
 # set.seed(123)
 # asd3_PREB1  = rain_attr(data = oman,
-#                   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
-#                   instr_pred_name = 'natural_pred',
-#                   instr_pred_type = 'Unconditional',
-#                   downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
-#                   downwind_logistic_formula = NULL,
-#                   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
-#                   rain_col_name = 'Rain.Gauge.Measurement',
-#                   upwind_subset = Gauge.Day.Type == 'Upwind',
-#                   downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
-#                   downwind_target_subset = Gauge.Day.Type == 'Target',
-#                   downwind_control_subset = Gauge.Day.Type == 'Control',
-#                   attr_type = 'No',
-#                   x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
-#                   target_only = FALSE,
-#                   bootstrap =T,
-#                   bootstrap_option = list(B_bootstrap = 3,
-#                                           bootstrap_type = 'PREB1',
-#                                           bootstrap_zero = F,
-#                                           positive_prob_threshold = NULL,
-#                                           discretize_rain = F,
-#                                           winsorize_individual_rain = F,
-#                                           winsorize_total_rain = F,
-#                                           CI_level = 0.95
-#                   )
+#                         upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+#                         instr_pred_name = 'natural_pred',
+#                         instr_pred_type = 'Unconditional',
+#                         downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+#                         downwind_logistic_formula = NULL,
+#                         downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+#                         rain_col_name = 'Rain.Gauge.Measurement',
+#                         upwind_subset = Gauge.Day.Type == 'Upwind',
+#                         downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+#                         downwind_target_subset = Gauge.Day.Type == 'Target',
+#                         downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
+#                         attr_type = 'No',
+#                         x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
+#                         target_only = FALSE,
+#                         bootstrap =T,
+#                         bootstrap_option = bootstrap_option(B_bootstrap = 3,
+#                                                             bootstrap_type = 'PREB1',
+#                                                             bootstrap_zero = F,
+#                                                             positive_prob_threshold = NULL,
+#                                                             discretize_rain = F,
+#                                                             winsorize_individual_rain = F,
+#                                                             winsorize_total_rain = F,
+#                                                             CI_level = 0.95
+#                         )
 # )
 # #Verified to be equivalent to the first 3 bootstrap runs of bootstrap paper for PREB1
 # #Only has minor difference in terms of 4th or 5th decimal points for some results, which could be due to the use of lme4::lmer() but we were using nlme::lme() in the bootstrap paper
@@ -1401,19 +1531,19 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                         upwind_subset = Gauge.Day.Type == 'Upwind',
 #                         downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                         downwind_target_subset = Gauge.Day.Type == 'Target',
-#                         downwind_control_subset = Gauge.Day.Type == 'Control',
+#                         downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
 #                         attr_type = 'No',
 #                         x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                         target_only = FALSE,
 #                         bootstrap =T,
-#                         bootstrap_option = list(B_bootstrap = 10,
-#                                                 bootstrap_type = 'PREB2',
-#                                                 bootstrap_zero = F,
-#                                                 positive_prob_threshold = NULL,
-#                                                 discretize_rain = F,
-#                                                 winsorize_individual_rain = F,
-#                                                 winsorize_total_rain = F,
-#                                                 CI_level = 0.95
+#                         bootstrap_option = bootstrap_option(B_bootstrap = 10,
+#                                                             bootstrap_type = 'PREB2',
+#                                                             bootstrap_zero = F,
+#                                                             positive_prob_threshold = NULL,
+#                                                             discretize_rain = F,
+#                                                             winsorize_individual_rain = F,
+#                                                             winsorize_total_rain = F,
+#                                                             CI_level = 0.95
 #                         )
 # )
 # apply(asd3_PREB2$bootstrap_result$downwind_positive_target_lmm_param,2,mean)
@@ -1423,30 +1553,30 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 # #Testing REB2
 # set.seed(123)
 # asd3_REB2  = rain_attr(data = oman,
-#                         upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
-#                         instr_pred_name = 'natural_pred',
-#                         instr_pred_type = 'Unconditional',
-#                         downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
-#                         downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
-#                         downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
-#                         rain_col_name = 'Rain.Gauge.Measurement',
-#                         upwind_subset = Gauge.Day.Type == 'Upwind',
-#                         downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
-#                         downwind_target_subset = Gauge.Day.Type == 'Target',
-#                         downwind_control_subset = Gauge.Day.Type == 'Control',
-#                         attr_type = 'No',
-#                         x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
-#                         target_only = FALSE,
-#                         bootstrap =T,
-#                         bootstrap_option = list(B_bootstrap = 10,
-#                                                 bootstrap_type = 'REB2',
-#                                                 bootstrap_zero = F,
-#                                                 positive_prob_threshold = NULL,
-#                                                 discretize_rain = F,
-#                                                 winsorize_individual_rain = F,
-#                                                 winsorize_total_rain = F,
-#                                                 CI_level = 0.95
-#                         )
+#                        upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+#                        instr_pred_name = 'natural_pred',
+#                        instr_pred_type = 'Unconditional',
+#                        downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+#                        downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
+#                        downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+#                        rain_col_name = 'Rain.Gauge.Measurement',
+#                        upwind_subset = Gauge.Day.Type == 'Upwind',
+#                        downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+#                        downwind_target_subset = Gauge.Day.Type == 'Target',
+#                        downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
+#                        attr_type = 'No',
+#                        x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
+#                        target_only = FALSE,
+#                        bootstrap =T,
+#                        bootstrap_option = bootstrap_option(B_bootstrap = 10,
+#                                                            bootstrap_type = 'REB2',
+#                                                            bootstrap_zero = F,
+#                                                            positive_prob_threshold = NULL,
+#                                                            discretize_rain = F,
+#                                                            winsorize_individual_rain = F,
+#                                                            winsorize_total_rain = F,
+#                                                            CI_level = 0.95
+#                        )
 # )
 # apply(asd3_REB2$bootstrap_result$downwind_positive_target_lmm_param,2,mean)
 # asd3_REB2$all_fitted_models$downwind_positive_target_lmm_fit
@@ -1464,19 +1594,19 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                       upwind_subset = Gauge.Day.Type == 'Upwind',
 #                                       downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                                       downwind_target_subset = Gauge.Day.Type == 'Target',
-#                                       downwind_control_subset = Gauge.Day.Type == 'Control',
+#                                       downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
 #                                       attr_type = 'No',
 #                                       x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                                       target_only = FALSE,
 #                                       bootstrap =T,
-#                                       bootstrap_option = list(B_bootstrap = 10,
-#                                                               bootstrap_type = 'REB2',
-#                                                               bootstrap_zero = T,
-#                                                               positive_prob_threshold = NULL,
-#                                                               discretize_rain = F,
-#                                                               winsorize_individual_rain = F,
-#                                                               winsorize_total_rain = F,
-#                                                               CI_level = 0.95
+#                                       bootstrap_option = bootstrap_option(B_bootstrap = 10,
+#                                                                           bootstrap_type = 'REB2',
+#                                                                           bootstrap_zero = T,
+#                                                                           positive_prob_threshold = NULL,
+#                                                                           discretize_rain = F,
+#                                                                           winsorize_individual_rain = F,
+#                                                                           winsorize_total_rain = F,
+#                                                                           CI_level = 0.95
 #                                       )
 # )
 # apply(asd3_REB2_bootstrap_zero$bootstrap_result$downwind_positive_target_lmm_param,2,mean)
@@ -1499,19 +1629,19 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                                upwind_subset = Gauge.Day.Type == 'Upwind',
 #                                                downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                                                downwind_target_subset = Gauge.Day.Type == 'Target',
-#                                                downwind_control_subset = Gauge.Day.Type == 'Control',
+#                                                downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
 #                                                attr_type = 'No',
 #                                                x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                                                target_only = FALSE,
 #                                                bootstrap =T,
-#                                                bootstrap_option = list(B_bootstrap = 10,
-#                                                                        bootstrap_type = 'REB2',
-#                                                                        bootstrap_zero = T,
-#                                                                        positive_prob_threshold = NULL,
-#                                                                        discretize_rain = T,
-#                                                                        winsorize_individual_rain = T,
-#                                                                        winsorize_total_rain = T,
-#                                                                        CI_level = 0.95
+#                                                bootstrap_option = bootstrap_option(B_bootstrap = 10,
+#                                                                                    bootstrap_type = 'REB2',
+#                                                                                    bootstrap_zero = T,
+#                                                                                    positive_prob_threshold = NULL,
+#                                                                                    discretize_rain = T,
+#                                                                                    winsorize_individual_rain = T,
+#                                                                                    winsorize_total_rain = T,
+#                                                                                    CI_level = 0.95
 #                                                )
 # )
 # apply(asd3_REB2_bootstrap_zero_discrete$bootstrap_result$downwind_positive_target_lmm_param,2,mean)
@@ -1543,14 +1673,14 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                     upwind_subset = Gauge.Day.Type == 'Upwind',
 #                     downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                     downwind_target_subset = Gauge.Day.Type == 'Target',
-#                     downwind_control_subset = Gauge.Day.Type == 'Control',
+#                     downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
 #                     attr_type = 'No',
 #                     x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                     target_only = FALSE,
 #                     bootstrap =F,
 #                     bootstrap_option = NULL,
 #                     permutation = T,
-#                     permutation_option = list(
+#                     permutation_option = permutation_option(
 #                       B_permutation = 5,
 #                       permute_between_ionizer = T,
 #                       permute_all_ionizers_between_day = T,
@@ -1592,14 +1722,14 @@ my_perm_result_TT_RayWinsorize = rain_attr(data = oman,
                                            upwind_subset = Gauge.Day.Type == 'Upwind',
                                            downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
                                            downwind_target_subset = Gauge.Day.Type == 'Target',
-                                           downwind_control_subset = Gauge.Day.Type == 'Control',
+                                           downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
                                            attr_type = 'Ray Winsorize',
                                            x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
                                            target_only = FALSE,
                                            bootstrap =F,
                                            bootstrap_option = NULL,
                                            permutation = T,
-                                           permutation_option = list(
+                                           permutation_option = permutation_option(
                                              B_permutation = 6,
                                              permute_between_ionizer = T,
                                              permute_all_ionizers_between_day = T,
@@ -1638,14 +1768,14 @@ my_perm_result_TT_Proposed = rain_attr(data = oman,
                                            upwind_subset = Gauge.Day.Type == 'Upwind',
                                            downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
                                            downwind_target_subset = Gauge.Day.Type == 'Target',
-                                           downwind_control_subset = Gauge.Day.Type == 'Control',
+                                           downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
                                            attr_type = 'Proposed',
                                            x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
                                            target_only = FALSE,
                                            bootstrap =F,
                                            bootstrap_option = NULL,
                                            permutation = T,
-                                           permutation_option = list(
+                                           permutation_option = permutation_option(
                                              B_permutation = 6,
                                              permute_between_ionizer = T,
                                              permute_all_ionizers_between_day = T,
@@ -1683,14 +1813,14 @@ my_perm_result_TT_RayWinsorize = rain_attr(data = oman,
                                            upwind_subset = Gauge.Day.Type == 'Upwind',
                                            downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
                                            downwind_target_subset = Gauge.Day.Type == 'Target',
-                                           downwind_control_subset = Gauge.Day.Type == 'Control',
+                                           downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
                                            attr_type = 'Ray Winsorize',
                                            x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
                                            target_only = FALSE,
                                            bootstrap =F,
                                            bootstrap_option = NULL,
                                            permutation = T,
-                                           permutation_option = list(
+                                           permutation_option = permutation_option(
                                              B_permutation = 6,
                                              permute_between_ionizer = T,
                                              permute_all_ionizers_between_day = T,
@@ -1728,14 +1858,14 @@ my_perm_result_TT_Proposed = rain_attr(data = oman,
                                        upwind_subset = Gauge.Day.Type == 'Upwind',
                                        downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
                                        downwind_target_subset = Gauge.Day.Type == 'Target',
-                                       downwind_control_subset = Gauge.Day.Type == 'Control',
+                                       downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
                                        attr_type = 'Proposed',
                                        x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
                                        target_only = FALSE,
                                        bootstrap =F,
                                        bootstrap_option = NULL,
                                        permutation = T,
-                                       permutation_option = list(
+                                       permutation_option = permutation_option(
                                          B_permutation = 6,
                                          permute_between_ionizer = T,
                                          permute_all_ionizers_between_day = T,
