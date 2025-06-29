@@ -57,7 +57,7 @@ replicate_result = rain_attr(
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
 
   #Logical indicating whether the attribution estimates should be based on only 'Target' observations (TRUE), or based on both 'Target' and 'Control' observations (FALSE)
-  target_only = FALSE
+  target_only = FALSE,
 
   #Indicator for whether to perform bootstrap inference on attribution and SATE
   bootstrap = FALSE,
