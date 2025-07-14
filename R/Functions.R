@@ -429,6 +429,26 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 #Optional input arguments: hatalphabeta, hatu
 #Note that for attr_type == 'Proposed', the hatSigma_beta matrix is ALWAYS obtained from downwind_lmm_fit
 #When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{conditional}
+
+
+#' @title
+#' Attribution Estimation
+#'
+#' @description
+#' Perform estimation of attribution for rainfall enhancement trial data.
+#'
+#' @param data A data frame containing the variables named in \code{upwind_lmm_formula}, \code{downwind_lmm_formula}, \code{downwind_logistic_formula} (if specified), and \code{downwind_propensity_formula}.
+#' It should also contain variables named in \code{rain_col_name}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, and \code{downwind_control_subset}.
+#' @param upwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the upwind (first stage) LMM.
+#' @return A list containing:\tabular{ll}{
+#'    \code{pars} \tab A numeric vector of parameter estimates \cr
+#'    \tab \cr
+#'    \code{std.errs} \tab A numeric vector of standard errors on parameters \cr
+#'    \tab \cr
+#'    \code{cov.mat} \tab Parameter covariance matrix (excluding mean) \cr
+#' }
+
+
 attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_positive_target, downwind_positive_control,
                     x_downwind_name, target_only, downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL){
   if(target_only){
