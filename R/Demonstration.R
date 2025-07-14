@@ -98,55 +98,55 @@ c(replicate_result$hatattr$apl, replicate_result$hatattr$apo)
 #### Catching user errors ####
 
 # Inconsistency between instrumental prediction variable name vs. its use in downwind_lmm_formula
-rain_attr(
-  data = oman,
-  upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
-  #Variable name for storing instrumental prediction from upwind LMM
-  instr_pred_name = 'natural_pred',
-  instr_pred_type = 'Unconditional',
-  #LMM formula fitted to the downwind observations
-  downwind_lmm_formula = LogRain ~ natural_pred_typo + Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
-  downwind_logistic_formula = NULL,
-  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
-  rain_col_name = 'Rain.Gauge.Measurement',
-  upwind_subset = Gauge.Day.Type == 'Upwind' & Year!= 2013,
-  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
-  downwind_target_subset = Gauge.Day.Type == 'Target',
-  downwind_control_subset = Gauge.Day.Type == 'Control',
-  positive_subset = Rain.Gauge.Measurement > 0,
-  attr_type = 'Proposed',
-  x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
-  target_only = FALSE,
-  bootstrap = FALSE,
-  bootstrap_option = bootstrap_option(),
-  permutation = FALSE,
-  permutation_option = permutation_option()
-)
+# rain_attr(
+#   data = oman,
+#   upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+#   #Variable name for storing instrumental prediction from upwind LMM
+#   instr_pred_name = 'natural_pred',
+#   instr_pred_type = 'Unconditional',
+#   #LMM formula fitted to the downwind observations
+#   downwind_lmm_formula = LogRain ~ natural_pred_typo + Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+#   downwind_logistic_formula = NULL,
+#   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+#   rain_col_name = 'Rain.Gauge.Measurement',
+#   upwind_subset = Gauge.Day.Type == 'Upwind' & Year!= 2013,
+#   downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+#   downwind_target_subset = Gauge.Day.Type == 'Target',
+#   downwind_control_subset = Gauge.Day.Type == 'Control',
+#   positive_subset = Rain.Gauge.Measurement > 0,
+#   attr_type = 'Proposed',
+#   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
+#   target_only = FALSE,
+#   bootstrap = FALSE,
+#   bootstrap_option = bootstrap_option(),
+#   permutation = FALSE,
+#   permutation_option = permutation_option()
+# )
 
 # Invalid attribution type requested by user
-rain_attr(
-  data = oman,
-  upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
-  instr_pred_name = 'natural_pred',
-  instr_pred_type = 'Unconditional',
-  downwind_lmm_formula = LogRain ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
-  downwind_logistic_formula = NULL,
-  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
-  rain_col_name = 'Rain.Gauge.Measurement',
-  upwind_subset = Gauge.Day.Type == 'Upwind' & Year!= 2013,
-  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
-  downwind_target_subset = Gauge.Day.Type == 'Target',
-  downwind_control_subset = Gauge.Day.Type == 'Control',
-  positive_subset = Rain.Gauge.Measurement > 0,
-  #Invalid attr_type requested
-  attr_type = 'Anytype',
-  x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
-  target_only = FALSE,
-  bootstrap = FALSE,
-  bootstrap_option = bootstrap_option(),
-  permutation = FALSE,
-  permutation_option = permutation_option()
-)
+# rain_attr(
+#   data = oman,
+#   upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+#   instr_pred_name = 'natural_pred',
+#   instr_pred_type = 'Unconditional',
+#   downwind_lmm_formula = LogRain ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+#   downwind_logistic_formula = NULL,
+#   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+#   rain_col_name = 'Rain.Gauge.Measurement',
+#   upwind_subset = Gauge.Day.Type == 'Upwind' & Year!= 2013,
+#   downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+#   downwind_target_subset = Gauge.Day.Type == 'Target',
+#   downwind_control_subset = Gauge.Day.Type == 'Control',
+#   positive_subset = Rain.Gauge.Measurement > 0,
+#   #Invalid attr_type requested
+#   attr_type = 'Anytype',
+#   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
+#   target_only = FALSE,
+#   bootstrap = FALSE,
+#   bootstrap_option = bootstrap_option(),
+#   permutation = FALSE,
+#   permutation_option = permutation_option()
+# )
 
 #### Bootstrap Inference ####
 set.seed(123)
