@@ -45,17 +45,17 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 
 \item{rain_col_name}{A character string that refers to the column name of the raw scale rainfall in \code{data}.}
 
-\item{upwind_subset}{A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == 'Upwind'}.}
+\item{upwind_subset}{A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == "Upwind"}.}
 
-\item{downwind_subset}{A logical expression used to extract the relevant subset of observations from \code{data} to be used in the downwind (second stage) LMM fitting. For example, \code{Gauge.Day.Type \%in\% c('Target','Control')}.}
+\item{downwind_subset}{A logical expression used to extract the relevant subset of observations from \code{data} to be used in the downwind (second stage) LMM fitting. For example, \code{Gauge.Day.Type \%in\% c("Target","Control")}.}
 
-\item{downwind_target_subset}{A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == 'Target'}.}
+\item{downwind_target_subset}{A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Target"}.}
 
-\item{downwind_control_subset}{A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == 'Control'}.}
+\item{downwind_control_subset}{A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Control"}.}
 
 \item{positive_subset}{A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall - these are the observations that are used in the fitting of upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, and the downwind (second stage) propensity score model.}
 
-\item{attr_type}{Type of attribution estimates. Must be one of 'Ray_Winsorize', 'Proposed', or 'No'. See 'Details' for more information.}
+\item{attr_type}{Type of attribution estimates. Must be one of "Ray_Winsorize", "Proposed", or "No". See "Details" for more information.}
 
 \item{x_downwind_name}{A vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). Intercept is always included here.}
 
@@ -127,19 +127,16 @@ The fitted values obtained from the upwind (first stage) LMM can either be:
 Two attribution estimates, namely \code{apo} and \code{apl} are computed based on the estimated fixed effect coefficients \eqn{\hat{\alpha}}, \eqn{\hat{\beta}} and EBLUPs \eqn{\hat{u}_i} from the fitted downwind (second stage) LMM. \code{apo} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total amount of observed downwind rainfall., while \code{apl} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total expected amount of downwind rainfall without the effect of ionizer (treatment).
 This function allows for three different ways of estimating \code{apo} and \code{apl} as specified by the argument \code{attr_type}:
 \describe{
-\item{\code{Ray_Winsorize}}{Attribution is estimated based on the approach of Chambers et al. (2022), to adjust for back-transformation bias due to the modelling of log-transformed rainfall.
+\item{\code{Ray_Winsorize}}{Attribution is estimated based on the approach of Chambers et al. (2022), to adjust for back-transformation bias due to the modelling of log-transformed rainfall:
 \deqn{
     \code{apo} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij}, \quad
     \code{apl} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij} \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\},
     }
-where the summation is either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when target_only = TRUE), \eqn{Rain_{ij}} is the observed raw rainfall (contained in the column specified by \code{rain_col_name}),
+where the summation is either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}), \eqn{Rain_{ij}} is the observed raw rainfall (contained in the column specified by \code{rain_col_name}),
 \deqn{
-    \lambda = 1 + \frac{\sqrt{ (1+m)^2 + 4(\mu - 1)m  } - (1+m)}{2m},
-    },
-\deqn{
-    m = \frac{\hat{V}( x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i ) }{\hat{V}(z_{ij}^\top \hat{\beta})},
+    \lambda = 1 + \frac{\sqrt{ (1+m)^2 + 4(\mu - 1)m  } - (1+m)}{2m}, m = \frac{\hat{V}( x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i ) }{\hat{V}(z_{ij}^\top \hat{\beta})},
     }
-with \eqn{\hat{V}(\cdot)} denoting the empirical variance either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when target_only = TRUE), and
+with \eqn{\hat{V}(\cdot)} denoting the empirical variance either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}), and
 \deqn{
     \mu = \frac{1}{N} \sum_{(i,j)} \frac{Rain_{ij}}{\exp( x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i )},
     }
@@ -159,11 +156,10 @@ and \eqn{N} is either the total number of observations satisfying \code{downwind
     \code{apl} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} ) \} /  \sum_{(i,j)}Rain_{ij} \exp(-z_{ij}^\top \hat{\beta} ).
     }
 }
-}
 All attribution estimates above implicitly assume that the upwind (first stage) and downwind (second stage) LMMs are modelling the log-transformed rainfall instead of the raw rainfall.
 These attribution estimates should therefore only be interpreted and used when the LHS of both \code{upwind_lmm_formula} and \code{downwind_lmm_formula} contains the log-transformed rainfall, not the raw rainfall.
-
-The computation of SATE estimates involves fitting a downwind (second stage) propensity score model using \code{glm(downwind_propensity_formula, family = 'binomial')} to the subset of observations from \code{data} satisfying \code{downwind_subset & positive_subset}, with the response being an indicator \eqn{I_{ij}} for whether each observation is exposed to the ionizer (treatment), i.e., \eqn{I_{ij} = 1} if it satisfies \code{downwind_target_subset & positive_subset}, and \eqn{I_{ij} = 0} if it satisfies \code{downwind_control_subset & positive_subset}.
+}
+The computation of SATE estimates involves fitting a downwind (second stage) propensity score model using \code{glm(downwind_propensity_formula, family = "binomial")} to the subset of observations from \code{data} satisfying \code{downwind_subset & positive_subset}, with the response being an indicator \eqn{I_{ij}} for whether each observation is exposed to the ionizer (treatment), i.e., \eqn{I_{ij} = 1} if it satisfies \code{downwind_target_subset & positive_subset}, and \eqn{I_{ij} = 0} if it satisfies \code{downwind_control_subset & positive_subset}.
 The estimated propensity scores (i.e., fitted values) from this fitted propensity score model, denoted as \eqn{\hat{\pi}_{ij}}, are then used to compute the inverse propensity weights (IPW) \eqn{\hat{w}_{ij,1} = \hat{\pi}_{ij}^{-1} / \sum_{(k,l)}  (\hat{\pi}_{kl}^{-1} I_{kl}) } and \eqn{ \hat{w}_{ij,0} = (1 - \hat{\pi}_{ij})^{-1} / \sum_{(k,l)} \{ (1- \hat{\pi}_{kl})^{-1} (1- I_{kl}) \} }, where the summation is over all observations from \code{data} satisfying \code{downwind_subset & positive_subset}.
 These IPW weights are then used, together with the estimation results of the downwind (second stage) LMM, to obtain the following five types of SATE estimates:
 \itemize{
@@ -185,13 +181,13 @@ Similarly, \eqn{\hat{m}_{ij,0}} are fitted values (using fixed effect only) obta
 }
 }
 
-This function can also be used to perform bootstrap inference on the attribution and SATE, by setting \code{bootstrap = T} and supplying the relevant bootstrap options using \code{\link{bootstrap_option}()}.
+This function can also be used to perform bootstrap inference on the attribution and SATE, by setting \code{bootstrap = TRUE} and supplying the relevant bootstrap options using \code{\link{bootstrap_option}()}.
 For full details of the bootstrap procedure, please see \code{\link{bootstrap_downwind}}. Briefly, the bootstrap is carried out in two levels by conditioning on the upwind (first stage) LMM and its fitted values:
 \itemize{
-\item{First level is an optional level that is only carried out when \code{bootstrap_option(bootstrap_zero = T)}. This level considers generating bootstrap samples of rainfall event indicator for the subset of observatinos satisfying \code{downwind_subset} using the predicted probabilities from the downwind logistic model. This model is fitted using \code{glm(downwind_logistic_formula, family = 'binomial')} to the subset of observations from \code{data} satisfying \code{downwind_subset}, with the response being an indicator for whether the observed rainfall is greater than zero, i.e., the indicator is defined by the logical expression \code{positive_subset}.
+\item{First level is an optional level that is only carried out when \code{bootstrap_option(bootstrap_zero = TRUE)}. This level considers generating bootstrap samples of rainfall event indicator for the subset of observatinos satisfying \code{downwind_subset} using the predicted probabilities from the downwind logistic model. This model is fitted using \code{glm(downwind_logistic_formula, family = "binomial")} to the subset of observations from \code{data} satisfying \code{downwind_subset}, with the response being an indicator for whether the observed rainfall is greater than zero, i.e., the indicator is defined by the logical expression \code{positive_subset}.
 }
 
-\item{Second level generates bootstrap samples of positive rainfall for the subset of observations not only satisfying \code{downwind_subset} but also with the first-level bootstrapped rainfall event indicator being equal to one. When \code{bootstrap_option(bootstrap_zero = F)}, then this level generates bootstrap samples of positive rainfall for the subset of observations satisfying \code{downwind_subset & positive_subset}.
+\item{Second level generates bootstrap samples of positive rainfall for the subset of observations not only satisfying \code{downwind_subset} but also with the first-level bootstrapped rainfall event indicator being equal to one. When \code{bootstrap_option(bootstrap_zero = FALSE)}, then this level generates bootstrap samples of positive rainfall for the subset of observations satisfying \code{downwind_subset & positive_subset}.
 This is done using one of the semiparametric bootstrap methods of Chambers & Chandra (2013) and Tho et al. (2025), which involves the use of marginal residuals from the fitted downwind (second stage) LMM.   }
 }
 The above attribution and SATE estimates are then computed based on each bootstrap sample of the positive rainfall, forming their respective bootstrap distributions. This function also provides bootstrap distributions of parameters associated with the downwind LMM (\code{downwind_lmm_formula}), downwind logistic model (\code{downwind_logistic_formula}), downwind propensity score model (\code{downwind_propensity_formula}), downwind treatment-only LMM, and downwind control-only LMM.
