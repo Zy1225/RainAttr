@@ -691,13 +691,15 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 
 
 #' @title
-#' Bootstrap for Rainfall Enhancement Trial Data
+#' Bootstrap Procedure for Rainfall Enhancement Trial Data
 #'
 #' @description
-#' Perform bootstrap inference of attribution and sample average treatment effect for rainfall enhancement trial data.
+#' Implements the two-level bootstrap procdure used in \code{\link{rain_attr}} for inference on attribution and sample average treatment effect in rainfall enhancement trial data.
 #'
 #' @details
-#' This function performs bootstrap inference on the attribution and SATE through a two-level bootstrap procedure by conditioning on the upwind (first stage) LMM and its fitted values.
+#' This function implements the bootstrap procedure described in \code{\link{rain_attr}}.
+#' It is intended for internal use only. Users should not call this function
+#' directly. Instead, bootstrap inference should be performed by calling \code{\link{rain_attr}} with \code{bootstrap = TRUE}.
 #'
 #' \strong{First-Level Bootstrap} \cr
 #' The first-level is an optional level that is only carried out when \code{bootstrap_zero = TRUE}. This level generates bootstrap samples of binary rainfall event indicator \eqn{L_{ij}^*} via \eqn{P(L_{ij}^* = 1) = \hat{\gamma}_{ij} } for the subset of observations from \code{ori_data} satisfying \code{downwind}, where \eqn{\hat{\gamma}_{ij}} are the predicted probabilities from the downwind logistic model fitted to the original binary rainfall event indicators \eqn{L_{ij}} i.e., \eqn{\hat{\gamma}_{ij}} = \code{predict(ori_fitted_models$downwind_logistic_fit,type = "response")}.
@@ -763,19 +765,41 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'
 #' CONTINUE TALKING ABOUT
 #' \itemize{
+#' \item{Add the procedure for MREB1}
 #' \item{Brief discussion of difference between REB vs PREB vs MREB, and refer to our paper for the discussion. Suggestion to use PREB1 or MREB1, especially when dealing with unbalanced day(groups)}
 #' \item{Optional adjustment of bootstrapped raw rainfall, noting this implicitly assume y is log-rainfall, and this should also automatically accounts for the offset term.}
 #' \item{The generation of many bootstrap samples, followed by fitting downwind LMM and computation of SATE/attribution, to obtain bootstrap distributions of not only SATE/attribution but also parameters of all fitted models to the bootstrapped data.}
 #' \item{The post-processing used in REB2 and PREB2.}
 #' \item{Can use other functions such as bootstrap_p_value and bootstrap_CI and bootstrap_plot on the output to get different results.}
+#' \item{Update the Arguments section}
 #'
 #' }
 #'
 #' The above attribution and SATE estimates are then computed based on each bootstrap sample of the positive rainfall, forming their respective bootstrap distributions. This function also provides bootstrap distributions of parameters associated with the downwind LMM (\code{downwind_lmm_formula}), downwind logistic model (\code{downwind_logistic_formula}), downwind propensity score model (\code{downwind_propensity_formula}), downwind treatment-only LMM, and downwind control-only LMM.
 #' These bootstrap distributions are then used to compute bootstrap p-values (proportion of bootstrapped estimates that are negative), form bootstrap percentile confidence intervals (with confidence level specified in \code{\link{bootstrap_option}()}), and generate their respective plots.
 #'
-#' @param B_bootstrap Number of bootstrap replicates
-#' @param bootstrap_type Type of bootstrap
+#' @param B_bootstrap Integer. Number of bootstrap replicates. (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param bootstrap_type Character. Type of bootstrap (e.g., \code{"PREB1"}). (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param bootstrap_zero Logical. Allow zero rainfall in bootstrap samples? (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param positive_prob_threshold Numeric or \code{NULL}. Threshold for positive rainfall probability. (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param discretize_rain Logical. Discretize rainfall in resamples? (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param winsorize_individual_rain Logical. Winsorize individual rainfall values? (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param winsorize_total_rain Logical. Winsorize total rainfall per cluster? (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#'
+#' @param ori_data Data frame. Original dataset used for estimation. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param downwind Data frame. Downwind observations. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param ori_positive Vector. Original positive rainfall indicator. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param rain_col_name Character. Name of the rainfall column. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param downwind_target_subset Index or logical vector for treated downwind observations. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param downwind_control_subset Index or logical vector for control downwind observations. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param ori_fitted_models List. Original fitted models (upwind and downwind). (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param downwind_lmm_formula Formula for the downwind LMM. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param attr_type Character. Attribution type (\code{"binary"} or \code{"continuous"}). (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param x_downwind_name Character vector of covariate names for the downwind model. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param target_only Logical. Restrict to target area only. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param downwind_propensity_formula Formula for the downwind propensity model. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param ori_attr_est Numeric. Original attribution estimate. (Internal argument, set automatically when using \code{\link{rain_attr}})
+#' @param ori_sate_est Numeric. Original SATE estimate. (Internal argument, set automatically when using \code{\link{rain_attr}})
 #'
 #' @returns A list containing
 #' \describe{
@@ -788,6 +812,8 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'  \item{downwind_positive_control_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.}
 #'  \item{downwind_response}{Matrix of bootstrap samples for the responses used in the downwind (second stage) LMM. Observations with zero bootstrapped rainfall are represented as \code{NA}. When \code{instr_pred_name} is included as an offset term in \code{downwind_lmm_formula}, this matrix contains samples of bootstrapped \code{LogRain} - \code{instr_pred_name}.}
 #' }
+#'
+#' @seealso \code{\link{rain_attr}} for the main function
 
 
 #TODO: Consider to add another variation of 'PREB2' and 'REB2' for adjusting downwind_lmm_fit's fixef as well as random effects, and plug these corrected estimates to compute hatattr and hatsate, rather than directly centering hatattr and hatsate
