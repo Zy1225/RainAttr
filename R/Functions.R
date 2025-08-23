@@ -1037,6 +1037,10 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
         }
       }
 
+      #TODO: Try not to update the downwind_lmm_formula, since we might need to extract this formula from b_downwind_lmm_fit when using attr_est() below,
+      #especially when dealing with offset term in loghatw of attr_est()
+
+
 
       #Create a new column 'bootstrapped_y' instead of replacing the LogRain column to accommodate for the case of having LogRain - natural_pred on the LHS of downwind_lmm_formula
       #In this case, we are essentially creating bootstrapped_y = LogRain* - natural_pred, where LogRain* = natural_pred + Xhatbeta + u* + e*
