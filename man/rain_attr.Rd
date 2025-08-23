@@ -134,7 +134,7 @@ This function allows for three different ways of estimating \code{apo} and \code
     }
 where the summation is either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}), \eqn{Rain_{ij}} is the observed raw rainfall (contained in the column specified by \code{rain_col_name}),
 \deqn{
-    \lambda = 1 + \frac{\sqrt{ (1+m)^2 + 4(\mu - 1)m  } - (1+m)}{2m}, m = \frac{\hat{V}( x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i ) }{\hat{V}(z_{ij}^\top \hat{\beta})},
+    \lambda = 1 + \frac{\sqrt{ (1+m)^2 + 4(\mu - 1)m  } - (1+m)}{2m}, m = \frac{\hat{V}( x_{ij}^\top \hat{\alpha}  + \hat{u}_i ) }{\hat{V}(z_{ij}^\top \hat{\beta})},
     }
 with \eqn{\hat{V}(\cdot)} denoting the empirical variance either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}), and
 \deqn{
