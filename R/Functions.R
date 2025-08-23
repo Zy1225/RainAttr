@@ -831,7 +831,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'
 #' @seealso \code{\link{rain_attr}} for the main function
 
-
+#TODO: Consider checking and possibly replacing the code to perform adjustment on raw rainfall when LHS of downwind_lmm_formula contains offset term
 #TODO: Consider to add another variation of 'PREB2' and 'REB2' for adjusting downwind_lmm_fit's fixef as well as random effects, and plug these corrected estimates to compute hatattr and hatsate, rather than directly centering hatattr and hatsate
 #TODO: Consider adding a parallelization option
 bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_individual_rain, winsorize_total_rain,
