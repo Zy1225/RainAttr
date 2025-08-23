@@ -443,7 +443,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 #'    \code{cov.mat} \tab Parameter covariance matrix (excluding mean) \cr
 #' }
 
-#TODO: Think if the loghatd is missing the offset term, when offset term is specified on LHS of downwind_lmm_formula
+#TODO: Think if the loghatw is missing the offset term, when offset term is specified on LHS of downwind_lmm_formula
 attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_positive_target, downwind_positive_control,
                     x_downwind_name, target_only, downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL){
   if(target_only){
