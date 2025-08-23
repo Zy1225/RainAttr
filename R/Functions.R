@@ -697,7 +697,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' Implements the two-level bootstrap procdure used in \code{\link{rain_attr}} for inference on attribution and sample average treatment effect in rainfall enhancement trial data.
 #'
 #' @details
-#' This function implements the bootstrap procedure described in \code{\link{rain_attr}}.
+#' This function implements the bootstrap procedure used in \code{\link{rain_attr}}.
 #' It is intended for internal use only. Users should not call this function
 #' directly. Instead, bootstrap inference should be performed by calling \code{\link{rain_attr}} with \code{bootstrap = TRUE}.
 #'
@@ -719,8 +719,8 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' \describe{
 #' \item{\code{REB0}}{
 #'    \itemize{
-#'     \item \eqn{u_i^* = SRSWR( \{\hat{u}_1, \ldots, \hat{u}_D \}, 1 )} for \eqn{i=1,\ldots, D^*}, where \eqn{D} is the number of unique days (groups) from \code{ori_data} satisfying \code{downwind & ori_positive}, \eqn{D^*} is the number of unique days (groups) from \code{ori_data} satisfying \code{downwind} and \eqn{L_{ij}^* = 1}, and \eqn{SRSWR(a,c)} denote the outcome of \eqn{c} independent draws based on simple random sampling with replacement from the vector \eqn{a}.
-#'     \item First, sample the donor cluster \eqn{d_i^* = SRSWR{ (1,\ldots,D), 1 } } for \eqn{i = 1,\ldots, D^*}. Then, sample
+#'     \item \eqn{u_i^* = SRSWR( (\hat{u}_1, \ldots, \hat{u}_D ), 1 )} for \eqn{i=1,\ldots, D^*}, where \eqn{D} is the number of unique days (groups) from \code{ori_data} satisfying \code{downwind & ori_positive}, \eqn{D^*} is the number of unique days (groups) from \code{ori_data} satisfying \code{downwind} and \eqn{L_{ij}^* = 1}, and \eqn{SRSWR(a,c)} denote the outcome of \eqn{c} independent draws based on simple random sampling with replacement from the vector \eqn{a}.
+#'     \item First, sample the donor cluster \eqn{d_i^* = SRSWR( ( 1,\ldots,D ), 1 ) } for \eqn{i = 1,\ldots, D^*}. Then, sample
 #'     \eqn{e_i^* = (e_{i1}^*, \ldots, e_{in_i^*}^*)^\top = SRSWR( ( \hat{e}_{d_i^* 1}, \ldots, \hat{e}_{d_i^* n_{d_i^*}} ), n_i^*    )  }, where \eqn{n_i^*} denotes the total number of observations in day (group) \eqn{i} from \code{ori_data} satisfying \code{downwind} and \eqn{L_{ij}^* = 1}.
 #'    }
 #' }
@@ -729,7 +729,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{REB0} with
 #' \eqn{\hat{u}_{ij}^{cs} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} \hat{u}_i^2 \}^{-1/2} } and
 #' \eqn{\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2} }, respectively,
-#' where \eqn{ \hat{u}_i^c = \hat{u}_i - D^{-1} \sum_{i'=1}^{D} \hat{u}_{i'} }, \eqn{\hat{\sigma}^2_u} and \eqn{\hat{\sigma}^2_e} are the estimated variances of random intercepts and error terms from the fitted downwind (second stage) LMM i.e., \code{ori_fitted_models$downwind_lmm_fit}, and \eqn{N = \sum_{i=1}^{D} n_i} is the total number of observations from \code{ori_data} satisfying \code{downwind & ori_positive}.
+#' where \eqn{ \hat{u}_i^c = \hat{u}_i - D^{-1} \sum_{i'=1}^{D} \hat{u}_{i'} }, \eqn{\hat{\sigma}^2_u} and \eqn{\hat{\sigma}^2_e} are the estimated variances of random intercepts and error terms from the fitted downwind (second stage) LMM, and \eqn{N = \sum_{i=1}^{D} n_i} is the total number of observations from \code{ori_data} satisfying \code{downwind & ori_positive}.
 #' }
 #'
 #' \item{\code{REB2}}{
@@ -738,9 +738,9 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'
 #' \item{\code{PREB0}}{
 #'    \itemize{
-#'     \item \eqn{u_i^* = SRSWR( \{\hat{u}_1, \ldots, \hat{u}_D \}, 1 )} for \eqn{i=1,\ldots, D^*}.
+#'     \item \eqn{u_i^* = SRSWR( (\hat{u}_1, \ldots, \hat{u}_D ), 1 )} for \eqn{i=1,\ldots, D^*}.
 #'     \item First, sample the donor cluster \eqn{d_i^* = PPSWR{ (1,\ldots,D), (n_1,\cdots, n_D), 1 } } for \eqn{i = 1,\ldots, D^*},
-#'     where \eqn{PPSWR(a,b,c)} denotes tthe outcome of \eqn{c} independent draws based on probability-proportional-to-size sampling with replacement from the vector \eqn{a = (a_1,\ldots, a_D)} with corresponding sizes given by the vector \eqn{b = (b_1,\ldots,b_D)},
+#'     where \eqn{PPSWR(a,b,c)} denotes the outcome of \eqn{c} independent draws based on probability-proportional-to-size sampling with replacement from the vector \eqn{a = (a_1,\ldots, a_D)} with corresponding sizes given by the vector \eqn{b = (b_1,\ldots,b_D)},
 #'     i.e., the probability of \eqn{a_i} being selected is given as \eqn{b_i / \sum_{i' = 1}^{D} b_{i'}}.
 #'     Then, sample
 #'     \eqn{e_i^* = (e_{i1}^*, \ldots, e_{in_i^*}^*)^\top = SRSWR( ( \hat{e}_{d_i^* 1}, \ldots, \hat{e}_{d_i^* n_{d_i^*}} ), n_i^*    )  }.
@@ -748,7 +748,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' }
 #'
 #' \item{\code{PREB1}}{
-#' Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{REB0} with
+#' Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{PREB0} with
 #' \eqn{\hat{u}_{ij}^{sc} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} (\hat{u}_i^c)^2 \}^{-1/2} } and
 #' \eqn{\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2} }, respectively.
 #' }
@@ -757,17 +757,33 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' Same procedure for obtaining \eqn{u_i^*} and \eqn{e_{ij}^*} as in \code{PREB0}, but involves an additional post-processing step on the bootstrap estimates of attribution and SATE, as discussed below.
 #' }
 #'
+#' \item{\code{MREB1}}{
+#' Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{REB0} with
+#' \eqn{\hat{u}_{ij}^{sc}} defined under \code{PREB1} and
+#' \eqn{\tilde{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{  \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } D^{-1} n_{i'}^{-1} \hat{e}_{i'j'}^2  \}^{-1/2} }, respectively.
+#' }
+#'
 #' }
 #'
 #' The random effect block (REB0, REB1, REB2) bootstraps proposed in Chambers and Chandra (2013) were originally designed to handle balanced clustered data, while the proportional REB (PREB0, PREB1, PREB2) bootstraps and the MREB1 bootstrap proposed by Tho et al. (2025) are generalizations of the REB bootstraps to accommodate highly unbalanced clustered data.
 #' Therefore, it is recommended to use either \code{bootstrap_type = "PREB1"} or \code{bootstrap_type = "MREB1"}, especially when \eqn{n_i}'s are highly unbalanced. Users are refered to Tho et al. (2025) for more discussion on the comparison among these bootstrap methods.
 #'
+#' \strong{Adjustment of Bootstrapped Rainfall} \cr
+#' After obtaining the bootstrapped \eqn{y_{ij}^*} that are assumed to be log-rainfall, it is possible to perform some adjustment to the bootstrap samples to ensure that they are similar to the observed data.
+#'
+#' Let \eqn{Rain_{ij}^* = \exp(y_{ij}^*)} be the bootstrapped raw rainfall.
+#' When \code{discretize_rain = TRUE}, bootstrap samples that satisfy \eqn{ Rain_{ij}^* \in (0, 0.3] } are replaced as 0.2, \eqn{ Rain_{ij}^* \in (0.3, 0.5] } are replaced as 0.4, \eqn{ Rain_{ij}^* \in (0.5, 0.7] } are replaced as 0.6, and \eqn{ Rain_{ij}^* \in (0.7, 0.9] } are replaced as 0.8.
+#'
+#' When \code{winsorize_individual_rain = TRUE}, bootstrap samples that satisfy \eqn{Rain_{ij}^* >  } \code{individual_rain_upper} are replaced as \code{individual_rain_center} + ( \code{individual_rain_upper} -  \code{individual_rain_center} ) \eqn{\times U_{ij}^* }, where each of the \eqn{U_{ij}^*} are i.i.d. standard uniform random numbers.
+#'
+#' When \code{winsorize_total_rain = TRUE}, if \eqn{ \sum_{(i,j)} Rain_{ij}^* \notin [} \code{total_rain_lower}, \code{total_rain_upper} \eqn{]} where the summation is over the subset of observations in \code{ori_data} satisfying \code{downwind} and \eqn{L_{ij}^* = 1}, then all bootstrap samples of \eqn{Rain_{ij}^*} are rescaled by a common factor of \code{runif(n = 1, min = total_rain_lower, max = total_rain_upper)} \eqn{ / \sum_{(i,j)} Rain_{ij}^*  }.
+#'
+#' The final adjusted \eqn{Rain_{ij}^*} are converted back to the log-scale based on the formula \eqn{y_{ij}^* = \log(Rain_{ij}^*)}. Therefore, these adjustments should only be used when modelling log-transformed rainfall in the two-stage LMM approach, but not raw rainfall.
+#' If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \code{downwind_lmm_formula = LogRain - Offset}, the above adjustments could still be used as the function would use the relationship \eqn{Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )}.
 #'
 #' CONTINUE TALKING ABOUT
 #' \itemize{
-#' \item{Add the procedure for MREB1}
-#' \item{Brief discussion of difference between REB vs PREB vs MREB, and refer to our paper for the discussion. Suggestion to use PREB1 or MREB1, especially when dealing with unbalanced day(groups)}
-#' \item{Optional adjustment of bootstrapped raw rainfall, noting this implicitly assume y is log-rainfall, and this should also automatically accounts for the offset term.}
+#' \item{CHECK if we are doing the adjustment correctly when offset term is included in LHS of downwind_lmm_formula!}
 #' \item{The generation of many bootstrap samples, followed by fitting downwind LMM and computation of SATE/attribution, to obtain bootstrap distributions of not only SATE/attribution but also parameters of all fitted models to the bootstrapped data.}
 #' \item{The post-processing used in REB2 and PREB2.}
 #' \item{Can use other functions such as bootstrap_p_value and bootstrap_CI and bootstrap_plot on the output to get different results.}
@@ -1022,7 +1038,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       }
 
 
-      #Create a new column 'bootstrapped_y' instead of replacing the LogRain column to accommodate for the case of having LogRain - natural_pred on the RHS of downwind_lmm_formula
+      #Create a new column 'bootstrapped_y' instead of replacing the LogRain column to accommodate for the case of having LogRain - natural_pred on the LHS of downwind_lmm_formula
       #In this case, we are essentially creating bootstrapped_y = LogRain* - natural_pred, where LogRain* = natural_pred + Xhatbeta + u* + e*
       b_downwind_positive_data$bootstrapped_y = b_y
       b_downwind_lmm_fit = lme4::lmer(update.formula(downwind_lmm_formula, bootstrapped_y ~ . ),
