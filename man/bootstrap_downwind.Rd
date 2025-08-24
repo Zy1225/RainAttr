@@ -81,7 +81,7 @@ A list containing
 \item{downwind_propensity_param}{Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators.}
 \item{downwind_positive_target_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.}
 \item{downwind_positive_control_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.}
-\item{downwind_response}{Matrix of bootstrap samples for the responses used in the downwind (second stage) LMM. Observations with zero bootstrapped rainfall are represented as \code{NA}. When \code{instr_pred_name} is included as an offset term in \code{downwind_lmm_formula}, this matrix contains samples of bootstrapped \code{LogRain} - \code{instr_pred_name}.}
+\item{downwind_LogRain}{Matrix of bootstrap samples for the responses used in the downwind (second stage) LMM. Observations with zero bootstrapped rainfall are represented as \code{NA}. When \code{instr_pred_name} is included as an offset term in \code{downwind_lmm_formula}, this matrix contains samples of bootstrapped \code{LogRain} - \code{instr_pred_name}.}
 }
 }
 \description{
@@ -174,7 +174,6 @@ If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \c
 
 CONTINUE TALKING ABOUT
 \itemize{
-\item{CHECK if we are doing the adjustment correctly when offset term is included in LHS of downwind_lmm_formula!}
 \item{The generation of many bootstrap samples, followed by fitting downwind LMM and computation of SATE/attribution, to obtain bootstrap distributions of not only SATE/attribution but also parameters of all fitted models to the bootstrapped data.}
 \item{The post-processing used in REB2 and PREB2.}
 \item{Can use other functions such as bootstrap_p_value and bootstrap_CI and bootstrap_plot on the output to get different results.}

@@ -84,10 +84,10 @@ A list containing
 \item{downwind_propensity_param}{Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators.}
 \item{downwind_positive_target_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.}
 \item{downwind_positive_control_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.}
-\item{downwind_response}{Matrix of bootstrap samples for the responses used in the downwind (second stage) LMM. Observations with zero bootstrapped rainfall are represented as \code{NA}. When \code{instr_pred_name} is included as an offset term in \code{downwind_lmm_formula}, this matrix contains samples of bootstrapped \code{LogRain} - \code{instr_pred_name}.}
+\item{downwind_LogRain}{Matrix of bootstrap samples for the responses used in the downwind (second stage) LMM. Observations with zero bootstrapped rainfall are represented as \code{NA}. When \code{instr_pred_name} is included as an offset term in \code{downwind_lmm_formula}, this matrix contains samples of bootstrapped \code{LogRain} - \code{instr_pred_name}.}
 }
-\item{bootstrap_CI_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_response}), containing the corresponding bootstrap percentile confidence intervals.}
-\item{bootstrap_p_value_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_response}), containing the corresponding proportion of bootstrap samples that are less than zero.}
+\item{bootstrap_CI_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding bootstrap percentile confidence intervals.}
+\item{bootstrap_p_value_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding proportion of bootstrap samples that are less than zero.}
 \item{bootstrap_plot_result}{A list of matrices with two elements:}
 \describe{
 \item{hatattr}{A list of \code{ggplot} objects, each showing the bootstrap distribution of attribution estimates. Each plot includes a dotted vertical line at zero and a solid vertical line at the original estimate based on the observed data.}
@@ -141,6 +141,11 @@ with \eqn{\hat{V}(\cdot)} denoting the empirical variance either across all obse
     \mu = \frac{1}{N} \sum_{(i,j)} \frac{Rain_{ij}}{\exp( x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i )},
     }
 and \eqn{N} is either the total number of observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or the total number of observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}).
+When an offset term is included on the LHS of \code{downwind_lmm_formula}, the expressions of \eqn{m} and \eqn{\mu} become
+\deqn{
+    m = \frac{\hat{V}( offset_{ij} + x_{ij}^\top \hat{\alpha}  + \hat{u}_i ) }{\hat{V}(z_{ij}^\top \hat{\beta})}, \mu = \frac{1}{N} \sum_{(i,j)} \frac{Rain_{ij}}{\exp( offset_{ij} + x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i )}.
+    }
+
 }
 
 \item{\code{Proposed}}{Attribution is estimated based on an alternative adjustment using the estimated covariance matrix \eqn{\hat{\Sigma}} of \eqn{\hat{\beta}}.
