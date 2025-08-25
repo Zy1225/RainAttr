@@ -84,7 +84,7 @@ A list containing
 \item{downwind_propensity_param}{Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators.}
 \item{downwind_positive_target_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.}
 \item{downwind_positive_control_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.}
-\item{downwind_LogRain}{Matrix of bootstrap samples for the responses used in the downwind (second stage) LMM. Observations with zero bootstrapped rainfall are represented as \code{NA}. When \code{instr_pred_name} is included as an offset term in \code{downwind_lmm_formula}, this matrix contains samples of bootstrapped \code{LogRain} - \code{instr_pred_name}.}
+\item{downwind_LogRain}{Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}.}
 }
 \item{bootstrap_CI_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding bootstrap percentile confidence intervals.}
 \item{bootstrap_p_value_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding proportion of bootstrap samples that are less than zero.}

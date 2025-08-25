@@ -170,7 +170,10 @@ When \code{winsorize_individual_rain = TRUE}, bootstrap samples that satisfy \eq
 When \code{winsorize_total_rain = TRUE}, if \eqn{ \sum_{(i,j)} Rain_{ij}^* \notin [} \code{total_rain_lower}, \code{total_rain_upper} \eqn{]} where the summation is over the subset of observations in \code{ori_data} satisfying \code{downwind} and \eqn{L_{ij}^* = 1}, then all bootstrap samples of \eqn{Rain_{ij}^*} are rescaled by a common factor of \code{runif(n = 1, min = total_rain_lower, max = total_rain_upper)} \eqn{ / \sum_{(i,j)} Rain_{ij}^*  }.
 
 The final adjusted \eqn{Rain_{ij}^*} are converted back to the log-scale based on the formula \eqn{y_{ij}^* = \log(Rain_{ij}^*)}. Therefore, these adjustments should only be used when modelling log-transformed rainfall in the two-stage LMM approach, but not raw rainfall.
-If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \code{downwind_lmm_formula = LogRain - Offset}, the above adjustments could still be used as the function would use the relationship \eqn{Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )}.
+If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \code{downwind_lmm_formula = LogRain - Offset}, the above adjustments could still be used as the function would use the relationship \eqn{Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )} and \eqn{y_{ij}^* = \log(Rain_{ij}^*) + Offset_{ij} }.
+
+\strong{Bootstrap Distributions of Attribution, SATE and other parameters}
+The bootstrap samples of \eqn{y_{ij}^*} generated from the above two-level bootstrap procedure are used to replace the original observed \eqn{y_{ij}}, and the same procedure described in \code{\link{rain_attr}} \link{rain_attr}
 
 CONTINUE TALKING ABOUT
 \itemize{

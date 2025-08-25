@@ -176,7 +176,7 @@ load('data/gaugeday_downwind.rda')
 #'  \item{downwind_propensity_param}{Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators.}
 #'  \item{downwind_positive_target_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.}
 #'  \item{downwind_positive_control_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.}
-#'  \item{downwind_LogRain}{Matrix of bootstrap samples for the responses used in the downwind (second stage) LMM. Observations with zero bootstrapped rainfall are represented as \code{NA}. When \code{instr_pred_name} is included as an offset term in \code{downwind_lmm_formula}, this matrix contains samples of bootstrapped \code{LogRain} - \code{instr_pred_name}.}
+#'  \item{downwind_LogRain}{Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}.}
 #' }
 #' \item{bootstrap_CI_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding bootstrap percentile confidence intervals.}
 #' \item{bootstrap_p_value_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding proportion of bootstrap samples that are less than zero.}
@@ -801,7 +801,14 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' When \code{winsorize_total_rain = TRUE}, if \eqn{ \sum_{(i,j)} Rain_{ij}^* \notin [} \code{total_rain_lower}, \code{total_rain_upper} \eqn{]} where the summation is over the subset of observations in \code{ori_data} satisfying \code{downwind} and \eqn{L_{ij}^* = 1}, then all bootstrap samples of \eqn{Rain_{ij}^*} are rescaled by a common factor of \code{runif(n = 1, min = total_rain_lower, max = total_rain_upper)} \eqn{ / \sum_{(i,j)} Rain_{ij}^*  }.
 #'
 #' The final adjusted \eqn{Rain_{ij}^*} are converted back to the log-scale based on the formula \eqn{y_{ij}^* = \log(Rain_{ij}^*)}. Therefore, these adjustments should only be used when modelling log-transformed rainfall in the two-stage LMM approach, but not raw rainfall.
-#' If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \code{downwind_lmm_formula = LogRain - Offset}, the above adjustments could still be used as the function would use the relationship \eqn{Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )}.
+#' If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \code{downwind_lmm_formula = LogRain - Offset}, the above adjustments could still be used as the function would use the relationship \eqn{Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )} and \eqn{y_{ij}^* = \log(Rain_{ij}^*) + Offset_{ij} }.
+#'
+#' \strong{Bootstrap Distributions of Attribution, SATE and other parameters}
+#' The same procedure described in \code{\link{rain_attr}} is then repeated on the bootstrapped dataset, where the bootstrap samples of \eqn{y_{ij}^*} generated from the above two-level bootstrap procedure are used to replace the original observed \eqn{y_{ij}}.
+#' This includes the fitting of the downwind (second stage) LMM, downwind (second-stage) target-only LMM, and downwind (second-stage) control-only LMM to the subset of observations from \code{ori_data} satisfying \code{downwind &} \eqn{L_{ij}^* = 1}}. When \code{bootstrap_zero = TRUE}, two additional models are also fitted; namely,
+#' the downwind logistic model fitted to the subset of observations from \code{ori_data} satisfying \code{downwind} with the response being the bootstrapped rainfall event indicator \eqn{L_{ij}^*}, and
+#' the downwind propensity score model fitted to the subset of observations from \code{ori_data} satisfying \code{downwind &} \eqn{L_{ij}^* = 1}} with the response being the indicator \eqn{I_{ij}} for exposure to ionizer (treatment).
+#' Finally, two attribution estimates and five SATE estimates are computed based on the estimation results of these models fitted to the bootstrapped dataset, where \eqn{Rain_{ij}} and \eqn{y_{ij}} are replaced by their bootstrap counterparts \eqn{Rain_{ij}^*} and \eqn{y_{ij}^*}, respectively.
 #'
 #' CONTINUE TALKING ABOUT
 #' \itemize{
@@ -854,6 +861,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 
 #TODO: Consider to add another variation of 'PREB2' and 'REB2' for adjusting downwind_lmm_fit's fixef as well as random effects, and plug these corrected estimates to compute hatattr and hatsate, rather than directly centering hatattr and hatsate
 #TODO: Consider adding a parallelization option
+#TODO: Consider to not having to refit downwind_propernsity_formula in every bootstrap run if bootstrap_zero = FALSE, since they should be exactly the same when bootstrap_zero = FALSE
 bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_individual_rain, winsorize_total_rain,
                               ori_data, downwind, ori_positive, rain_col_name, downwind_target_subset, downwind_control_subset, ori_fitted_models,
                               downwind_lmm_formula, attr_type, x_downwind_name, target_only,
@@ -957,12 +965,16 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
   bootstrap_downwind_lmm_param_matrix = matrix(data = NA, nrow = B_bootstrap,
                                                ncol = length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']),
                                                dimnames = list(NULL, c(names(lme4::fixef(ori_fitted_models$downwind_lmm_fit)), paste0('VarComponent_',as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'grp'] ) )))
-  if(bootstrap_zero){bootstrap_downwind_logistic_param_matrix = matrix(data = NA, nrow = B_bootstrap,
+  if(bootstrap_zero){
+    bootstrap_downwind_logistic_param_matrix = matrix(data = NA, nrow = B_bootstrap,
                                                                        ncol = length(coef(ori_fitted_models$downwind_logistic_fit)),
-                                                                       dimnames = list(NULL, names(coef(ori_fitted_models$downwind_logistic_fit))))}
-  bootstrap_downwind_propensity_param_matrix = matrix(data = NA, nrow = B_bootstrap,
-                                                      ncol = length(coef(ori_fitted_models$downwind_propensity_fit)),
-                                                      dimnames = list(NULL, names(coef(ori_fitted_models$downwind_propensity_fit))))
+                                                                       dimnames = list(NULL, names(coef(ori_fitted_models$downwind_logistic_fit))))
+
+    bootstrap_downwind_propensity_param_matrix = matrix(data = NA, nrow = B_bootstrap,
+                                                        ncol = length(coef(ori_fitted_models$downwind_propensity_fit)),
+                                                        dimnames = list(NULL, names(coef(ori_fitted_models$downwind_propensity_fit))))
+    }
+
   bootstrap_downwind_positive_target_lmm_param_matrix = matrix(data = NA, nrow = B_bootstrap,
                                                                ncol = length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov']),
                                                                dimnames = list(NULL, c(names(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)), paste0('VarComponent_',as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'grp'] ) )))
@@ -1122,7 +1134,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       b_hatsate = sate_est(b_downwind_positive_data, b_downwind_positive_target, b_downwind_positive_control, downwind_propensity_formula, downwind_separate_formula,
                            x_downwind_name, downwind_lmm_fit = b_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
-      bootstrap_downwind_propensity_param_matrix[b,] = coef(b_hatsate$fitted_models$downwind_propensity_fit)
+      if(bootstrap_zero){bootstrap_downwind_propensity_param_matrix[b,] = coef(b_hatsate$fitted_models$downwind_propensity_fit)}
       bootstrap_downwind_positive_target_lmm_param_matrix[b,] = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_target_lmm_fit),
                                                                   as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])
       bootstrap_downwind_positive_control_lmm_param_matrix[b,] = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_control_lmm_fit),
@@ -1176,10 +1188,12 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     if(bootstrap_zero){
       bootstrap_downwind_logistic_param_matrix = bootstrap_downwind_logistic_param_matrix + matrix(data = rep( coef(ori_fitted_models$downwind_logistic_fit) - apply(bootstrap_downwind_logistic_param_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
                                                                                                    nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_logistic_param_matrix), byrow = TRUE)
+
+      bootstrap_downwind_propensity_param_matrix = bootstrap_downwind_propensity_param_matrix + matrix(data = rep( coef(ori_fitted_models$downwind_propensity_fit) - apply(bootstrap_downwind_propensity_param_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+                                                                                                       nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_propensity_param_matrix), byrow = TRUE)
     }
 
-    bootstrap_downwind_propensity_param_matrix = bootstrap_downwind_propensity_param_matrix + matrix(data = rep( coef(ori_fitted_models$downwind_propensity_fit) - apply(bootstrap_downwind_propensity_param_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
-                                                                                                     nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_propensity_param_matrix), byrow = TRUE)
+
 
     bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))] =
       bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))] +
@@ -1220,7 +1234,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       hatsate = bootstrap_sate_matrix,
       downwind_lmm_param = bootstrap_downwind_lmm_param_matrix,
       downwind_logistic_param = NULL,
-      downwind_propensity_param = bootstrap_downwind_propensity_param_matrix,
+      downwind_propensity_param = NULL,
       downwind_positive_target_lmm_param = bootstrap_downwind_positive_target_lmm_param_matrix,
       downwind_positive_control_lmm_param = bootstrap_downwind_positive_control_lmm_param_matrix,
       downwind_LogRain = bootstrap_downwind_LogRain_matrix
