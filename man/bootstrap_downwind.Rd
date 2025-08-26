@@ -172,8 +172,29 @@ When \code{winsorize_total_rain = TRUE}, if \eqn{ \sum_{(i,j)} Rain_{ij}^* \noti
 The final adjusted \eqn{Rain_{ij}^*} are converted back to the log-scale based on the formula \eqn{y_{ij}^* = \log(Rain_{ij}^*)}. Therefore, these adjustments should only be used when modelling log-transformed rainfall in the two-stage LMM approach, but not raw rainfall.
 If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \code{downwind_lmm_formula = LogRain - Offset}, the above adjustments could still be used as the function would use the relationship \eqn{Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )} and \eqn{y_{ij}^* = \log(Rain_{ij}^*) + Offset_{ij} }.
 
-\strong{Bootstrap Distributions of Attribution, SATE and other parameters}
-The bootstrap samples of \eqn{y_{ij}^*} generated from the above two-level bootstrap procedure are used to replace the original observed \eqn{y_{ij}}, and the same procedure described in \code{\link{rain_attr}} \link{rain_attr}
+\strong{Bootstrap Distributions of Attribution, SATE and other parameters} \cr
+
+The same procedure described in \code{\link{rain_attr}} is then repeated on the bootstrapped dataset, where the bootstrap samples of \eqn{y_{ij}^*} generated from the above two-level bootstrap procedure are used to replace the original observed \eqn{y_{ij}}.
+This includes the fitting of the downwind (second stage) LMM, downwind (second-stage) target-only LMM, and downwind (second-stage) control-only LMM to the subset of observations from \code{ori_data} satisfying \code{downwind &} \eqn{ L_{ij}^* = 1}. When \code{bootstrap_zero = TRUE}, two additional models are also fitted; namely,
+the downwind logistic model fitted to the subset of observations from \code{ori_data} satisfying \code{downwind} with the response being the bootstrapped rainfall event indicator \eqn{L_{ij}^*}, and
+the downwind propensity score model fitted to the subset of observations from \code{ori_data} satisfying \code{downwind &} \eqn{L_{ij}^* = 1} with the response being the indicator \eqn{I_{ij}} for exposure to ionizer (treatment).
+Finally, two attribution estimates and five SATE estimates are computed based on the estimation results of these models fitted to the bootstrapped dataset, where \eqn{Rain_{ij}} and \eqn{y_{ij}} are replaced by their bootstrap counterparts \eqn{Rain_{ij}^*} and \eqn{y_{ij}^*}, respectively.
+
+By repeatedly generating bootstrap samples, fitting models and computing attribution and SATE estimates for \code{B_bootstrap} number of times, this function returns the bootstrap distributions of
+\itemize{
+\item{Two attribution estimates}
+\item{Five SATE estimates}
+\item{Fixed effect coefficients and random effect variance estimates of downwind LMM, downwind treatment-only LMM, and downwind control-only LMM.}
+\item{Log-transformed rainfall \eqn{\log(Rain_{ij}^*)}}
+\item{Regression coefficient estimates of downwind logistic model fitted to the bootstrapped rainfall event indicators, only when \code{bootstrap_zero = TRUE}}
+\item{Regression coefficient estimates of downwind propensity score model, only when \code{bootstrap_zero = TRUE}}
+}
+
+The \code{REB2} and \code{PREB2} perform post-processing on all of the above bootstrap distributions (except for log-transformed rainfall) from \code{REB0} and \code{PREB0}, respectively.
+In particular, the bootstrap distributions of attribution, SATE, fixed effect coefficients of LMM's, and regression coefficient estimates of downwind logistic model and downwind propensity score model are all mean-centered at their corresponding original estimates based on the original data,
+based on the formula \eqn{ \hat{\theta}^{*}_b = \hat{\theta}^{*}_b + \hat{\theta} - \sum_{b=1}^{B} \hat{\theta}^{*}_b / B  }, where \eqn{\hat{\theta}^*_b} denotes a generic parameter estimate based on the b-th bootstrap sample and \eqn{\hat{\theta}} denotes the corresponding estimate based on the original data.
+As for the random effect variance estimates of LMM's, the bootstrap distributions of random intercept variance (\eqn{\hat{\sigma}^2_u}) and error variance (\eqn{\hat{\sigma}^2_e}) are firstly modified so that they are empirically uncorrelated. For more details on such modification, please see \code{\link{adjust_bootstrap_var_components}}, Section 2.3.3 of Chambers & Chandra (2013) and Section 2.3 of Tho et al. (2025).
+Then, a ratio correction is performed for each of these two bootstrap distributions based on the formula \eqn{ \tilde{\sigma}^2_{(b)} =   \tilde{\sigma}^2_{(b)} \times \hat{\sigma^2} / ( \sum_{b=1}^{B} \tilde{\sigma}^2_b / B  )  }, where \eqn{\tilde{\sigma}^2_b} denotes a generic post-modification variance component estimate based on the b-th bootstrap sample and \eqn{\hat{\sigma}^2} denotes the corresponding variance component estimate based on the original data.
 
 CONTINUE TALKING ABOUT
 \itemize{

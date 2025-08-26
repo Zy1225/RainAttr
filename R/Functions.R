@@ -125,7 +125,7 @@ load('data/gaugeday_downwind.rda')
 #' This function can also be used to perform bootstrap inference on the attribution and SATE, by setting \code{bootstrap = TRUE} and supplying the relevant bootstrap options using \code{\link{bootstrap_option}()}.
 #' For full details of the bootstrap procedure, please see \code{\link{bootstrap_downwind}}. Briefly, the bootstrap is carried out in two levels by conditioning on the upwind (first stage) LMM and its fitted values:
 #' \itemize{
-#' \item{First level is an optional level that is only carried out when \code{bootstrap_option(bootstrap_zero = TRUE)}. This level considers generating bootstrap samples of rainfall event indicator for the subset of observatinos satisfying \code{downwind_subset} using the predicted probabilities from the downwind logistic model. This model is fitted using \code{glm(downwind_logistic_formula, family = "binomial")} to the subset of observations from \code{data} satisfying \code{downwind_subset}, with the response being an indicator for whether the observed rainfall is greater than zero, i.e., the indicator is defined by the logical expression \code{positive_subset}.
+#' \item{First level is an optional level that is only carried out when \code{bootstrap_option(bootstrap_zero = TRUE)}. This level considers generating bootstrap samples of rainfall event indicator for the subset of observations satisfying \code{downwind_subset} using the predicted probabilities from the downwind logistic model. This model is fitted using \code{glm(downwind_logistic_formula, family = "binomial")} to the subset of observations from \code{data} satisfying \code{downwind_subset}, with the response being an indicator for whether the observed rainfall is greater than zero, i.e., the indicator is defined by the logical expression \code{positive_subset}.
 #'   }
 #'
 #' \item{Second level generates bootstrap samples of positive rainfall for the subset of observations not only satisfying \code{downwind_subset} but also with the first-level bootstrapped rainfall event indicator being equal to one. When \code{bootstrap_option(bootstrap_zero = FALSE)}, then this level generates bootstrap samples of positive rainfall for the subset of observations satisfying \code{downwind_subset & positive_subset}.
@@ -803,12 +803,29 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' The final adjusted \eqn{Rain_{ij}^*} are converted back to the log-scale based on the formula \eqn{y_{ij}^* = \log(Rain_{ij}^*)}. Therefore, these adjustments should only be used when modelling log-transformed rainfall in the two-stage LMM approach, but not raw rainfall.
 #' If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \code{downwind_lmm_formula = LogRain - Offset}, the above adjustments could still be used as the function would use the relationship \eqn{Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )} and \eqn{y_{ij}^* = \log(Rain_{ij}^*) + Offset_{ij} }.
 #'
-#' \strong{Bootstrap Distributions of Attribution, SATE and other parameters}
+#' \strong{Bootstrap Distributions of Attribution, SATE and other parameters} \cr
+#'
 #' The same procedure described in \code{\link{rain_attr}} is then repeated on the bootstrapped dataset, where the bootstrap samples of \eqn{y_{ij}^*} generated from the above two-level bootstrap procedure are used to replace the original observed \eqn{y_{ij}}.
-#' This includes the fitting of the downwind (second stage) LMM, downwind (second-stage) target-only LMM, and downwind (second-stage) control-only LMM to the subset of observations from \code{ori_data} satisfying \code{downwind &} \eqn{L_{ij}^* = 1}}. When \code{bootstrap_zero = TRUE}, two additional models are also fitted; namely,
+#' This includes the fitting of the downwind (second stage) LMM, downwind (second-stage) target-only LMM, and downwind (second-stage) control-only LMM to the subset of observations from \code{ori_data} satisfying \code{downwind &} \eqn{ L_{ij}^* = 1}. When \code{bootstrap_zero = TRUE}, two additional models are also fitted; namely,
 #' the downwind logistic model fitted to the subset of observations from \code{ori_data} satisfying \code{downwind} with the response being the bootstrapped rainfall event indicator \eqn{L_{ij}^*}, and
-#' the downwind propensity score model fitted to the subset of observations from \code{ori_data} satisfying \code{downwind &} \eqn{L_{ij}^* = 1}} with the response being the indicator \eqn{I_{ij}} for exposure to ionizer (treatment).
+#' the downwind propensity score model fitted to the subset of observations from \code{ori_data} satisfying \code{downwind &} \eqn{L_{ij}^* = 1} with the response being the indicator \eqn{I_{ij}} for exposure to ionizer (treatment).
 #' Finally, two attribution estimates and five SATE estimates are computed based on the estimation results of these models fitted to the bootstrapped dataset, where \eqn{Rain_{ij}} and \eqn{y_{ij}} are replaced by their bootstrap counterparts \eqn{Rain_{ij}^*} and \eqn{y_{ij}^*}, respectively.
+#'
+#' By repeatedly generating bootstrap samples, fitting models and computing attribution and SATE estimates for \code{B_bootstrap} number of times, this function returns the bootstrap distributions of
+#' \itemize{
+#'    \item{Two attribution estimates}
+#'    \item{Five SATE estimates}
+#'    \item{Fixed effect coefficients and random effect variance estimates of downwind LMM, downwind treatment-only LMM, and downwind control-only LMM.}
+#'    \item{Log-transformed rainfall \eqn{\log(Rain_{ij}^*)}}
+#'    \item{Regression coefficient estimates of downwind logistic model fitted to the bootstrapped rainfall event indicators, only when \code{bootstrap_zero = TRUE}}
+#'    \item{Regression coefficient estimates of downwind propensity score model, only when \code{bootstrap_zero = TRUE}}
+#' }
+#'
+#' The \code{REB2} and \code{PREB2} perform post-processing on all of the above bootstrap distributions (except for log-transformed rainfall) from \code{REB0} and \code{PREB0}, respectively.
+#' In particular, the bootstrap distributions of attribution, SATE, fixed effect coefficients of LMM's, and regression coefficient estimates of downwind logistic model and downwind propensity score model are all mean-centered at their corresponding original estimates based on the original data,
+#' based on the formula \eqn{ \hat{\theta}^{*}_b = \hat{\theta}^{*}_b + \hat{\theta} - \sum_{b=1}^{B} \hat{\theta}^{*}_b / B  }, where \eqn{\hat{\theta}^*_b} denotes a generic parameter estimate based on the b-th bootstrap sample and \eqn{\hat{\theta}} denotes the corresponding estimate based on the original data.
+#' As for the random effect variance estimates of LMM's, the bootstrap distributions of random intercept variance (\eqn{\hat{\sigma}^2_u}) and error variance (\eqn{\hat{\sigma}^2_e}) are firstly modified so that they are empirically uncorrelated. For more details on such modification, please see \code{\link{adjust_bootstrap_var_components}}, Section 2.3.3 of Chambers & Chandra (2013) and Section 2.3 of Tho et al. (2025).
+#' Then, a ratio correction is performed for each of these two bootstrap distributions based on the formula \eqn{ \tilde{\sigma}^2_{(b)} =   \tilde{\sigma}^2_{(b)} \times \hat{\sigma^2} / ( \sum_{b=1}^{B} \tilde{\sigma}^2_b / B  )  }, where \eqn{\tilde{\sigma}^2_b} denotes a generic post-modification variance component estimate based on the b-th bootstrap sample and \eqn{\hat{\sigma}^2} denotes the corresponding variance component estimate based on the original data.
 #'
 #' CONTINUE TALKING ABOUT
 #' \itemize{
@@ -862,6 +879,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #TODO: Consider to add another variation of 'PREB2' and 'REB2' for adjusting downwind_lmm_fit's fixef as well as random effects, and plug these corrected estimates to compute hatattr and hatsate, rather than directly centering hatattr and hatsate
 #TODO: Consider adding a parallelization option
 #TODO: Consider to not having to refit downwind_propernsity_formula in every bootstrap run if bootstrap_zero = FALSE, since they should be exactly the same when bootstrap_zero = FALSE
+#TODO: Add total_rain_lower, total_rain_upper, individual_rain_upper, individual_rain_center to the code
 bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_individual_rain, winsorize_total_rain,
                               ori_data, downwind, ori_positive, rain_col_name, downwind_target_subset, downwind_control_subset, ori_fitted_models,
                               downwind_lmm_formula, attr_type, x_downwind_name, target_only,
