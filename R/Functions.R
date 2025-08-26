@@ -830,7 +830,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' CONTINUE TALKING ABOUT
 #' \itemize{
 #' \item{The generation of many bootstrap samples, followed by fitting downwind LMM and computation of SATE/attribution, to obtain bootstrap distributions of not only SATE/attribution but also parameters of all fitted models to the bootstrapped data.}
-#' \item{The post-processing used in REB2 and PREB2.}
+#' \item{Try to modify the notation in REB2 or PREB2 so that we show formula for random intercept variance and error variance separately.}
 #' \item{Can use other functions such as bootstrap_p_value and bootstrap_CI and bootstrap_plot on the output to get different results.}
 #' \item{Update the Arguments section}
 #'
