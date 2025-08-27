@@ -41,7 +41,7 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 
 \item{downwind_logistic_formula}{An optional two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a logistic model to the indicators of rainfall event. This only needs to be specified when \code{bootstrap = TRUE} and \code{bootstrap_option$bootstrap_zero = TRUE}.}
 
-\item{downwind_propensity_formula}{An optional two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.}
+\item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.}
 
 \item{rain_col_name}{A character string that refers to the column name of the raw scale rainfall in \code{data}.}
 
@@ -55,9 +55,9 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 
 \item{positive_subset}{A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall - these are the observations that are used in the fitting of upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, and the downwind (second stage) propensity score model.}
 
-\item{attr_type}{Type of attribution estimates. Must be one of "Ray_Winsorize", "Proposed", or "No". See "Details" for more information.}
+\item{attr_type}{A character string specifying the type of attribution estimates. Must be one of \code{"Ray_Winsorize"}, \code{"Proposed"}, or \code{"No"}. See "Details" for more information.}
 
-\item{x_downwind_name}{A vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). Intercept is always included here.}
+\item{x_downwind_name}{A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.}
 
 \item{target_only}{Logical. If \code{TRUE} the attribution estimates are computed based on only treatment observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.}
 
