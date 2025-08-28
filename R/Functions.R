@@ -139,8 +139,8 @@
 #' These bootstrap distributions are then used to compute bootstrap p-values (proportion of bootstrapped estimates that are negative), form bootstrap percentile confidence intervals (with confidence level specified in \code{bootstrap_option$CI_level}), and generate their respective plots.
 #' It is worth noting that the entire bootstrap procedure (including rainfall resampling, model fitting, and parameter estimation) can be run in parallel by setting \code{bootstrap_option$bootstrap_parallel = TRUE}, using \code{bootstrap_option$bootstrap_parallel_num_worker} workers.
 #'
-#' Finally, this function enables permutation inference on the attribution and SATE, by setting \code{permutation = TRUE} and supplying the relevant permutation options using \code{\link{permutation_option}()}.
-#' For full details of the permutation procedure, please see \code{\link{permutation_ionizer}}. In short, the permutation procedure involves randomly permuting the operating schedules of the ionizers (treatment) and re-estimating the attribution and SATE based on the permuted data, from which permutations distributions of attribution and SATE estimates are formed.
+#' Finally, this function enables permutation-based inference on the attribution and SATE, by setting \code{permutation = TRUE} and supplying the relevant permutation options using \code{\link{permutation_option}()}.
+#' For full details of the permutation-based procedure, please see \code{\link{permutation_ionizer}}. In short, the permutation-based procedure involves randomly permuting the operating schedules of the ionizers (treatment) and re-estimating the attribution and SATE based on the permuted data, from which permutations distributions of attribution and SATE estimates are formed.
 #' These permutation distributions are used to compute permutation p-values (proportion of permuted estimates that are greater than the observed estimates) and generate their respective plots.
 #'
 #'
@@ -709,7 +709,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' Bootstrap Procedure for Rainfall Enhancement Trial Data
 #'
 #' @description
-#' Implements the two-level bootstrap procdure used in \code{\link{rain_attr}} for inference on attribution and sample average treatment effect in rainfall enhancement trial data.
+#' Implements the two-level bootstrap procedure used in \code{\link{rain_attr}} for inference on attribution and sample average treatment effect in rainfall enhancement trial data.
 #'
 #' @details
 #' This function implements the bootstrap procedure used in \code{\link{rain_attr}}.
@@ -1624,7 +1624,85 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 # x_downwind_name = c('Gauge.Elevation', 'natural_pred')
 # target_only = FALSE
 
+#' @title Permutation-Based Procedure for Rainfall Enhancement Trial Data
+#'
+#' @description
+#' Implements the permutation-based procedure used in \code{\link{rain_attr}} for inference on attribution and SATE in rainfall enhancement trial data under randomized assignment of ionizer operation.
+#' It allows for flexible permutation schemes, including permutations between ionizers, between days, or between gauge-day combinations.
+#'
+#'
+#' @param B_permutation An integer specifying the number of permutation replicates.
+#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param permute_between_ionizer Logical. If \code{TRUE}, for each day, the ionizer operation indicators are permuted between ionizers that have been deployed within that year.
+#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param permute_all_ionizers_between_day Logical. If \code{TRUE}, the ionizer operation indicators are permuted across all days within each year.
+#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param permute_between_gaugeday Logical. If \code{TRUE}, the ionizer operation indicators are permuted among all gauge-day observations within each year.
+#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param ionizer_operation A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on that day and 0 indicates that an ionizer is turned off or has not been deployed yet.
+#' Additionally, this data frame must include two columns with names specified by \code{ionizer_operation_day_column_name} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
+#'   (User-supplied using \code{\link{permutation_option}})
+#' @param gaugeday_downwind A logical matrix indicating which gauge-day observations are downwind of which ionizers.
+#'   (User-supplied permutation option using \code{\link{permutation_option}})
+#' @param year_ionizer_list A named list, where each element corresponds to a year and contains the names of deployed ionizers in that year.
+#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param data_target_column_names A character vector specifying the column names of \code{data} corresponding to the target indicators of all ionizers.
+#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param ionizer_operation_year_column_name A character string specifying the column name of \code{ionizer_operation} containing the year of each day.
+#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param ionizer_operation_day_column_name A character string specifying the column name of \code{ionizer_operation} containing the day of each observation, which should correspond to the same column in \code{data}.
+#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param data A data frame containing all gauge-day observations, including rainfall and covariates.
+#'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#' @param downwind_lmm_formula A two-sided linear formula object to be used in \code{\link[lme4]{lmer}}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
+#'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#' @param downwind_propensity_formula A two-sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind observations.
+#'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#' @param attr_type A character string specifying the type of attribution estimator to use. Passed to \code{\link{attr_est}}.
+#'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#' @param x_downwind_name A character vector containing variable names from the right-hand side of \code{downwind_lmm_formula} that are not related to ionizers (treatment). The intercept is always included.
+#'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#' @param target_only Logical. If \code{TRUE}, attribution estimates are computed based only on treatment observations. If \code{FALSE}, estimates use both treatment and control observations.
+#'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#' @param rain_col_name A character string specifying the column name of the raw-scale rainfall in \code{data}.
+#'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#'
+#' @return A list with two components:
+#' \describe{
+#'   \item{hatattr}{Matrix of permutation replicates of attribution estimates.}
+#'   \item{hatsate}{Matrix of permutation replicates of attribution estimates.}
+#' }
+#'
+#' @details
+#' This function implements the permutation-based procedure used in \code{\link{rain_attr}}. It is intended for internal use only. Users should not call this function directly.
+#' Instead, permutation-based inference should be performed by calling \code{\link{rain_attr}} with \code{permutation = TRUE}.
+#'
+#' To use this function, additional information about the timing of deployment of ionizers, the operating schedule of ionizers, and the orientation of gauges relative to ionizers each day should be supplied through the following arguments of \code{\link{bootstrap_option}}:
+#'
+#'
+#' The function performs the following steps for each permutation replicate:
+#' \enumerate{
+#'   \item Permute ionizer operation statuses according to the specified options:
+#'         \code{permute_between_ionizer}, \code{permute_all_ionizers_between_day}, and \code{permute_between_gaugeday}.
+#'   \item Update the target indicators in \code{data} using the permuted ionizer operation matrix and the \code{gaugeday_downwind} mapping.
+#'   \item Fit the downwind linear mixed model (\code{downwind_lmm_formula}) to permuted data.
+#'   \item Compute attribution estimates using \code{\link{attr_est}}.
+#'   \item Fit the downwind propensity model (\code{downwind_propensity_formula}) and compute SATE estimates using \code{\link{sate_est}}.
+#' }
+#'
+#' Any errors during a permutation replicate are caught and the replicate is skipped with a message.
+#'
+#' @note
+#' Ensure that:
+#' \itemize{
+#'   \item Rows of \code{gaugeday_downwind} and \code{data} are ordered consistently.
+#'   \item \code{data_target_column_names} columns have the same ordering as the columns in \code{ionizer_operation}.
+#'   \item Each day in \code{ionizer_operation} appears only once.
+#' }
+#'
+
 #TODO: Consider to add parallelization option
+#TODO: Edit the documentation for function argument properly
 permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_all_ionizers_between_day, permute_between_gaugeday,
                                ionizer_operation, gaugeday_downwind, year_ionizer_list,
                                data_target_column_names, ionizer_operation_year_column_name, ionizer_operation_day_column_name,
@@ -1634,7 +1712,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
   #data_target_column_names are the column names of 'data', which correspond to the target indicators of all ionizers
   #ionizer_operation_year_column_name is the column name of 'ionizer_operation' containing the year of each day
   #ionizer_operation_day_column_name is the column name of 'ionizer_operation' containing the day of each observation, which should be the same column name in 'data'
-  #Note that data_target_column_names should ahve the same ordering as colnames(ionizer_operation), as well as gaugeday_downwind
+  #Note that data_target_column_names should have the same ordering as colnames(ionizer_operation), as well as gaugeday_downwind
   #The rows of gaugeday_downwind should be ordered as the same as the order of rows of gauge-day observations in 'data'
   if(length(unique(ionizer_operation[,ionizer_operation_day_column_name])) != nrow(ionizer_operation)){
     stop('ionizer_operation has more than one rows associated to the same day')
@@ -1750,9 +1828,6 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
   ))
 }
 
-list(
-
-)
 
 permutation_option = function(B_permutation = 1000,
                               permute_between_ionizer = T,

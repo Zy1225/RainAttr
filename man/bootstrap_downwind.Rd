@@ -129,7 +129,7 @@ A list containing
 }
 }
 \description{
-Implements the two-level bootstrap procdure used in \code{\link{rain_attr}} for inference on attribution and sample average treatment effect in rainfall enhancement trial data.
+Implements the two-level bootstrap procedure used in \code{\link{rain_attr}} for inference on attribution and sample average treatment effect in rainfall enhancement trial data.
 }
 \details{
 This function implements the bootstrap procedure used in \code{\link{rain_attr}}.
