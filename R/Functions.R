@@ -1643,9 +1643,9 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 #' Additionally, this data frame must include two columns with names specified by \code{ionizer_operation_day_column_name} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
 #'   (User-supplied using \code{\link{permutation_option}})
 #' @param gaugeday_downwind A logical matrix indicating which gauge-day observations are downwind of which ionizers.
-#'   (User-supplied permutation option using \code{\link{permutation_option}})
+#'   (User-supplied using \code{\link{permutation_option}})
 #' @param year_ionizer_list A named list, where each element corresponds to a year and contains the names of deployed ionizers in that year.
-#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#'   (User-supplied using \code{\link{permutation_option}})
 #' @param data_target_column_names A character vector specifying the column names of \code{data} corresponding to the target indicators of all ionizers.
 #'   (User-configurable permutation option using \code{\link{permutation_option}})
 #' @param ionizer_operation_year_column_name A character string specifying the column name of \code{ionizer_operation} containing the year of each day.
