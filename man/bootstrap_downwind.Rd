@@ -11,7 +11,9 @@ bootstrap_downwind(
   positive_prob_threshold = NULL,
   discretize_rain,
   winsorize_individual_rain,
+  individual_rain_interval,
   winsorize_total_rain,
+  total_rain_interval,
   bootstrap_seed,
   bootstrap_parallel,
   bootstrap_parallel_num_worker,
@@ -19,8 +21,8 @@ bootstrap_downwind(
   downwind,
   ori_positive,
   rain_col_name,
-  downwind_target_subset,
-  downwind_control_subset,
+  downwind_target_expr,
+  downwind_control_expr,
   ori_fitted_models,
   downwind_lmm_formula,
   attr_type,
@@ -33,70 +35,85 @@ bootstrap_downwind(
 }
 \arguments{
 \item{B_bootstrap}{An integer specifying the number of bootstrap replicates.
-(User-configurable bootstrap option using \code{\link{bootstrap_option}}.)}
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
 \item{bootstrap_type}{A character string specifying the type of bootstrap.
 Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \code{"PREB1"}, \code{"PREB2"}, or \code{"MREB1"}.
-(User-configurable bootstrap option using \code{\link{bootstrap_option}}.)}
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
 \item{bootstrap_zero}{Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators.
-(User-configurable bootstrap option using \code{\link{bootstrap_option}}.)}
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
 \item{positive_prob_threshold}{An optional numeric value specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero.
-(User-configurable bootstrap option using \code{\link{bootstrap_option}}.)}
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
 \item{discretize_rain}{Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples.
-(User-configurable bootstrap option using \code{\link{bootstrap_option}}.)}
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
-\item{winsorize_individual_rain}{Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed \code{individual_rain_upper} are regenerated uniformly from the interval \eqn{[} \code{individual_rain_lower}, \code{individual_rain_upper} \eqn{]}.
-(User-configurable bootstrap option using \code{\link{bootstrap_option}}.)}
+\item{winsorize_individual_rain}{Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed the upper bound specified by \code{individual_rain_interval} are replaced with random draws from a uniform distribution over \code{[individual_rain_interval[1], individual_rain_interval[2]]}.
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
-\item{winsorize_total_rain}{Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are rescaled proportionally so that their total equals a random number drawn uniformly from the interval
-\eqn{[} \code{total_rain_lower}, \code{total_rain_upper} \eqn{]} when the total bootstrapped rainfall falls outside the interval.
-(User-configurable bootstrap option using \code{\link{bootstrap_option}}.)}
+\item{individual_rain_interval}{Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \code{winsorize_individual_rain = TRUE}.
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
+
+\item{winsorize_total_rain}{Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are proportionally rescaled so that the total equals a random number drawn uniformly from
+\code{[total_rain_interval[1], total_rain_interval[2]]} whenever the total bootstrapped rainfall falls outside this interval.
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
+
+\item{total_rain_interval}{Numeric vector of length 2 specifying the lower and upper bounds for adjusting the total of bootstrapped rainfall values when \code{winsorize_total_rain = TRUE}.
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
+
+\item{bootstrap_seed}{n integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation.
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
+
+\item{bootstrap_parallel}{Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
+
+\item{bootstrap_parallel_num_worker}{An integer specifying the numbre of parallel workers to use when \code{bootstrap_parallel = TRUE}.
+(User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
 \item{ori_data}{A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{downwind}{A logical vector indicating which observation in \code{ori_data} would be used in the downwind (second stage) LMM fitting.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{ori_positive}{A logical vector indicating which observation in \code{ori_data} has positive rainfall.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{rain_col_name}{A character string specifying the column name of the raw scale rainfall in \code{ori_data}.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{downwind_target_subset}{A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were exposed to treatment (operating ionizers).
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+\item{downwind_target_expr}{A quosure (created using \code{rlang::enquo()}) representing a logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were exposed to treatment (operating ionizers).
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{downwind_control_subset}{A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were not exposed to treatment (operating ionizers).
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+\item{downwind_control_expr}{A quosure (created using \code{rlang::enquo()}) representing a logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were not exposed to treatment (operating ionizers).
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{ori_fitted_models}{A list containing the models fitted to the \code{ori_data}, including the upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) target-only LMM, downwind (second stage) logistic model for rainfall event indicator, and downwind (second stage) propensity score model.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{downwind_lmm_formula}{A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{attr_type}{A character string specifying the type of attribution estimates. Must be one of \code{"Ray_Winsorize"}, \code{"Proposed"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{x_downwind_name}{A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{target_only}{Logical. If \code{TRUE} the attribution estimates are computed based on only treatment observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{ori_attr_est}{A numeric vector containing the original attribution estimates (\code{apo} and \code{apl}) from the original data.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{ori_sate_est}{A numeric vector containing the original SATE estimates (\code{sate.mb}, \code{sate.ipw}, \code{sate.ipw.l}, \code{sate.ipw.ma} and \code{sate.aipw}) from the original data.
-(Internal argument set automatically when using \code{\link{rain_attr}}.)}
+(Internal argument set automatically when using \code{\link{rain_attr}})}
 }
 \value{
 A list containing
@@ -215,6 +232,11 @@ By repeatedly generating bootstrap samples, fitting models and computing attribu
 \item{Regression coefficient estimates of downwind logistic model fitted to the bootstrapped rainfall event indicators, only when \code{bootstrap_zero = TRUE}}
 \item{Regression coefficient estimates of downwind propensity score model, only when \code{bootstrap_zero = TRUE}}
 }
+
+\strong{Parallel Bootstrap Execution} \cr
+This function also supports parallel execution via the argument \code{bootstrap_parallel}.  When \code{bootstrap_parallel = TRUE}, the \code{B_bootstrap} repeated iterations are executed
+concurrently across \code{bootstrap_parallel_num_worker} workers. Each iteration, including rainfall resampling, model fitting, and parameter estimation, is performed independently on different workers, which can reduce computation time compared to sequential execution.
+The parallel execution is implemented using the \code{\link[foreach]{foreach}} package with the \code{\link[doParallel]{doParallel}} backend and \code{\link[doRNG]{registerDoRNG}} for reproducibility.
 
 \strong{Post-processing of \code{REB2} and \code{PREB2}} \cr
 The \code{REB2} and \code{PREB2} perform post-processing on all of the above bootstrap distributions

@@ -28,14 +28,14 @@
 
 
 
-#data is the full data
-#To use instr_pred or natural_pred as an offset, just specify the response to be LogRain - natural_pred in downwind_lmm_formula
-#To fit first-stage model to Control^#, jut specify upwind_subset = Gauge.Day.Type == 'Control'
-rm(list=ls())
-load('data/oman.rda')
-load('data/ionizer_operation.rda')
-load('data/gaugeday_downwind.rda')
-#TODO: Add detailed documentation for each function
+# #data is the full data
+# #To use instr_pred or natural_pred as an offset, just specify the response to be LogRain - natural_pred in downwind_lmm_formula
+# #To fit first-stage model to Control^#, jut specify upwind_subset = Gauge.Day.Type == 'Control'
+# rm(list=ls())
+# load('data/oman.rda')
+# load('data/ionizer_operation.rda')
+# load('data/gaugeday_downwind.rda')
+# #TODO: Add detailed documentation for each function
 
 
 
@@ -60,6 +60,7 @@ load('data/gaugeday_downwind.rda')
 #'   \item Included as an offset term by subtracting it from the response on the left-hand side, e.g., \code{instr_pred_name = "natural_pred"} and \code{downwind_lmm_formula = LogRain - natural_pred ~ ...}.
 #' }
 #'
+#' \strong{Attribution} \cr
 #' Two attribution estimates, namely \code{apo} and \code{apl} are computed based on the estimated fixed effect coefficients \eqn{\hat{\alpha}}, \eqn{\hat{\beta}} and EBLUPs \eqn{\hat{u}_i} from the fitted downwind (second stage) LMM. \code{apo} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total amount of observed downwind rainfall., while \code{apl} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total expected amount of downwind rainfall without the effect of ionizer (treatment).
 #' This function allows for three different ways of estimating \code{apo} and \code{apl} as specified by the argument \code{attr_type}:
 #' \describe{
@@ -100,6 +101,8 @@ load('data/gaugeday_downwind.rda')
 #' All attribution estimates above implicitly assume that the upwind (first stage) and downwind (second stage) LMMs are modelling the log-transformed rainfall instead of the raw rainfall.
 #' These attribution estimates should therefore only be interpreted and used when the LHS of both \code{upwind_lmm_formula} and \code{downwind_lmm_formula} contains the log-transformed rainfall, not the raw rainfall.
 #'}
+#'
+#' \strong{SATE} \cr
 #' The computation of SATE estimates involves fitting a downwind (second stage) propensity score model using \code{glm(downwind_propensity_formula, family = "binomial")} to the subset of observations from \code{data} satisfying \code{downwind_subset & positive_subset}, with the response being an indicator \eqn{I_{ij}} for whether each observation is exposed to the ionizer (treatment), i.e., \eqn{I_{ij} = 1} if it satisfies \code{downwind_target_subset & positive_subset}, and \eqn{I_{ij} = 0} if it satisfies \code{downwind_control_subset & positive_subset}.
 #' The estimated propensity scores (i.e., fitted values) from this fitted propensity score model, denoted as \eqn{\hat{\pi}_{ij}}, are then used to compute the inverse propensity weights (IPW) \eqn{\hat{w}_{ij,1} = \hat{\pi}_{ij}^{-1} / \sum_{(k,l)}  (\hat{\pi}_{kl}^{-1} I_{kl}) } and \eqn{ \hat{w}_{ij,0} = (1 - \hat{\pi}_{ij})^{-1} / \sum_{(k,l)} \{ (1- \hat{\pi}_{kl})^{-1} (1- I_{kl}) \} }, where the summation is over all observations from \code{data} satisfying \code{downwind_subset & positive_subset}.
 #' These IPW weights are then used, together with the estimation results of the downwind (second stage) LMM, to obtain the following five types of SATE estimates:
@@ -122,6 +125,7 @@ load('data/gaugeday_downwind.rda')
 #' }
 #' }
 #'
+#' \strong{Bootstrap and Permutation Inference} \cr
 #' This function can also be used to perform bootstrap inference on the attribution and SATE, by setting \code{bootstrap = TRUE} and supplying the relevant bootstrap options using \code{\link{bootstrap_option}()}.
 #' For full details of the bootstrap procedure, please see \code{\link{bootstrap_downwind}}. Briefly, the bootstrap is carried out in two levels by conditioning on the upwind (first stage) LMM and its fitted values:
 #' \itemize{
@@ -132,7 +136,8 @@ load('data/gaugeday_downwind.rda')
 #'   This is done using one of the semiparametric bootstrap methods of Chambers & Chandra (2013) and Tho et al. (2025), which involves the use of marginal residuals from the fitted downwind (second stage) LMM.   }
 #' }
 #' The above attribution and SATE estimates are then computed based on each bootstrap sample of the positive rainfall, forming their respective bootstrap distributions. This function also provides bootstrap distributions of parameters associated with the downwind LMM (\code{downwind_lmm_formula}), downwind logistic model (\code{downwind_logistic_formula}), downwind propensity score model (\code{downwind_propensity_formula}), downwind treatment-only LMM, and downwind control-only LMM.
-#' These bootstrap distributions are then used to compute bootstrap p-values (proportion of bootstrapped estimates that are negative), form bootstrap percentile confidence intervals (with confidence level specified in \code{\link{bootstrap_option}()}), and generate their respective plots.
+#' These bootstrap distributions are then used to compute bootstrap p-values (proportion of bootstrapped estimates that are negative), form bootstrap percentile confidence intervals (with confidence level specified in \code{bootstrap_option$CI_level}), and generate their respective plots.
+#' It is worth noting that the entire bootstrap procedure (including rainfall resampling, model fitting, and parameter estimation) can be run in parallel by setting \code{bootstrap_option$bootstrap_parallel = TRUE}, using \code{bootstrap_option$bootstrap_parallel_num_worker} workers.
 #'
 #' Finally, this function enables permutation inference on the attribution and SATE, by setting \code{permutation = TRUE} and supplying the relevant permutation options using \code{\link{permutation_option}()}.
 #' For full details of the permutation procedure, please see \code{\link{permutation_ionizer}}. In short, the permutation procedure involves randomly permuting the operating schedules of the ionizers (treatment) and re-estimating the attribution and SATE based on the permuted data, from which permutations distributions of attribution and SATE estimates are formed.
@@ -340,7 +345,9 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                                           positive_prob_threshold = bootstrap_option$positive_prob_threshold,
                                           discretize_rain = bootstrap_option$discretize_rain,
                                           winsorize_individual_rain = bootstrap_option$winsorize_individual_rain,
+                                          individual_rain_interval = bootstrap_option$individual_rain_interval,
                                           winsorize_total_rain = bootstrap_option$winsorize_total_rain,
+                                          total_rain_interval = bootstrap_option$total_rain_interval,
                                           bootstrap_seed = bootstrap_option$bootstrap_seed,
                                           bootstrap_parallel = bootstrap_option$bootstrap_parallel,
                                           bootstrap_parallel_num_worker = bootstrap_option$bootstrap_parallel_num_worker,
@@ -348,8 +355,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                                           downwind = downwind,
                                           ori_positive = positive,
                                           rain_col_name = rain_col_name,
-                                          downwind_target_subset = downwind_positive_target_expr,
-                                          downwind_control_subset = downwind_positive_control_expr,
+                                          downwind_target_expr = downwind_positive_target_expr,
+                                          downwind_control_expr = downwind_positive_control_expr,
                                           ori_fitted_models = all_fitted_models,
                                           downwind_lmm_formula = downwind_lmm_formula, attr_type = attr_type, x_downwind_name = x_downwind_name, target_only = target_only,
                                           downwind_propensity_formula = downwind_propensity_formula,
@@ -806,6 +813,11 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'    \item{Regression coefficient estimates of downwind propensity score model, only when \code{bootstrap_zero = TRUE}}
 #' }
 #'
+#' \strong{Parallel Bootstrap Execution} \cr
+#' This function also supports parallel execution via the argument \code{bootstrap_parallel}.  When \code{bootstrap_parallel = TRUE}, the \code{B_bootstrap} repeated iterations are executed
+#' concurrently across \code{bootstrap_parallel_num_worker} workers. Each iteration, including rainfall resampling, model fitting, and parameter estimation, is performed independently on different workers, which can reduce computation time compared to sequential execution.
+#' The parallel execution is implemented using the \code{\link[foreach]{foreach}} package with the \code{\link[doParallel]{doParallel}} backend and \code{\link[doRNG]{registerDoRNG}} for reproducibility.
+#'
 #' \strong{Post-processing of \code{REB2} and \code{PREB2}} \cr
 #' The \code{REB2} and \code{PREB2} perform post-processing on all of the above bootstrap distributions
 #' (except for log-transformed rainfall) generated by \code{REB0} and \code{PREB0}, respectively.
@@ -863,11 +875,21 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
 #' @param discretize_rain Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples.
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
-#' @param winsorize_individual_rain Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed \code{individual_rain_upper} are regenerated uniformly from the interval \eqn{[} \code{individual_rain_lower}, \code{individual_rain_upper} \eqn{]}.
+#' @param winsorize_individual_rain Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed the upper bound specified by \code{individual_rain_interval} are replaced with random draws from a uniform distribution over \code{[individual_rain_interval[1], individual_rain_interval[2]]}.
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
-#' @param winsorize_total_rain Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are rescaled proportionally so that their total equals a random number drawn uniformly from the interval
-#'   \eqn{[} \code{total_rain_lower}, \code{total_rain_upper} \eqn{]} when the total bootstrapped rainfall falls outside the interval.
+#' @param individual_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \code{winsorize_individual_rain = TRUE}.
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param winsorize_total_rain Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are proportionally rescaled so that the total equals a random number drawn uniformly from
+#'   \code{[total_rain_interval[1], total_rain_interval[2]]} whenever the total bootstrapped rainfall falls outside this interval.
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param total_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting the total of bootstrapped rainfall values when \code{winsorize_total_rain = TRUE}.
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param bootstrap_seed n integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation.
+#' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param bootstrap_parallel Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
+#' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' @param bootstrap_parallel_num_worker An integer specifying the numbre of parallel workers to use when \code{bootstrap_parallel = TRUE}.
+#' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
 #'
 #' @param ori_data A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -877,9 +899,9 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param rain_col_name A character string specifying the column name of the raw scale rainfall in \code{ori_data}.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param downwind_target_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were exposed to treatment (operating ionizers).
+#' @param downwind_target_expr A quosure (created using `rlang::enquo()`) representing a logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were exposed to treatment (operating ionizers).
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param downwind_control_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were not exposed to treatment (operating ionizers).
+#' @param downwind_control_expr A quosure (created using `rlang::enquo()`) representing a logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were not exposed to treatment (operating ionizers).
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param ori_fitted_models A list containing the models fitted to the \code{ori_data}, including the upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) target-only LMM, downwind (second stage) logistic model for rainfall event indicator, and downwind (second stage) propensity score model.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -913,14 +935,11 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' @seealso \code{\link{rain_attr}} for the main function, \code{\link{bootstrap_option}} for specifying bootstrap options
 
 #TODO: Consider to add another variation of 'PREB2' and 'REB2' for adjusting downwind_lmm_fit's fixef as well as random effects, and plug these corrected estimates to compute hatattr and hatsate, rather than directly centering hatattr and hatsate
-#TODO: Consider adding a parallelization option
 #TODO: Consider to not having to refit downwind_propernsity_formula in every bootstrap run if bootstrap_zero = FALSE, since they should be exactly the same when bootstrap_zero = FALSE
 #TODO: Add total_rain_lower, total_rain_upper, individual_rain_upper, individual_rain_center to the code
-#TODO: Add documentation for parallelization of bootstraps
-#TODO: Modify the definition of downwind_target_subset and downwind_control_subset in the documentation, since these are no longer expressions
-bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_individual_rain, winsorize_total_rain, bootstrap_seed,
-                              bootstrap_parallel, bootstrap_parallel_num_worker,
-                              ori_data, downwind, ori_positive, rain_col_name, downwind_target_subset, downwind_control_subset, ori_fitted_models,
+bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_individual_rain, individual_rain_interval, winsorize_total_rain, total_rain_interval,
+                              bootstrap_seed, bootstrap_parallel, bootstrap_parallel_num_worker,
+                              ori_data, downwind, ori_positive, rain_col_name, downwind_target_expr, downwind_control_expr, ori_fitted_models,
                               downwind_lmm_formula, attr_type, x_downwind_name, target_only,
                               downwind_propensity_formula,
                               ori_attr_est, ori_sate_est){
@@ -1117,13 +1136,15 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
           b_raw_y[(b_raw_y>0.7)&(b_raw_y<0.9)] <- 0.8
         }
 
+
+
         if(winsorize_individual_rain){
-          b_raw_y[b_raw_y>175] <- 100+75*runif(n=sum(b_raw_y>175))
+          b_raw_y[b_raw_y> individual_rain_interval[2]] <- individual_rain_interval[1] + (individual_rain_interval[2] - individual_rain_interval[1]) * runif(n=sum(b_raw_y> individual_rain_interval[2]))
         }
 
         if(winsorize_total_rain){
-          if(sum(b_raw_y)<6000 | sum(b_raw_y)>60000){
-            b_raw_y <- b_raw_y*(runif(n=1,min=6000,max=60000))/sum(b_raw_y)
+          if(sum(b_raw_y)< total_rain_interval[1] | sum(b_raw_y)> total_rain_interval[2]){
+            b_raw_y <- b_raw_y*(runif(n=1,min=total_rain_interval[1], max=total_rain_interval[2]))/sum(b_raw_y)
           }
         }
 
@@ -1179,8 +1200,8 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
         # b_downwind_positive_target = b_downwind_positive_data$Gauge.Day.Type == 'Target'
         # b_downwind_positive_control = b_downwind_positive_data$Gauge.Day.Type == 'Control'
         #browser()
-        b_downwind_positive_target = rlang::eval_tidy(downwind_target_subset, data = b_downwind_positive_data)
-        b_downwind_positive_control = rlang::eval_tidy(downwind_control_subset, data = b_downwind_positive_data)
+        b_downwind_positive_target = rlang::eval_tidy(downwind_target_expr, data = b_downwind_positive_data)
+        b_downwind_positive_control = rlang::eval_tidy(downwind_control_expr, data = b_downwind_positive_data)
 
 
         b_hatattr = attr_est(attr_type, b_downwind_positive_data, rain_col_name, b_downwind_positive_target, b_downwind_positive_control,
@@ -1217,7 +1238,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     #   parallel::clusterExport(cl, varlist = c('bootstrap_zero', 'num_downwind', 'downwind_positive_prob', 'ori_fitted_models', 'ori_data', 'downwind', 'ori_positive',
     #                                           'ori_downwind_data', 'group_name', 'ori_downwind_positive_group_label', 'cluster_sample_prob',
     #                                           'final.hat.u', 'final.hat.e', 'downwind_lmm_formula', 'rain_col_name','discretize_rain', 'winsorize_individual_rain',
-    #                                           'winsorize_total_rain', 'downwind_target_subset', 'downwind_control_subset',
+    #                                           'winsorize_total_rain', 'downwind_target_expr', 'downwind_control_expr',
     #                                           'attr_type', 'x_downwind_name', 'target_only', 'downwind_propensity_formula', 'downwind_separate_formula'),
     #                           envir = environment())
     # }
@@ -1319,8 +1340,8 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       downwind_LogRain_b[b_downwind_positive] = log(b_raw_y)
 
 
-      b_downwind_positive_target = rlang::eval_tidy(downwind_target_subset, data = b_downwind_positive_data)
-      b_downwind_positive_control = rlang::eval_tidy(downwind_control_subset, data = b_downwind_positive_data)
+      b_downwind_positive_target = rlang::eval_tidy(downwind_target_expr, data = b_downwind_positive_data)
+      b_downwind_positive_control = rlang::eval_tidy(downwind_control_expr, data = b_downwind_positive_data)
 
 
       b_hatattr = attr_est(attr_type, b_downwind_positive_data, rain_col_name, b_downwind_positive_target, b_downwind_positive_control,
@@ -1507,7 +1528,9 @@ bootstrap_option = function(B_bootstrap = 1000,
                             positive_prob_threshold = NULL,
                             discretize_rain = T,
                             winsorize_individual_rain = T,
+                            individual_rain_interval = c(100,175),
                             winsorize_total_rain = T,
+                            total_rain_interval = c(6000,60000),
                             bootstrap_seed = 123,
                             bootstrap_parallel = F,
                             bootstrap_parallel_num_worker = parallel::detectCores() - 1,
