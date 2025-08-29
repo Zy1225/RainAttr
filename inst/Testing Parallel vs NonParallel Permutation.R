@@ -49,10 +49,10 @@ end.time = Sys.time()
 
 colMeans(asd$permutation_result$hatattr)
 # apo        apl
-# 0.01833859 0.01916830
+# 0.01757905 0.01833799
 colMeans(asd$permutation_result$hatsate)
 # sate.mb    sate.ipw  sate.ipw.l sate.ipw.ma   sate.aipw
-# 0.02785166  0.01697089  0.02775810  0.01154884  0.01678482
+# 0.02652413  0.01685981  0.02642815  0.01138523  0.01667772
 
 start.parallel.time = Sys.time()
 asd_parallel  = rain_attr(data = oman,
@@ -98,10 +98,10 @@ end.parallel.time = Sys.time()
 
 colMeans(asd_parallel$permutation_result$hatattr)
 # apo        apl
-# 0.01832737 0.01911959
+# 0.01781153 0.01857732
 colMeans(asd_parallel$permutation_result$hatsate)
 # sate.mb    sate.ipw  sate.ipw.l sate.ipw.ma   sate.aipw
-# 0.02798632  0.01790311  0.02789781  0.01287128  0.01759901
+# 0.02700940  0.01716567  0.02691902  0.01170677  0.01700024
 
 
 
@@ -113,7 +113,7 @@ asd_parallel$hatattr$apo; asd_parallel$hatattr$apl
 unlist(asd$hatsate)
 unlist(asd_parallel$hatsate)
 
-end.time - start.time
-end.parallel.time - start.parallel.time
+end.time - start.time #Time difference of 2.437225 hours
+end.parallel.time - start.parallel.time #Time difference of 25.59372 mins
 
 save.image('inst/result_parallel_vs_nonparallel_permutation.Rdata')
