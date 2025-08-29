@@ -22,7 +22,7 @@
 #
 # x_downwind_name = c('Gauge.Elevation','natural_pred')
 # target_only = FALSE
-# attr_type = 'Ray Winsorize'
+# attr_type = 'Chambers_Chandra'
 #
 # bootstrap_zero = TRUE
 
@@ -63,7 +63,7 @@
 #' Two attribution estimates, namely \code{apo} and \code{apl} are computed based on the estimated fixed effect coefficients \eqn{\hat{\alpha}}, \eqn{\hat{\beta}} and EBLUPs \eqn{\hat{u}_i} from the fitted downwind (second stage) LMM. \code{apo} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total amount of observed downwind rainfall., while \code{apl} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total expected amount of downwind rainfall without the effect of ionizer (treatment).
 #' This function allows for three different ways of estimating \code{apo} and \code{apl} as specified by the argument \code{attr_type}:
 #' \describe{
-#' \item{\code{Ray_Winsorize}}{Attribution is estimated based on the approach of Chambers et al. (2022), to adjust for back-transformation bias due to the modelling of log-transformed rainfall:
+#' \item{\code{Chambers_Chandra}}{Attribution is estimated based on the approach of Chambers et al. (2022), to adjust for back-transformation bias due to the modelling of log-transformed rainfall:
 #'     \deqn{
 #'     \code{apo} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij}, \quad
 #'     \code{apl} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij} \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\},
@@ -84,7 +84,7 @@
 #'
 #'   }
 #'
-#' \item{\code{Proposed}}{Attribution is estimated based on an alternative adjustment using the estimated covariance matrix \eqn{\hat{\Sigma}} of \eqn{\hat{\beta}}.
+#' \item{\code{ThoEtAl}}{Attribution is estimated based on an alternative adjustment using the estimated covariance matrix \eqn{\hat{\Sigma}} of \eqn{\hat{\beta}}.
 #'     \deqn{
 #'     \code{apo} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} - 0.5 z_{ij}^\top \hat{\Sigma} z_{ij} ) \}/ \sum_{(i,j)}Rain_{ij}, \quad
 #'     \code{apl} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} - 0.5 z_{ij}^\top \hat{\Sigma} z_{ij} ) \} /  \sum_{(i,j)}Rain_{ij} \exp(-z_{ij}^\top \hat{\beta} - 0.5 z_{ij}^\top \hat{\Sigma} z_{ij} ).
@@ -157,7 +157,7 @@
 #' @param downwind_target_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Target"}.
 #' @param downwind_control_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Control"}.
 #' @param positive_subset A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall - these are the observations that are used in the fitting of upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, and the downwind (second stage) propensity score model.
-#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Ray_Winsorize"}, \code{"Proposed"}, or \code{"No"}. See "Details" for more information.
+#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"ThoEtAl"}, or \code{"No"}. See "Details" for more information.
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #' @param bootstrap An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.
@@ -236,8 +236,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     stop("At least one variable in x_downwind_name cannot be found on RHS of downwind_lmm_formula")
   }
 
-  if(!attr_type %in% c('Ray Winsorize','Proposed', 'No')){
-    stop("attr_type should be one of 'Ray Winsorize','Proposed', or 'No''")
+  if(!attr_type %in% c('Chambers_Chandra','ThoEtAl', 'No')){
+    stop("attr_type should be one of 'Chambers_Chandra','ThoEtAl', or 'No''")
   }
 
   if(bootstrap){
@@ -329,7 +329,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   fitted_models = fit_upwind_downwind_models(data, upwind_lmm_formula, instr_pred_name, instr_pred_type, downwind_lmm_formula, downwind_logistic_formula, upwind, downwind, positive)
 
   downwind_positive_data = fitted_models$data[downwind & positive, ]
-  #Compute Point Estimates for Attribution - using Ray Winsorize or Proposed Estimates
+  #Compute Point Estimates for Attribution - using Chambers_Chandra or ThoEtAl Estimates
   hatattr = attr_est(attr_type, downwind_positive_data, rain_col_name, downwind_positive_target, downwind_positive_control,
                      x_downwind_name, target_only = target_only, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
@@ -462,7 +462,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 
 #Note that hatu should be for downwind positive (i,t) regardless of target_only
 #Optional input arguments: hatalphabeta, hatu
-#Note that for attr_type == 'Proposed', the hatSigma_beta matrix is ALWAYS obtained from downwind_lmm_fit
+#Note that for attr_type == 'ThoEtAl', the hatSigma_beta matrix is ALWAYS obtained from downwind_lmm_fit
 #When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{conditional}
 
 
@@ -488,7 +488,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
 
 
 
-  if(attr_type == 'Ray Winsorize'){
+  if(attr_type == 'Chambers_Chandra'){
     if(is.null(hatu)){
       hatu = predict(downwind_lmm_fit, newdata = downwind_positive_data, random.only = TRUE)
     }
@@ -539,7 +539,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
     hatA = y_vec - hatR
   }
 
-  if(attr_type == 'Proposed'){
+  if(attr_type == 'ThoEtAl'){
     #compute log_hatd = z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
     log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
 
@@ -932,7 +932,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Ray_Winsorize"}, \code{"Proposed"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
+#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -1686,7 +1686,7 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 # downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay)
 # downwind_propensity_formula = Gauge.Day.Type == 'Target' ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure
 # rain_col_name = 'Rain.Gauge.Measurement'
-# attr_type = 'Proposed'
+# attr_type = 'ThoEtAl'
 # x_downwind_name = c('Gauge.Elevation', 'natural_pred')
 # target_only = FALSE
 
@@ -1736,7 +1736,7 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Ray_Winsorize"}, \code{"Proposed"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
+#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -2192,8 +2192,8 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 
 
 
-#For checking: apo should be 0.111206, apl should be 0.1251201 for attr_type = 'Ray Winsorize'
-# apo  = 0.06265952, apl =  0.0668482 for attr_type = 'Proposed'
+#For checking: apo should be 0.111206, apl should be 0.1251201 for attr_type = 'Chambers_Chandra'
+# apo  = 0.06265952, apl =  0.0668482 for attr_type = 'ThoEtAl'
 # # > asd$hatsate$sate.mb; asd$hatsate$sate.ipw; asd$hatsate$sate.ipw.l
 # [1] 0.1143799
 # [1] 0.07401868
@@ -2261,7 +2261,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                  downwind_target_subset = Gauge.Day.Type == 'Target',
 #                  downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
-#                  attr_type = 'Proposed',
+#                  attr_type = 'ThoEtAl',
 #                  x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                  target_only = FALSE)
 #
@@ -2284,7 +2284,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                              downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                              downwind_target_subset = Gauge.Day.Type == 'Target',
 #                              downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
-#                              attr_type = 'Proposed',
+#                              attr_type = 'ThoEtAl',
 #                              x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
 #                              target_only = FALSE)
 #
@@ -2339,7 +2339,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 # z_downwind_name = setdiff(names(lme4::fixef(asd$fitted_models$downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
 # downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
 # target_only = F
-# attr_type = 'Proposed'
+# attr_type = 'ThoEtAl'
 
 # asd2  = rain_attr(data = oman,
 #                   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
@@ -2353,7 +2353,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                   downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                   downwind_target_subset = Gauge.Day.Type == 'Target',
 #                   downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
-#                   attr_type = 'Proposed',
+#                   attr_type = 'ThoEtAl',
 #                   x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                   target_only = FALSE,
 #                   bootstrap =T,
@@ -2616,7 +2616,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #Note we need to use sample.kind = 'Rounding' due to previous analysis loaded RData8.Rdata, which caused sample.kind = 'Rounding' from older R version instead of sample.kind = 'Rejection' in the latest R version
 # RNGkind(kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rounding")
 # set.seed(123)
-# my_perm_result_TT_RayWinsorize = rain_attr(data = oman,
+# my_perm_result_TT_Chambers_Chandra = rain_attr(data = oman,
 #                                            upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
 #                                            instr_pred_name = 'natural_pred',
 #                                            instr_pred_type = 'Unconditional',
@@ -2628,7 +2628,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                            downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                                            downwind_target_subset = Gauge.Day.Type == 'Target',
 #                                            downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
-#                                            attr_type = 'Ray Winsorize',
+#                                            attr_type = 'Chambers_Chandra',
 #                                            x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                                            target_only = FALSE,
 #                                            bootstrap =F,
@@ -2657,12 +2657,12 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 # )
 #
 # load('D:/Postdoc/Simulation/Replicate ISR Results/Rdata/permutation_result_Oman_Trial_Data_perm_row_between_gauge_day_F.Rdata')
-# max(abs(perm_result_TT$perm_attribution_Ray_winsorize_matrix[1:6,c('apo','apl')] - my_perm_result_TT_RayWinsorize$permutation_result$hatattr))
+# max(abs(perm_result_TT$perm_attribution_Chambers_Chandra_matrix[1:6,c('apo','apl')] - my_perm_result_TT_Chambers_Chandra$permutation_result$hatattr))
 #
 #
 # RNGkind(kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rounding")
 # set.seed(123)
-# my_perm_result_TT_Proposed = rain_attr(data = oman,
+# my_perm_result_TT_ThoEtAl = rain_attr(data = oman,
 #                                            upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
 #                                            instr_pred_name = 'natural_pred',
 #                                            instr_pred_type = 'Unconditional',
@@ -2674,7 +2674,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                            downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                                            downwind_target_subset = Gauge.Day.Type == 'Target',
 #                                            downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
-#                                            attr_type = 'Proposed',
+#                                            attr_type = 'ThoEtAl',
 #                                            x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                                            target_only = FALSE,
 #                                            bootstrap =F,
@@ -2701,13 +2701,13 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                              ionizer_operation_day_column_name = 'TrialDay'
 #                                            )
 # )
-# max(abs(perm_result_TT$perm_attribution_proposed_matrix[1:6,c('apo','apl')] - my_perm_result_TT_Proposed$permutation_result$hatattr))
+# max(abs(perm_result_TT$perm_attribution_proposed_matrix[1:6,c('apo','apl')] - my_perm_result_TT_ThoEtAl$permutation_result$hatattr))
 #
 #
 # #Replicate previosu analysis with permute_between_gaugeday = T
 # RNGkind(kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rounding")
 # set.seed(123)
-# my_perm_result_TT_RayWinsorize = rain_attr(data = oman,
+# my_perm_result_TT_Chambers_Chandra = rain_attr(data = oman,
 #                                            upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
 #                                            instr_pred_name = 'natural_pred',
 #                                            instr_pred_type = 'Unconditional',
@@ -2719,7 +2719,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                            downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                                            downwind_target_subset = Gauge.Day.Type == 'Target',
 #                                            downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
-#                                            attr_type = 'Ray Winsorize',
+#                                            attr_type = 'Chambers_Chandra',
 #                                            x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                                            target_only = FALSE,
 #                                            bootstrap =F,
@@ -2748,11 +2748,11 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 # )
 #
 # load('D:/Postdoc/Simulation/Replicate ISR Results/Rdata/permutation_result_Oman_Trial_Data_perm_row_between_gauge_day_T.Rdata')
-# max(abs(perm_result_TT$perm_attribution_Ray_winsorize_matrix[1:6,c('apo','apl')] - my_perm_result_TT_RayWinsorize$permutation_result$hatattr))
+# max(abs(perm_result_TT$perm_attribution_Chambers_Chandra_matrix[1:6,c('apo','apl')] - my_perm_result_TT_Chambers_Chandra$permutation_result$hatattr))
 #
 # RNGkind(kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rounding")
 # set.seed(123)
-# my_perm_result_TT_Proposed = rain_attr(data = oman,
+# my_perm_result_TT_ThoEtAl = rain_attr(data = oman,
 #                                        upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
 #                                        instr_pred_name = 'natural_pred',
 #                                        instr_pred_type = 'Unconditional',
@@ -2764,7 +2764,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                        downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                                        downwind_target_subset = Gauge.Day.Type == 'Target',
 #                                        downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
-#                                        attr_type = 'Proposed',
+#                                        attr_type = 'ThoEtAl',
 #                                        x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                                        target_only = FALSE,
 #                                        bootstrap =F,
@@ -2791,7 +2791,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                          ionizer_operation_day_column_name = 'TrialDay'
 #                                        )
 # )
-# max(abs(perm_result_TT$perm_attribution_proposed_matrix[1:6,c('apo','apl')] - my_perm_result_TT_Proposed$permutation_result$hatattr))
+# max(abs(perm_result_TT$perm_attribution_proposed_matrix[1:6,c('apo','apl')] - my_perm_result_TT_ThoEtAl$permutation_result$hatattr))
 
 # RNGkind(kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rejection")
 

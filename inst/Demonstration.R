@@ -50,8 +50,8 @@ replicate_result = rain_attr(
   #Logical expression identifying subset of observations with rainfall event
   positive_subset = Rain.Gauge.Measurement > 0,
 
-  #Types of correction (for back-transformation bias) used for computing the attribution estimate: 'Ray Winsorize', 'Proposed', or 'No'
-  attr_type = 'Proposed',
+  #Types of correction (for back-transformation bias) used for computing the attribution estimate: 'Chambers_Chandra', 'ThoEtAl', or 'No'
+  attr_type = 'ThoEtAl',
 
   #Vector of variable names in downwind_lmm_formula to identify non-ionizer related covariates, whose effects are not included in the calculation of attribution and SATE
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
@@ -114,7 +114,7 @@ c(replicate_result$hatattr$apl, replicate_result$hatattr$apo)
 #   downwind_target_subset = Gauge.Day.Type == 'Target',
 #   downwind_control_subset = Gauge.Day.Type == 'Control',
 #   positive_subset = Rain.Gauge.Measurement > 0,
-#   attr_type = 'Proposed',
+#   attr_type = 'ThoEtAl',
 #   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
 #   target_only = FALSE,
 #   bootstrap = FALSE,

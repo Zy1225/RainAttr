@@ -83,7 +83,7 @@ The row order of this data frame must match that of \code{gaugeday_downwind}.
 \item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{attr_type}{A character string specifying the type of attribution estimates. Must be one of \code{"Ray_Winsorize"}, \code{"Proposed"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
+\item{attr_type}{A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{x_downwind_name}{A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
