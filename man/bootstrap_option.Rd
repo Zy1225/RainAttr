@@ -30,7 +30,7 @@ Default is "PREB1".}
 
 \item{bootstrap_zero}{Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators. Default is \code{TRUE}.}
 
-\item{positive_prob_threshold}{An optional numeric value specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero. Default is \code{NULL}.}
+\item{positive_prob_threshold}{An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero. Default is \code{NULL}.}
 
 \item{discretize_rain}{Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples. Default is \code{TRUE}.}
 
@@ -45,11 +45,11 @@ Default is "PREB1".}
 
 \item{bootstrap_seed}{An integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation. Default is 123.}
 
-\item{bootstrap_parallel}{Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}}
+\item{bootstrap_parallel}{Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.}
 
 \item{bootstrap_parallel_num_worker}{An integer specifying the number of parallel workers to use when \code{bootstrap_parallel = TRUE}. Default is \code{parallel::detectCores() - 1}.}
 
-\item{CI_level}{An integer specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.}
+\item{CI_level}{A numeric value between 0 and 1 specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.}
 }
 \value{
 A list containing all bootstrap options, suitable for passing to \code{\link{rain_attr}}.

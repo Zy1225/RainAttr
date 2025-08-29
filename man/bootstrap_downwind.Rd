@@ -45,7 +45,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{bootstrap_zero}{Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators.
 (User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
-\item{positive_prob_threshold}{An optional numeric value specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero.
+\item{positive_prob_threshold}{An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero.
 (User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
 \item{discretize_rain}{Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples.

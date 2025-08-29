@@ -240,6 +240,30 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     stop("attr_type should be one of 'Ray Winsorize','Proposed', or 'No''")
   }
 
+  if(bootstrap){
+    if(!is.null(bootstrap_option$positive_prob_threshold) ){
+      if(bootstrap_option$positive_prob_threshold < 0 | bootstrap_option$positive_prob_threshold > 1  ){
+        stop("bootstrap_option$positive_prob_threshold must be either NULL or between 0 and 1")
+      }
+    }
+
+    if( bootstrap_option$winsorize_individual_rain &
+        (!is.numeric(bootstrap_option$individual_rain_interval) | length(bootstrap_option$individual_rain_interval)!= 2 )
+        ){
+      stop("bootstrap_option$individual_rain_interval must be a numeric vector of length 2")
+    }
+
+    if( bootstrap_option$winsorize_total_rain &
+        (!is.numeric(bootstrap_option$total_rain_interval) | length(bootstrap_option$total_rain_interval)!= 2) ){
+      stop("bootstrap_option$total_rain_interval must be a numeric vector of length 2")
+    }
+
+    if(bootstrap_option$CI_level < 0 |bootstrap_option$CI_level > 1 ){
+      stop("bootstrap_option$CI_level must be between 0 and 1")
+    }
+
+  }
+
   if(permutation){
     if(!permutation_option$ionizer_operation_year_column_name %in% colnames(permutation_option$ionizer_operation) ){
       stop("The columns of permutation_option$ionizer_operation do not contain permutation_option$ionizer_operation_year_column_name")
@@ -872,7 +896,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
 #' @param bootstrap_zero Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators.
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
-#' @param positive_prob_threshold An optional numeric value specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero.
+#' @param positive_prob_threshold An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero.
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
 #' @param discretize_rain Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples.
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
@@ -1529,7 +1553,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #'   \code{"PREB1"}, \code{"PREB2"}, or \code{"MREB1"}. See \code{\link{bootstrap_downwind}} for their differences.
 #'   Default is "PREB1".
 #' @param bootstrap_zero Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators. Default is \code{TRUE}.
-#' @param positive_prob_threshold An optional numeric value specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero. Default is \code{NULL}.
+#' @param positive_prob_threshold An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero. Default is \code{NULL}.
 #' @param discretize_rain Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples. Default is \code{TRUE}.
 #' @param winsorize_individual_rain Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed the upper bound specified by \code{individual_rain_interval} are replaced with random draws from a uniform distribution over \code{[individual_rain_interval[1], individual_rain_interval[2]]}. Default is \code{TRUE}.
 #' @param individual_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \code{winsorize_individual_rain = TRUE}. Default is \code{c(100,175)}.
@@ -1539,7 +1563,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #' @param bootstrap_seed An integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation. Default is 123.
 #' @param bootstrap_parallel Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.
 #' @param bootstrap_parallel_num_worker An integer specifying the number of parallel workers to use when \code{bootstrap_parallel = TRUE}. Default is \code{parallel::detectCores() - 1}.
-#' @param CI_level An integer specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.
+#' @param CI_level A numeric value between 0 and 1 specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.
 #'
 #' @return A list containing all bootstrap options, suitable for passing to \code{\link{rain_attr}}.
 #'
