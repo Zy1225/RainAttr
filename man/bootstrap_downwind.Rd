@@ -109,10 +109,10 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{ori_attr_est}{A numeric vector containing the original attribution estimates (\code{apo} and \code{apl}) from the original data.
+\item{ori_attr_est}{A numeric vector containing the original attribution estimates (\code{apo} and \code{apl}) from the original dataset.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{ori_sate_est}{A numeric vector containing the original SATE estimates (\code{sate.mb}, \code{sate.ipw}, \code{sate.ipw.l}, \code{sate.ipw.ma} and \code{sate.aipw}) from the original data.
+\item{ori_sate_est}{A numeric vector containing the original SATE estimates (\code{sate.mb}, \code{sate.ipw}, \code{sate.ipw.l}, \code{sate.ipw.ma} and \code{sate.aipw}) from the original dataset.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 }
 \value{
@@ -249,7 +249,7 @@ and regression coefficients from the downwind logistic model and downwind propen
 are mean-centered at their original estimates using:
 \deqn{\hat{\theta}^*_b \leftarrow \hat{\theta}^*_b + \hat{\theta} - \frac{1}{B}\sum_{b=1}^{B}\hat{\theta}^*_b}
 where \eqn{\hat{\theta}^*_b} is the estimate from the \eqn{b}-th bootstrap sample and
-\eqn{\hat{\theta}} is the corresponding estimate from the original data.
+\eqn{\hat{\theta}} is the corresponding estimate from the original dataset.
 
 \item For LMM random effect variance components, the bootstrap distributions of random intercept
 variance (\eqn{\sigma^2_u}) and residual variance (\eqn{\sigma^2_e}) are first adjusted to be

@@ -42,10 +42,10 @@ Additionally, this data frame must include two columns with names specified by \
 (User-supplied using \code{\link{permutation_option}})}
 
 \item{gaugeday_downwind}{A logical matrix indicating which gauge-day observations are downwind of which ionizers.
-(User-supplied permutation option using \code{\link{permutation_option}})}
+(User-supplied using \code{\link{permutation_option}})}
 
 \item{year_ionizer_list}{A named list, where each element corresponds to a year and contains the names of deployed ionizers in that year.
-(User-configurable permutation option using \code{\link{permutation_option}})}
+(User-supplied using \code{\link{permutation_option}})}
 
 \item{data_target_column_names}{A character vector specifying the column names of \code{data} corresponding to the target indicators of all ionizers.
 (User-configurable permutation option using \code{\link{permutation_option}})}
@@ -92,19 +92,49 @@ It allows for flexible permutation schemes, including permutations between ioniz
 This function implements the permutation-based procedure used in \code{\link{rain_attr}}. It is intended for internal use only. Users should not call this function directly.
 Instead, permutation-based inference should be performed by calling \code{\link{rain_attr}} with \code{permutation = TRUE}.
 
-To use this function, additional information about the timing of deployment of ionizers, the operating schedule of ionizers, and the orientation of gauges relative to ionizers each day should be supplied through the following arguments of \code{\link{bootstrap_option}}:
-
-The function performs the following steps for each permutation replicate:
-\enumerate{
-\item Permute ionizer operation statuses according to the specified options:
-\code{permute_between_ionizer}, \code{permute_all_ionizers_between_day}, and \code{permute_between_gaugeday}.
-\item Update the target indicators in \code{data} using the permuted ionizer operation matrix and the \code{gaugeday_downwind} mapping.
-\item Fit the downwind linear mixed model (\code{downwind_lmm_formula}) to permuted data.
-\item Compute attribution estimates using \code{\link{attr_est}}.
-\item Fit the downwind propensity model (\code{downwind_propensity_formula}) and compute SATE estimates using \code{\link{sate_est}}.
+To perform permutation-based procedure, additional information need to be supplied through the following arguments of \code{\link{bootstrap_option}}:
+\describe{
+\item{year_ionizer_list}{Timing of deployment of ionizers over the years.}
+\item{ionizer_operation}{Day(group)-level ionizers operation schedule during the rainfall enhancement trial.}
+\item{gaugeday_downwind}{Gauge-day(unit within group)-level information on relative orientation of gauges from ionizers each day.}
 }
 
-Any errors during a permutation replicate are caught and the replicate is skipped with a message.
+\strong{Permutation Steps} \cr
+The permutation-based procedure considers to randomly permute ionizers' operation statuses via:
+\enumerate{
+\item{If \code{permute_between_ionizer = TRUE}, for each row of the day-level \code{ionizer_operation} matrix, a random permutation is performed among the binary indicators in the row that correspond to ionizers that have already been deployed during the year of the row.
+This is equivalent to randomly permuting the operation status of deployed ionizers for each day. }
+\item{If \code{permute_all_ionizers_between_day = TRUE}, for each year, a random permutation is performed among all rows belonging to the year in the day-level \code{ionizer_operation} matrix.
+This is equivalent to randomly permuting the daily operation schedule of deployed ionizers for each year.  }
+\item{The permuted day-level \code{ionizer_operation} are then expanded into a gauge-day level binary ionizers' operation indicator matrix, to match the gauge-day level \code{data}. }
+\item{If \code{permute_between_gaugeday = TRUE}, for each year, a random permutation is performed among all rows belonging to the year in the gauge-day level binary ionizers' operation indicator matrix.
+This is equivalent to randomly permuting the gauge-day level operation schedule of deployed ionizers for each year. }
+}
+
+The above three optional permutation steps are performed in sequence, resulting in a final permuted gauge-day level binary ionizers' operation indicator matrix.
+An elementwise multiplication is carried out between this matrix and \code{gaugeday_downwind}, and the results are used to replace the original columns (\code{data_target_column_names}) in \code{data} that contain the binary target indicators used for the downwind (second stage) LMM fitting.
+Based on these permuted binary target indicators, the original binary indicators \eqn{I_{ij}} for exposure to ionizers (treatment) are also updated to be their permuted counterparts \eqn{I_{ij}^*}, where \eqn{I_{ij}^*} only equals zero if all permuted binary target indicators in its corresponding row equal zero.
+
+\strong{Permutation Distribution of Attribution and SATE} \cr
+The same procedure described in \code{\link{rain_attr}} is then repeated on the permuted dataset, where the columns containing the binary target indicators and the classification of treated (target with \eqn{I_{ij} = 1}) and non-treated (control with \eqn{I_{ij} = 0}) observations are replaced according to the permutation.
+This includes the fitting of the downwind (second stage) LMM, downwind (second stage) target-only LMM, downwind (second stage) control-only LMM to the subset of observations from \code{data} that are downwind (second stage) and with positive rainfall, the fitting of downwind propensity score model to the subset of observations from \code{data} that are downwind (second stage) with the response being the permuted indicator \eqn{I_{ij}^*} for exposure to ionizers (treatment).
+Finally, two attribution estimates and the SATE estimates are computed based on the estimation results of these models fitted to the permuted dataset, where \eqn{z_{ij}} (ionizer related covariate vector constructed from the binary target indicators) and I_{ij} are replaced by their permuted counterparts \eqn{z_{ij}^*} and \eqn{I_{ij}^*}, respectively.
+
+By repeatedly permuting ionizers' operation schedules, fitting models and computing attribution and SATE estimates for \code{B_permutation} number of times, this function returns the permutation distributions of
+\itemize{
+\item{Two attribution estimates}
+\item{Five SATE estimates}
+}
+
+\strong{Permutation-Based P-Value and Permutation-Based Plots}
+The permutation distributions of attribution and SATE produced by this function are further used in \code{\link{rain_attr}} to:
+\itemize{
+\item{Compute permutation-based p-value as the proportion of permuted estimates that are greater than or equal to the original estimate, i.e.,
+\deqn{\frac{1}{B} \sum_{b=1}^{B} 1_{ \{ \hat{\theta}^*_{b} \geq \hat{\theta} \}  } ,}
+where \eqn{\hat{\theta}^*_{b}} is the estimate from the \eqn{b}-th permuted dataset and \eqn{\hat{\theta}} is the corresponding estimate from the original dataset.
+}
+\item{Plot the kernel density estimate with a solid vertical line for the original estimate \eqn{\hat{\theta}}. }
+}
 }
 \note{
 Ensure that:
