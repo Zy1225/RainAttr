@@ -22,7 +22,7 @@ asd  = rain_attr(data = oman,
                  target_only = FALSE,
                  bootstrap = TRUE,
                  bootstrap_option = bootstrap_option(
-                   B_bootstrap = 500,
+                   B_bootstrap = 10000,
                    bootstrap_seed = 123,
                    bootstrap_parallel = F,
                    bootstrap_parallel_num_worker = NULL
@@ -55,7 +55,7 @@ asd_parallel  = rain_attr(data = oman,
                           target_only = FALSE,
                           bootstrap = TRUE,
                           bootstrap_option = bootstrap_option(
-                            B_bootstrap = 500,
+                            B_bootstrap = 10000,
                             bootstrap_seed = 123,
                             bootstrap_parallel = T,
                             bootstrap_parallel_num_worker = parallel::detectCores() - 1
@@ -81,3 +81,5 @@ unlist(asd_parallel$hatsate)
 
 end.time - start.time
 end.parallel.time - start.parallel.time
+
+save.image('inst/result_parallel_vs_nonparallel_bootstrap.Rdata')

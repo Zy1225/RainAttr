@@ -22,9 +22,9 @@ asd  = rain_attr(data = oman,
                  target_only = FALSE,
                  permutation = TRUE,
                  permutation_option = permutation_option(
-                   B_permutation = 500,
+                   B_permutation = 10000,
                    permute_between_ionizer = T,
-                   permute_all_ionizers_between_day = T,
+                   permute_all_ionizers_between_day = F,
                    permute_between_gaugeday = T,
                    ionizer_operation_input = ionizer_operation,
                    gaugeday_downwind_input = gaugeday_downwind,
@@ -72,9 +72,9 @@ asd_parallel  = rain_attr(data = oman,
                           target_only = FALSE,
                           permutation = TRUE,
                           permutation_option = permutation_option(
-                            B_permutation = 500,
+                            B_permutation = 10000,
                             permute_between_ionizer = T,
-                            permute_all_ionizers_between_day = T,
+                            permute_all_ionizers_between_day = F,
                             permute_between_gaugeday = T,
                             ionizer_operation_input = ionizer_operation,
                             gaugeday_downwind_input = gaugeday_downwind,
@@ -115,3 +115,5 @@ unlist(asd_parallel$hatsate)
 
 end.time - start.time
 end.parallel.time - start.parallel.time
+
+save.image('inst/result_parallel_vs_nonparallel_permutation.Rdata')
