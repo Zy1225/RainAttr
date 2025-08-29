@@ -35,7 +35,6 @@
 # load('data/oman.rda')
 # load('data/ionizer_operation.rda')
 # load('data/gaugeday_downwind.rda')
-# #TODO: Add detailed documentation for each function
 
 
 
@@ -160,10 +159,10 @@
 #' @param positive_subset A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall - these are the observations that are used in the fitting of upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, and the downwind (second stage) propensity score model.
 #' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Ray_Winsorize"}, \code{"Proposed"}, or \code{"No"}. See "Details" for more information.
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
-#' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only treatment observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
+#' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #' @param bootstrap An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.
 #' @param bootstrap_option An optional list containing all bootstrap settings, used only when \code{bootstrap = TRUE}. See \code{\link{bootstrap_option}} for the default list elements and their usage.
-#' @param permutation An optional logical, If \code{TRUE} randomized permutation is carried out on the treatment (ionizer operation) schedule to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no randomized permutation is carried out.
+#' @param permutation An optional logical, If \code{TRUE} randomized permutation is carried out on the ionizer operation (treatment) schedule to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no randomized permutation is carried out.
 #' @param permutation_option An optional list containing all permutation settings, used only when \code{permutation = TRUE}. See \code{\link{permutation_option}} for the default list elements and their usage.
 #'
 #'
@@ -213,7 +212,6 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      bootstrap = FALSE, bootstrap_option = bootstrap_option(),
                      permutation = FALSE, permutation_option = permutation_option()
                      ){
-  #TODO: Add checks for permutation_option such as checking if permutation_option$ionizer_operation_year_column_name and permutation_option$ionizer_operation_day_column_name can be found in the colnames(ionizer_operation)
 
   if(!instr_pred_name %in% all.vars(downwind_lmm_formula)){
     stop("instr_pred_name cannot be found in downwind_lmm_formula")
@@ -252,11 +250,11 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     }
 
     if(!permutation_option$ionizer_operation_day_column_name %in% colnames(data) ){
-      stop("The columns of data do not contain permutation_option$ionizer_operation_day_column_name")
+      stop("permutation_option$ionizer_operation_day_column_name cannot be found in the column names of data")
     }
 
     if(mean(permutation_option$data_target_column_names %in% colnames(data)) != 1){
-      stop("At least one element of permutation_option$data_target_column_names is cannot be found in the column names of data")
+      stop("At least one element of permutation_option$data_target_column_names cannot be found in the column names of data")
     }
 
     if(length(unique(permutation_option$ionizer_operation[,permutation_option$ionizer_operation_day_column_name])) != length(permutation_option$ionizer_operation[,permutation_option$ionizer_operation_day_column_name]) ){
@@ -395,6 +393,9 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                                              data_target_column_names = permutation_option$data_target_column_names,
                                              ionizer_operation_year_column_name = permutation_option$ionizer_operation_year_column_name,
                                              ionizer_operation_day_column_name = permutation_option$ionizer_operation_day_column_name,
+                                             permutation_seed = permutation_option$permutation_seed,
+                                             permutation_parallel = permutation_option$permutation_parallel,
+                                             permutation_parallel_num_worker = permutation_option$permutation_parallel_num_worker,
                                              data = fitted_models$data,
                                              downwind_lmm_formula = downwind_lmm_formula,
                                              downwind_propensity_formula = downwind_propensity_formula,
@@ -888,7 +889,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
 #' @param bootstrap_parallel Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
 #' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
-#' @param bootstrap_parallel_num_worker An integer specifying the numbre of parallel workers to use when \code{bootstrap_parallel = TRUE}.
+#' @param bootstrap_parallel_num_worker An integer specifying the number of parallel workers to use when \code{bootstrap_parallel = TRUE}.
 #' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
 #'
 #' @param ori_data A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
@@ -911,7 +912,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only treatment observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
+#' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -936,7 +937,6 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 
 #TODO: Consider to add another variation of 'PREB2' and 'REB2' for adjusting downwind_lmm_fit's fixef as well as random effects, and plug these corrected estimates to compute hatattr and hatsate, rather than directly centering hatattr and hatsate
 #TODO: Consider to not having to refit downwind_propernsity_formula in every bootstrap run if bootstrap_zero = FALSE, since they should be exactly the same when bootstrap_zero = FALSE
-#TODO: Add total_rain_lower, total_rain_upper, individual_rain_upper, individual_rain_center to the code
 bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_individual_rain, individual_rain_interval, winsorize_total_rain, total_rain_interval,
                               bootstrap_seed, bootstrap_parallel, bootstrap_parallel_num_worker,
                               ori_data, downwind, ori_positive, rain_col_name, downwind_target_expr, downwind_control_expr, ori_fitted_models,
@@ -1174,9 +1174,6 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
         #   }
         # }
 
-        #TODO: Try not to update the downwind_lmm_formula, since we might need to extract this formula from b_downwind_lmm_fit when using attr_est() below,
-        #especially when dealing with offset term in loghatw of attr_est()
-
 
 
         #Create a new column 'bootstrapped_y' instead of replacing the LogRain column to accommodate for the case of having LogRain - natural_pred on the LHS of downwind_lmm_formula
@@ -1242,12 +1239,12 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     #                                           'attr_type', 'x_downwind_name', 'target_only', 'downwind_propensity_formula', 'downwind_separate_formula'),
     #                           envir = environment())
     # }
-    parallel::clusterExport(cl, varlist = c('attr_est', 'sate_est', 'adjust_bootstrap_var_components'))
+    parallel::clusterExport(cl, varlist = c('attr_est', 'sate_est'))
     doParallel::registerDoParallel(cl)
     doRNG::registerDoRNG(seed = bootstrap_seed)
     `%dopar%` <- foreach::`%dopar%`
 
-    results = foreach::foreach(b = 1:B_bootstrap, .packages = c("lme4","rlang","formula.tools")) %dopar% {
+    results = foreach::foreach(b = 1:B_bootstrap, .packages = c("lme4","rlang","formula.tools"), .errorhandling = 'remove') %dopar% {
       if(bootstrap_zero){
         b_downwind_positive = (runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
         b_downwind_logistic_fit = glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, data = ori_data[downwind,], family = 'binomial')
@@ -1521,8 +1518,51 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 }
 
 
+#' @title Bootstrap Options
+#' @description
+#' This function generates a list of settings controlling how two-level bootstrap procedures are executed within \code{\link{rain_attr}}.
+#'
+#'
+#' @param B_bootstrap An integer specifying the number of bootstrap replicates. Default is 10000.
+#' @param bootstrap_type A character string specifying the type of bootstrap.
+#'   Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
+#'   \code{"PREB1"}, \code{"PREB2"}, or \code{"MREB1"}. See \code{\link{bootstrap_downwind}} for their differences.
+#'   Default is "PREB1".
+#' @param bootstrap_zero Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators. Default is \code{TRUE}.
+#' @param positive_prob_threshold An optional numeric value specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero. Default is \code{NULL}.
+#' @param discretize_rain Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples. Default is \code{TRUE}.
+#' @param winsorize_individual_rain Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed the upper bound specified by \code{individual_rain_interval} are replaced with random draws from a uniform distribution over \code{[individual_rain_interval[1], individual_rain_interval[2]]}. Default is \code{TRUE}.
+#' @param individual_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \code{winsorize_individual_rain = TRUE}. Default is \code{c(100,175)}.
+#' @param winsorize_total_rain Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are proportionally rescaled so that the total equals a random number drawn uniformly from
+#'   \code{[total_rain_interval[1], total_rain_interval[2]]} whenever the total bootstrapped rainfall falls outside this interval. Default is \code{TRUE}.
+#' @param total_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting the total of bootstrapped rainfall values when \code{winsorize_total_rain = TRUE}. Default is \code{c(6000,60000)}.
+#' @param bootstrap_seed An integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation. Default is 123.
+#' @param bootstrap_parallel Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.
+#' @param bootstrap_parallel_num_worker An integer specifying the number of parallel workers to use when \code{bootstrap_parallel = TRUE}. Default is \code{parallel::detectCores() - 1}.
+#' @param CI_level An integer specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.
+#'
+#' @return A list containing all bootstrap options, suitable for passing to \code{\link{rain_attr}}.
+#'
+#' @details
+#' This function is used to configure and store all settings needed for performing two-level bootstrap analyses within \code{\link{rain_attr}}.
+#'
+#' @seealso \code{\link{rain_attr}} for the main function, \code{\link{bootstrap_downwind}} for more details on the two-level bootstrap procedure
+#'
+#' @examples
+#' #Create default bootstrap options to account for highly unbalanced clustered data
+#' # Specifically: bootstrap_type = 'PREB1'
+#' boot_options = bootstrap_option()
+#' str(boot_options)
+#'
+#' #Bootstrap option with parallelization over (parallel::detectCores() - 1) number of workers and seed = 1 for reproducibility
+#' boot_options_parallel = bootstrap_option(
+#'   bootstrap_seed = 1,
+#'   bootstrap_parallel = TRUE,
+#'   bootstrap_parallel_num_worker = parallel::detectCores() - 1
+#' )
+#' str(boot_options_parallel)
 
-bootstrap_option = function(B_bootstrap = 1000,
+bootstrap_option = function(B_bootstrap = 10000,
                             bootstrap_type = 'PREB1',
                             bootstrap_zero = T,
                             positive_prob_threshold = NULL,
@@ -1542,7 +1582,9 @@ bootstrap_option = function(B_bootstrap = 1000,
     positive_prob_threshold = positive_prob_threshold,
     discretize_rain = discretize_rain,
     winsorize_individual_rain = winsorize_individual_rain,
+    individual_rain_interval = individual_rain_interval,
     winsorize_total_rain = winsorize_total_rain,
+    total_rain_interval = total_rain_interval,
     bootstrap_seed = bootstrap_seed,
     bootstrap_parallel = bootstrap_parallel,
     bootstrap_parallel_num_worker = bootstrap_parallel_num_worker,
@@ -1633,44 +1675,56 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 #'
 #' @param B_permutation An integer specifying the number of permutation replicates.
 #'   (User-configurable permutation option using \code{\link{permutation_option}})
-#' @param permute_between_ionizer Logical. If \code{TRUE}, for each day, the ionizer operation indicators are permuted between ionizers that have been deployed within that year.
+#' @param permute_between_ionizer Logical. If \code{TRUE}, for each day, a random permutation is performed among the operation statuses of all ionizers that have been deployed on that day.
 #'   (User-configurable permutation option using \code{\link{permutation_option}})
-#' @param permute_all_ionizers_between_day Logical. If \code{TRUE}, the ionizer operation indicators are permuted across all days within each year.
+#' @param permute_all_ionizers_between_day Logical. If \code{TRUE}, for each year, a random permutation is performed among the daily operation schedules of all trial days within that year.
 #'   (User-configurable permutation option using \code{\link{permutation_option}})
-#' @param permute_between_gaugeday Logical. If \code{TRUE}, the ionizer operation indicators are permuted among all gauge-day observations within each year.
+#' @param permute_between_gaugeday Logical. If \code{TRUE}, for each year, a random permutation is performed among the gauge-day level operation schedule of all gauge-days within that year.
 #'   (User-configurable permutation option using \code{\link{permutation_option}})
-#' @param ionizer_operation A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on that day and 0 indicates that an ionizer is turned off or has not been deployed yet.
+#' @param ionizer_operation A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on and 0 indicates that it is off or not deployed yet.
 #' Additionally, this data frame must include two columns with names specified by \code{ionizer_operation_day_column_name} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
+#' Each day must appear only once in this data frame (no duplicated day entries).
+#' The ionizer columns must appear in the same order as specified by \code{data_target_column_names} and must be consistent with the column order in \code{gaugeday_downwind}.
 #'   (User-supplied using \code{\link{permutation_option}})
-#' @param gaugeday_downwind A logical matrix indicating which gauge-day observations are downwind of which ionizers.
+#' @param gaugeday_downwind A binary matrix indicating which gauge-day observations (row) are downwind of which ionizers (column), where 1 indicates that the gauge is downwind of the ionizer on that day, and 0 indicates that the gauge is not downwind of the ionizer or the ionizer has not been deployed yet.
+#'   The row order of this matrix must match that of \code{data}. The column order must correspond to the ionizer columns in \code{ionizer_operation} (excluding the day and year columns) and be in the same order as specified by \code{data_target_column_names}.
 #'   (User-supplied using \code{\link{permutation_option}})
 #' @param year_ionizer_list A named list, where each element corresponds to a year and contains the names of deployed ionizers in that year.
 #'   (User-supplied using \code{\link{permutation_option}})
-#' @param data_target_column_names A character vector specifying the column names of \code{data} corresponding to the target indicators of all ionizers.
+#' @param data_target_column_names A character vector specifying the column names of \code{data} corresponding to the binary target indicators used in the downwind (second stage) LMM fitting.
+#'   The order of names in this vector must match the column order of the corresponding ionizers in \code{ionizer_operation} (excluding the day and year columns) and in \code{gaugeday_downwind}.
 #'   (User-configurable permutation option using \code{\link{permutation_option}})
 #' @param ionizer_operation_year_column_name A character string specifying the column name of \code{ionizer_operation} containing the year of each day.
 #'   (User-configurable permutation option using \code{\link{permutation_option}})
-#' @param ionizer_operation_day_column_name A character string specifying the column name of \code{ionizer_operation} containing the day of each observation, which should correspond to the same column in \code{data}.
+#' @param ionizer_operation_day_column_name A character string specifying the column name of \code{ionizer_operation} containing the day of each observation. The same column name should also be found in \code{data}.
 #'   (User-configurable permutation option using \code{\link{permutation_option}})
-#' @param data A data frame containing all gauge-day observations, including rainfall and covariates.
+#' @param permutation_seed An integer specifying the random seed for the permutation-based procedure. Reproducibility is guaranteed only if \code{permutation_parallel} is the same, since parallel execution changes the order of random number generation.
+#' (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param permutation_parallel Logical. If \code{TRUE}, each permutation run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
+#' (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \code{permutation_parallel = TRUE}.
+#' (User-configurable permutation option using \code{\link{permutation_option}})
+#' @param data A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
+#'   Its column names should contain \code{data_target_column_names} (binary target indicators) and \code{ionizer_operation_day_column_name} (day).
+#'   The row order of this data frame must match that of \code{gaugeday_downwind}.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param downwind_lmm_formula A two-sided linear formula object to be used in \code{\link[lme4]{lmer}}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
+#' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param downwind_propensity_formula A two-sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind observations.
+#' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param attr_type A character string specifying the type of attribution estimator to use. Passed to \code{\link{attr_est}}.
+#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Ray_Winsorize"}, \code{"Proposed"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param x_downwind_name A character vector containing variable names from the right-hand side of \code{downwind_lmm_formula} that are not related to ionizers (treatment). The intercept is always included.
+#' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param target_only Logical. If \code{TRUE}, attribution estimates are computed based only on treatment observations. If \code{FALSE}, estimates use both treatment and control observations.
+#' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param rain_col_name A character string specifying the column name of the raw-scale rainfall in \code{data}.
+#' @param rain_col_name A character string specifying the column name of the raw scale rainfall in \code{ori_data}.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #'
 #' @return A list with two components:
 #' \describe{
 #'   \item{hatattr}{Matrix of permutation replicates of attribution estimates.}
-#'   \item{hatsate}{Matrix of permutation replicates of attribution estimates.}
+#'   \item{hatsate}{Matrix of permutation replicates of SATE estimates.}
 #' }
 #'
 #' @details
@@ -1678,35 +1732,40 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 #' Instead, permutation-based inference should be performed by calling \code{\link{rain_attr}} with \code{permutation = TRUE}.
 #'
 #  \strong{Additional Information Required for Permutation-Based Procedure} \cr
-#' To perform permutation-based procedure, additional information need to be supplied through the following arguments of \code{\link{bootstrap_option}}:
+#' To perform permutation-based procedure, additional information need to be supplied through the following arguments of \code{\link{permutation_option}}:
 #' \describe{
-#'  \item{year_ionizer_list}{Timing of deployment of ionizers over the years.}
-#'  \item{ionizer_operation}{Day(group)-level ionizers operation schedule during the rainfall enhancement trial.}
-#'  \item{gaugeday_downwind}{Gauge-day(unit within group)-level information on relative orientation of gauges from ionizers each day.}
+#'  \item{\code{year_ionizer_list}}{Timing of deployment of ionizers over the years.}
+#'  \item{\code{ionizer_operation}}{Day(group)-level ionizers operation schedule during the rainfall enhancement trial.}
+#'  \item{{gaugeday_downwind}}{Gauge-day(unit within group)-level information on relative orientation of gauges from ionizers each day.}
 #' }
 #'
 #' \strong{Permutation Steps} \cr
 #' The permutation-based procedure considers to randomly permute ionizers' operation statuses via:
 #' \enumerate{
 #'    \item{If \code{permute_between_ionizer = TRUE}, for each row of the day-level \code{ionizer_operation} matrix, a random permutation is performed among the binary indicators in the row that correspond to ionizers that have already been deployed during the year of the row.
-#'    This is equivalent to randomly permuting the operation status of deployed ionizers for each day. }
+#'    This is equivalent to randomly permuting the operation statuses of deployed ionizers for each day. }
 #'    \item{If \code{permute_all_ionizers_between_day = TRUE}, for each year, a random permutation is performed among all rows belonging to the year in the day-level \code{ionizer_operation} matrix.
-#'    This is equivalent to randomly permuting the daily operation schedule of deployed ionizers for each year.  }
+#'    This is equivalent to randomly permuting the daily operation schedules of all trial days belonging to each year.  }
 #'    \item{The permuted day-level \code{ionizer_operation} are then expanded into a gauge-day level binary ionizers' operation indicator matrix, to match the gauge-day level \code{data}. }
 #'    \item{If \code{permute_between_gaugeday = TRUE}, for each year, a random permutation is performed among all rows belonging to the year in the gauge-day level binary ionizers' operation indicator matrix.
-#'    This is equivalent to randomly permuting the gauge-day level operation schedule of deployed ionizers for each year. }
+#'    This is equivalent to randomly permuting the gauge-day level operation schedules of all gauge-days belonging to each year. }
 #' }
 #'
 #' The above three optional permutation steps are performed in sequence, resulting in a final permuted gauge-day level binary ionizers' operation indicator matrix.
-#' An elementwise multiplication is carried out between this matrix and \code{gaugeday_downwind}, and the results are used to replace the original columns (\code{data_target_column_names}) in \code{data} that contain the binary target indicators used for the downwind (second stage) LMM fitting.
+#' An elementwise multiplication is carried out between this matrix and \code{gaugeday_downwind}, and the results are used to replace the original columns (\code{data_target_column_names}) in \code{data} that contain the binary target indicators used in the downwind (second stage) LMM fitting.
+#' Therefore, it is important to ensure that
+#' \itemize{
+#'  \item{The row order of \code{gaugeday_downwind} and \code{data} is consistent.}
+#'  \item{The column orders of \code{gaugeday_downwind} and \code{ionizer_operation} is consistent, and matches the order specified by \code{data_target_column_names}.}
+#' }
 #' Based on these permuted binary target indicators, the original binary indicators \eqn{I_{ij}} for exposure to ionizers (treatment) are also updated to be their permuted counterparts \eqn{I_{ij}^*}, where \eqn{I_{ij}^*} only equals zero if all permuted binary target indicators in its corresponding row equal zero.
 #'
 #'
 #'  \strong{Permutation Distribution of Attribution and SATE} \cr
-#' The same procedure described in \code{\link{rain_attr}} is then repeated on the permuted dataset, where the columns containing the binary target indicators and the classification of treated (target with \eqn{I_{ij} = 1}) and non-treated (control with \eqn{I_{ij} = 0}) observations are replaced according to the permutation.
+#' The same procedure described in \code{\link{rain_attr}} is then repeated on the permuted dataset, where the columns containing the binary target indicators and the binary indicators \eqn{I_{ij}} for exposure to ionizers (treatment) are replaced according to the permutation.
 #This includes the fitting of the downwind (second stage) LMM, downwind (second stage) target-only LMM, downwind (second stage) control-only LMM to the subset of observations from \code{data} that are downwind (second stage) and with positive rainfall, where a gauge-day level observation is said to be downwind if the gauge is downwind of at least one deployed ionizer (not necessarily turned on) on that day i.e., at least one of the indicators is equal to one for that row of \code{gaugeday_downwind}.
-#' This includes the fitting of the downwind (second stage) LMM, downwind (second stage) target-only LMM, downwind (second stage) control-only LMM to the subset of observations from \code{data} that are downwind (second stage) and with positive rainfall, the fitting of downwind propensity score model to the subset of observations from \code{data} that are downwind (second stage) with the response being the permuted indicator \eqn{I_{ij}^*} for exposure to ionizers (treatment).
-#' Finally, two attribution estimates and the SATE estimates are computed based on the estimation results of these models fitted to the permuted dataset, where \eqn{z_{ij}} (ionizer related covariate vector constructed from the binary target indicators) and I_{ij} are replaced by their permuted counterparts \eqn{z_{ij}^*} and \eqn{I_{ij}^*}, respectively.
+#' This includes the fitting of the downwind (second stage) LMM, downwind (second stage) target-only LMM, downwind (second stage) control-only LMM to the subset of observations from \code{data} that are downwind (second stage) and with positive rainfall, along with the fitting of downwind propensity score model to the subset of observations from \code{data} that are downwind (second stage) with the response being the permuted indicator \eqn{I_{ij}^*} for exposure to ionizers (treatment).
+#' Finally, two attribution estimates and the SATE estimates are computed based on the estimation results of these models fitted to the permuted dataset, where \eqn{z_{ij}} (ionizer related covariate vector constructed from the binary target indicators) and \eqn{I_{ij}} are replaced by their permuted counterparts \eqn{z_{ij}^*} and \eqn{I_{ij}^*}, respectively.
 #'
 #' By repeatedly permuting ionizers' operation schedules, fitting models and computing attribution and SATE estimates for \code{B_permutation} number of times, this function returns the permutation distributions of
 #' \itemize{
@@ -1714,7 +1773,7 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 #'    \item{Five SATE estimates}
 #' }
 #'
-#' \strong{Permutation-Based P-Value and Permutation-Based Plots}
+#' \strong{Permutation-Based P-Value and Permutation-Based Plots} \cr
 #' The permutation distributions of attribution and SATE produced by this function are further used in \code{\link{rain_attr}} to:
 #' \itemize{
 #'    \item{Compute permutation-based p-value as the proportion of permuted estimates that are greater than or equal to the original estimate, i.e.,
@@ -1724,22 +1783,14 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 #'    \item{Plot the kernel density estimate with a solid vertical line for the original estimate \eqn{\hat{\theta}}. }
 #' }
 #'
-#'
-#' @note
-#' Ensure that:
-#' \itemize{
-#'   \item Rows of \code{gaugeday_downwind} and \code{data} are ordered consistently.
-#'   \item \code{data_target_column_names} columns have the same ordering as the columns in \code{ionizer_operation}.
-#'   \item Each day in \code{ionizer_operation} appears only once.
-#' }
-#'
+#' @seealso \code{\link{rain_attr}} for the main function, \code{\link{permutation_option}} for specifying permutation options
 
-#TODO: Consider to add parallelization option
-#TODO: Edit the documentation for function argument properly
-#TODO: Add the 'note' to either 'argument' or 'details'
+
+
 permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_all_ionizers_between_day, permute_between_gaugeday,
                                ionizer_operation, gaugeday_downwind, year_ionizer_list,
                                data_target_column_names, ionizer_operation_year_column_name, ionizer_operation_day_column_name,
+                               permutation_seed, permutation_parallel, permutation_parallel_num_worker,
                                data, downwind_lmm_formula, downwind_propensity_formula,
                                attr_type, x_downwind_name, target_only,
                                rain_col_name){
@@ -1762,97 +1813,216 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
   # )
   # names(ionizer_operation_yearlist) = names(year_ionizer_list)
 
-  for(b in 1:B_permutation){
-    tryCatch({
-    perm_data = data
+  if(!permutation_parallel){
+    set.seed(permutation_seed)
 
-
-
-    perm_ionizer_operation_day = ionizer_operation
-    if(permute_between_ionizer){
-      for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
-        temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
-        deployed_ionizers = year_ionizer_list[[as.character(unique_year)]]
-        perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
-          t(apply(temp,1, FUN = function(x){
-            x[colnames(temp) %in% deployed_ionizers] = sample(x[colnames(temp) %in% deployed_ionizers])
-            return(x)
-          }))
-      }
-    }
-
-    if(permute_all_ionizers_between_day){
-      for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
-        temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
-        perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
-          temp[sample(1:nrow(temp)),]
-      }
-    }
-
-
-    # perm_ionizer_operation_yearlist = ionizer_operation_yearlist
-    # if(permute_between_ionizer){
-    #   for(i in 1:length(perm_ionizer_operation_yearlist)){
-    #     deployed_ionizers = year_ionizer_list[[names(perm_ionizer_operation_yearlist)[i]]]
-    #     perm_ionizer_operation_yearlist[[i]] = t(apply(perm_ionizer_operation_yearlist[[i]], 1, function(x){
-    #       x[colnames(x) %in% deployed_ionizers] = sample(x[colnames(x) %in% deployed_ionizers])
-    #       return(x)
-    #     }))
-    #   }
-    # }
-    #
-    # if(permute_all_ionizers_between_day){
-    #   for(i in 1:length(perm_ionizer_operation_yearlist)){
-    #     perm_ionizer_operation_yearlist[[i]] = perm_ionizer_operation_yearlist[[i]][sample(1:nrow(perm_ionizer_operation_yearlist[[i]])),]
-    #   }
-    # }
-    #
-    # perm_ionizer_operation_day = ionizer_operation
-    # for(i in 1:length(year_ionizer_list)){
-    #   perm_ionizer_operation_day[perm_ionizer_operation_day[,ionizer_operation_year_column_name] == names(year_ionizer_list)[i], -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name) )  ] = perm_ionizer_operation_yearlist[[i]]
-    # }
-
-    perm_ionizer_operation_gaugeday = dplyr::left_join(perm_data[, ionizer_operation_day_column_name, drop = FALSE], perm_ionizer_operation_day, by = ionizer_operation_day_column_name)
-
-    if(permute_between_gaugeday){
-      for(unique_year in unique(perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name])){
-        temp = perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_day_column_name, ionizer_operation_year_column_name))  ]
-        perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name))  ] =
-          temp[sample(1: nrow(temp)),]
-      }
-    }
-
-    perm_data[,data_target_column_names] = (perm_ionizer_operation_gaugeday[, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name))] * gaugeday_downwind)
-
-    #Refit downwind LMM to permuted data, and then compute hatattr and hatsate, noting we need to becareful with the definition of downwind_positive_target, downwind_positive_control, and downwind_propensity_
     downwind = apply(gaugeday_downwind,1,sum) > 0
     positive = ( data[,rain_col_name] > 0)
-    perm_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = perm_data[downwind & positive,])
 
-    perm_downwind_positive_data = perm_data[downwind & positive,]
-    target_vec = apply(perm_data[,data_target_column_names],1, sum) > 0
-    nontarget_vec = apply(perm_data[,data_target_column_names],1, sum) ==  0
-    perm_downwind_positive_target = target_vec[downwind & positive]
-    perm_downwind_positive_control = nontarget_vec[downwind & positive]
+    test_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
+    z_downwind_name = setdiff(names(lme4::fixef(test_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
+    perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+    perm_downwind_propensity_formula = update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
 
-    perm_hatattr = attr_est(attr_type, perm_downwind_positive_data, rain_col_name, perm_downwind_positive_target, perm_downwind_positive_control,
-                            x_downwind_name, target_only = target_only, downwind_lmm_fit = perm_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
+    for(b in 1:B_permutation){
+      tryCatch({
+        perm_data = data
 
 
-    perm_downwind_positive_data$permuted_target_indicator = as.logical(perm_downwind_positive_target)
 
-    if(b == 1){
-      z_downwind_name = setdiff(names(lme4::fixef(perm_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
-      perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
-      perm_downwind_propensity_formula = update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
+        perm_ionizer_operation_day = ionizer_operation
+        if(permute_between_ionizer){
+          for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
+            temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
+            deployed_ionizers = year_ionizer_list[[as.character(unique_year)]]
+            perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
+              t(apply(temp,1, FUN = function(x){
+                x[colnames(temp) %in% deployed_ionizers] = sample(x[colnames(temp) %in% deployed_ionizers])
+                return(x)
+              }))
+          }
+        }
+
+        if(permute_all_ionizers_between_day){
+          for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
+            temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
+            perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
+              temp[sample(1:nrow(temp)),]
+          }
+        }
+
+
+        # perm_ionizer_operation_yearlist = ionizer_operation_yearlist
+        # if(permute_between_ionizer){
+        #   for(i in 1:length(perm_ionizer_operation_yearlist)){
+        #     deployed_ionizers = year_ionizer_list[[names(perm_ionizer_operation_yearlist)[i]]]
+        #     perm_ionizer_operation_yearlist[[i]] = t(apply(perm_ionizer_operation_yearlist[[i]], 1, function(x){
+        #       x[colnames(x) %in% deployed_ionizers] = sample(x[colnames(x) %in% deployed_ionizers])
+        #       return(x)
+        #     }))
+        #   }
+        # }
+        #
+        # if(permute_all_ionizers_between_day){
+        #   for(i in 1:length(perm_ionizer_operation_yearlist)){
+        #     perm_ionizer_operation_yearlist[[i]] = perm_ionizer_operation_yearlist[[i]][sample(1:nrow(perm_ionizer_operation_yearlist[[i]])),]
+        #   }
+        # }
+        #
+        # perm_ionizer_operation_day = ionizer_operation
+        # for(i in 1:length(year_ionizer_list)){
+        #   perm_ionizer_operation_day[perm_ionizer_operation_day[,ionizer_operation_year_column_name] == names(year_ionizer_list)[i], -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name) )  ] = perm_ionizer_operation_yearlist[[i]]
+        # }
+
+        perm_ionizer_operation_gaugeday = dplyr::left_join(perm_data[, ionizer_operation_day_column_name, drop = FALSE], perm_ionizer_operation_day, by = ionizer_operation_day_column_name)
+
+        if(permute_between_gaugeday){
+          for(unique_year in unique(perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name])){
+            temp = perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_day_column_name, ionizer_operation_year_column_name))  ]
+            perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name))  ] =
+              temp[sample(1: nrow(temp)),]
+          }
+        }
+
+        perm_data[,data_target_column_names] = (perm_ionizer_operation_gaugeday[, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name))] * gaugeday_downwind)
+
+        #Refit downwind LMM to permuted data, and then compute hatattr and hatsate, noting we need to becareful with the definition of downwind_positive_target, downwind_positive_control, and downwind_propensity_
+        perm_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = perm_data[downwind & positive,])
+
+        perm_downwind_positive_data = perm_data[downwind & positive,]
+        target_vec = apply(perm_data[,data_target_column_names],1, sum) > 0
+        nontarget_vec = apply(perm_data[,data_target_column_names],1, sum) ==  0
+        perm_downwind_positive_target = target_vec[downwind & positive]
+        perm_downwind_positive_control = nontarget_vec[downwind & positive]
+
+        perm_hatattr = attr_est(attr_type, perm_downwind_positive_data, rain_col_name, perm_downwind_positive_target, perm_downwind_positive_control,
+                                x_downwind_name, target_only = target_only, downwind_lmm_fit = perm_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
+
+
+        perm_downwind_positive_data$permuted_target_indicator = as.logical(perm_downwind_positive_target)
+
+
+        perm_hatsate = sate_est(perm_downwind_positive_data, perm_downwind_positive_target, perm_downwind_positive_control, perm_downwind_propensity_formula, perm_downwind_separate_formula,
+                                x_downwind_name, downwind_lmm_fit = perm_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
+
+        perm_attr_matrix[b,] = c(perm_hatattr$apo, perm_hatattr$apl)
+        perm_sate_matrix[b,] = c(perm_hatsate$estimates$sate.mb, perm_hatsate$estimates$sate.ipw, perm_hatsate$estimates$sate.ipw.l, perm_hatsate$estimates$sate.ipw.ma, perm_hatsate$estimates$sate.aipw)
+      },error=function(e){cat(b,"th","Permutation Run Skipped due to ERROR :",conditionMessage(e), "\n")})
+    }
+  }else{
+    downwind = apply(gaugeday_downwind,1,sum) > 0
+    positive = ( data[,rain_col_name] > 0)
+
+    test_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
+    z_downwind_name = setdiff(names(lme4::fixef(test_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
+    perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+    perm_downwind_propensity_formula = update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
+
+    permutation_cl = parallel::makeCluster(permutation_parallel_num_worker)
+    parallel::clusterExport(permutation_cl, varlist = c('attr_est', 'sate_est'))
+    doParallel::registerDoParallel(permutation_cl)
+    doRNG::registerDoRNG(seed = permutation_seed)
+    `%dopar%` <- foreach::`%dopar%`
+
+    #, .errorhandling = 'remove'
+    permutation_results = foreach::foreach(b = 1:B_permutation, .packages = c("dplyr","lme4")) %dopar% {
+      perm_data = data
+
+
+
+      perm_ionizer_operation_day = ionizer_operation
+      if(permute_between_ionizer){
+        for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
+          temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
+          deployed_ionizers = year_ionizer_list[[as.character(unique_year)]]
+          perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
+            t(apply(temp,1, FUN = function(x){
+              x[colnames(temp) %in% deployed_ionizers] = sample(x[colnames(temp) %in% deployed_ionizers])
+              return(x)
+            }))
+        }
+      }
+
+      if(permute_all_ionizers_between_day){
+        for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
+          temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
+          perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
+            temp[sample(1:nrow(temp)),]
+        }
+      }
+
+
+      # perm_ionizer_operation_yearlist = ionizer_operation_yearlist
+      # if(permute_between_ionizer){
+      #   for(i in 1:length(perm_ionizer_operation_yearlist)){
+      #     deployed_ionizers = year_ionizer_list[[names(perm_ionizer_operation_yearlist)[i]]]
+      #     perm_ionizer_operation_yearlist[[i]] = t(apply(perm_ionizer_operation_yearlist[[i]], 1, function(x){
+      #       x[colnames(x) %in% deployed_ionizers] = sample(x[colnames(x) %in% deployed_ionizers])
+      #       return(x)
+      #     }))
+      #   }
+      # }
+      #
+      # if(permute_all_ionizers_between_day){
+      #   for(i in 1:length(perm_ionizer_operation_yearlist)){
+      #     perm_ionizer_operation_yearlist[[i]] = perm_ionizer_operation_yearlist[[i]][sample(1:nrow(perm_ionizer_operation_yearlist[[i]])),]
+      #   }
+      # }
+      #
+      # perm_ionizer_operation_day = ionizer_operation
+      # for(i in 1:length(year_ionizer_list)){
+      #   perm_ionizer_operation_day[perm_ionizer_operation_day[,ionizer_operation_year_column_name] == names(year_ionizer_list)[i], -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name) )  ] = perm_ionizer_operation_yearlist[[i]]
+      # }
+
+      perm_ionizer_operation_gaugeday = dplyr::left_join(perm_data[, ionizer_operation_day_column_name, drop = FALSE], perm_ionizer_operation_day, by = ionizer_operation_day_column_name)
+
+      if(permute_between_gaugeday){
+        for(unique_year in unique(perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name])){
+          temp = perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_day_column_name, ionizer_operation_year_column_name))  ]
+          perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name))  ] =
+            temp[sample(1: nrow(temp)),]
+        }
+      }
+
+      perm_data[,data_target_column_names] = (perm_ionizer_operation_gaugeday[, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name))] * gaugeday_downwind)
+
+      #Refit downwind LMM to permuted data, and then compute hatattr and hatsate, noting we need to becareful with the definition of downwind_positive_target, downwind_positive_control, and downwind_propensity_
+      perm_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = perm_data[downwind & positive,])
+
+      perm_downwind_positive_data = perm_data[downwind & positive,]
+      target_vec = apply(perm_data[,data_target_column_names],1, sum) > 0
+      nontarget_vec = apply(perm_data[,data_target_column_names],1, sum) ==  0
+      perm_downwind_positive_target = target_vec[downwind & positive]
+      perm_downwind_positive_control = nontarget_vec[downwind & positive]
+
+      perm_hatattr = attr_est(attr_type, perm_downwind_positive_data, rain_col_name, perm_downwind_positive_target, perm_downwind_positive_control,
+                              x_downwind_name, target_only = target_only, downwind_lmm_fit = perm_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
+
+
+      perm_downwind_positive_data$permuted_target_indicator = as.logical(perm_downwind_positive_target)
+
+
+
+      perm_hatsate = sate_est(perm_downwind_positive_data, perm_downwind_positive_target, perm_downwind_positive_control, perm_downwind_propensity_formula, perm_downwind_separate_formula,
+                              x_downwind_name, downwind_lmm_fit = perm_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
+
+      perm_attr_b = c(perm_hatattr$apo, perm_hatattr$apl)
+      perm_sate_b = c(perm_hatsate$estimates$sate.mb, perm_hatsate$estimates$sate.ipw, perm_hatsate$estimates$sate.ipw.l, perm_hatsate$estimates$sate.ipw.ma, perm_hatsate$estimates$sate.aipw)
+
+      list(
+        b = b,
+        perm_attr_b = perm_attr_b,
+        perm_sate_b = perm_sate_b
+      )
     }
 
-    perm_hatsate = sate_est(perm_downwind_positive_data, perm_downwind_positive_target, perm_downwind_positive_control, perm_downwind_propensity_formula, perm_downwind_separate_formula,
-                            x_downwind_name, downwind_lmm_fit = perm_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
+    parallel::stopCluster(permutation_cl)
 
-    perm_attr_matrix[b,] = c(perm_hatattr$apo, perm_hatattr$apl)
-    perm_sate_matrix[b,] = c(perm_hatsate$estimates$sate.mb, perm_hatsate$estimates$sate.ipw, perm_hatsate$estimates$sate.ipw.l, perm_hatsate$estimates$sate.ipw.ma, perm_hatsate$estimates$sate.aipw)
-    },error=function(e){cat(b,"th","Permutation Run Skipped due to ERROR :",conditionMessage(e), "\n")})
+    for(permutation_res in permutation_results){
+      perm_attr_matrix[permutation_res$b,] = permutation_res$perm_attr_b
+      perm_sate_matrix[permutation_res$b,] = permutation_res$perm_sate_b
+    }
+
   }
 
 
@@ -1863,9 +2033,64 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 }
 
 
-permutation_option = function(B_permutation = 1000,
+#' @title Permutation Options
+#'
+#' @description
+#' This function generates a list of settings controlling how permutation-based procedures are executed within \code{\link{rain_attr}}.
+#'
+#'
+#' @param B_permutation An integer specifying the number of permutation replicates. Default is 10000.
+#' @param permute_between_ionizer Logical. If \code{TRUE}, for each day, a random permutation is performed among the operation statuses of all ionizers that have been deployed on that day. Default is \code{TRUE}.
+#' @param permute_all_ionizers_between_day Logical. If \code{TRUE}, for each year, a random permutation is performed among the daily operation schedules of all trial days within that year. Default is \code{FALSE}.
+#' @param permute_between_gaugeday Logical. If \code{TRUE}, for each year, a random permutation is performed among the gauge-day level operation schedule of all gauge-days within that year. Default is \code{TRUE}.
+#' @param ionizer_operation_input A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on and 0 indicates that it is off or not deployed yet.
+#' Additionally, this data frame must include two columns with names specified by \code{ionizer_operation_day_column_name} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
+#' Each day must appear only once in this data frame (no duplicated day entries).
+#' The ionizer columns must appear in the same order as specified by \code{data_target_column_names} and must be consistent with the column order in \code{gaugeday_downwind_input}. Default is \code{ionizer_operation}.
+#' @param gaugeday_downwind_input A binary matrix indicating which gauge-day observations (row) are downwind of which ionizers (column), where 1 indicates that the gauge is downwind of the ionizer on that day, and 0 indicates that the gauge is not downwind of the ionizer or the ionizer has not been deployed yet.
+#'   The row order of this matrix must match that of the original dataset supplied to \code{\link{rain_attr}}. The column order must correspond to the ionizer columns in \code{ionizer_operation_input} (excluding the day and year columns) and be in the same order as specified by \code{data_target_column_names}. Default is \code{gaugeday_downwind}.
+#' @param year_ionizer_list A named list, where each element corresponds to a year and contains the names of deployed ionizers in that year. Default is:
+#'   \code{list('2013' = c('H1','H2'), '2014' = c('H1','H2','H3','H4'), '2015' = c('H1','H2','H3','H4','H5','H6'), '2016' = c('H1','H2','H3','H4','H5','H6','H7','H8'), '2017' = c('H1','H2','H3','H4','H5','H6','H7','H8','H9','H10'), '2018' = c('H1','H2','H3','H4','H5','H6','H7','H8','H9','H10'))}.
+#' @param data_target_column_names A character vector specifying the column names of the original dataset supplied to \code{\link{rain_attr}}, corresponding to the binary target indicators used in the downwind (second stage) LMM fitting.
+#'   The order of names in this vector must match the column order of the corresponding ionizers in \code{ionizer_operation_input} (excluding the day and year columns) and in \code{gaugeday_downwind_input}. Default is:
+#'   \code{c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10")}.
+#' @param ionizer_operation_year_column_name A character string specifying the column name of \code{ionizer_operation_input} containing the year of each day. Default is \code{'Year'}.
+#' @param ionizer_operation_day_column_name A character string specifying the column name of \code{ionizer_operation_input} containing the day of each observation. The same column name should also be found in the original dataset supplied to \code{\link{rain_attr}}. Default is \code{'TrialDay'}.
+#' @param permutation_seed An integer specifying the random seed for the permutation-based procedure. Reproducibility is guaranteed only if \code{permutation_parallel} is the same, since parallel execution changes the order of random number generation. Default is 123.
+#' @param permutation_parallel Logical. If \code{TRUE}, each permutation run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.
+#' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \code{permutation_parallel = TRUE}. Default is \code{parallel::detectCores() - 1}.
+#'
+#' @return A list containing all permutation options, suitable for passing to \code{\link{rain_attr}}.
+#'
+#' @details
+#' This function is used to configure and store all settings needed for performing permutation-based analyses within \code{\link{rain_attr}}.
+#' It is important to ensure that
+#' \itemize{
+#'  \item{The row order of \code{gaugeday_downwind_input} and the original dataset supplied to \code{\link{rain_attr}} is consistent.}
+#'  \item{The column orders of \code{gaugeday_downwind_input} and \code{ionizer_operation_input} is consistent, and matches the order specified by \code{data_target_column_names}.}
+#' }
+#'
+#' @seealso \code{\link{rain_attr}} for the main function, \code{\link{permutation_ionizer}} for more details on the permutation-based procedure
+#'
+#' @examples
+#' #Create default permutation options
+#' # These are the same permutation settings used in Chambers et al. (2022)
+#' # "Nudging a Pseudo-Science Towards a Science—The Role of Statistics in a Rainfall Enhancement Trial in Oman"
+#' # Specifically: permute_between_ionizer = TRUE, permute_all_ionizers_between_day = FALSE, and permute_between_gaugeday = TRUE
+#' perm_options = permutation_option()
+#' str(perm_options)
+#'
+#' #Permutation option with parallelization over (parallel::detectCores() - 1) number of workers and seed = 1 for reproducibility
+#' perm_options_parallel = permutation_option(
+#'   permutation_seed = 1,
+#'   permutation_parallel = TRUE,
+#'   permutation_parallel_num_worker = parallel::detectCores() - 1
+#' )
+#' str(perm_options_parallel)
+#'
+permutation_option = function(B_permutation = 10000,
                               permute_between_ionizer = T,
-                              permute_all_ionizers_between_day = T,
+                              permute_all_ionizers_between_day = F,
                               permute_between_gaugeday = T,
                               ionizer_operation_input = ionizer_operation,
                               gaugeday_downwind_input = gaugeday_downwind,
@@ -1880,7 +2105,10 @@ permutation_option = function(B_permutation = 1000,
                                 ),
                               data_target_column_names = c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10"),
                               ionizer_operation_year_column_name = 'Year',
-                              ionizer_operation_day_column_name = 'TrialDay'){
+                              ionizer_operation_day_column_name = 'TrialDay',
+                              permutation_seed = 123,
+                              permutation_parallel = F,
+                              permutation_parallel_num_worker = parallel::detectCores() - 1){
   return(list(
     B_permutation = B_permutation,
     permute_between_ionizer = permute_between_ionizer,
@@ -1891,7 +2119,10 @@ permutation_option = function(B_permutation = 1000,
     year_ionizer_list = year_ionizer_list,
     data_target_column_names = data_target_column_names,
     ionizer_operation_year_column_name = ionizer_operation_year_column_name,
-    ionizer_operation_day_column_name = ionizer_operation_day_column_name
+    ionizer_operation_day_column_name = ionizer_operation_day_column_name,
+    permutation_seed = permutation_seed,
+    permutation_parallel = permutation_parallel,
+    permutation_parallel_num_worker = permutation_parallel_num_worker
   ))
 }
 

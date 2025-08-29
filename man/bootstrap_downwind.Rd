@@ -70,7 +70,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{bootstrap_parallel}{Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
 (User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
-\item{bootstrap_parallel_num_worker}{An integer specifying the numbre of parallel workers to use when \code{bootstrap_parallel = TRUE}.
+\item{bootstrap_parallel_num_worker}{An integer specifying the number of parallel workers to use when \code{bootstrap_parallel = TRUE}.
 (User-configurable bootstrap option using \code{\link{bootstrap_option}})}
 
 \item{ori_data}{A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
@@ -103,7 +103,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{x_downwind_name}{A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{target_only}{Logical. If \code{TRUE} the attribution estimates are computed based on only treatment observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
+\item{target_only}{Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
