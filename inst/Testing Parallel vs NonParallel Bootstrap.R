@@ -1,4 +1,4 @@
-rm(list=ls())
+rm(list=ls()); gc()
 load('data/oman.rda')
 load('data/ionizer_operation.rda')
 load('data/gaugeday_downwind.rda')
