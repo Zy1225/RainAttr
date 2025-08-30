@@ -1949,8 +1949,8 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
     doRNG::registerDoRNG(seed = permutation_seed)
     `%dopar%` <- foreach::`%dopar%`
 
-    #, .errorhandling = 'remove'
-    permutation_results = foreach::foreach(b = 1:B_permutation, .packages = c("dplyr","lme4")) %dopar% {
+
+    permutation_results = foreach::foreach(b = 1:B_permutation, .packages = c("dplyr","lme4"), .errorhandling = 'remove') %dopar% {
       perm_data = data
 
 
