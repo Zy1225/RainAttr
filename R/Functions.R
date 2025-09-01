@@ -201,6 +201,7 @@
 #' \item{hatsate}{A list of \code{ggplot} objects, each showing the permutation distribution of SATE estimates. Each plot includes a solid vertical line at the original estimate based on the observed data.}
 #' }
 #'}
+#'@export
 
 #TODO: Fix the formatting of "Value" section, so that bootstrap_result is correctly formatted
 #TODO: Change naming of attr_type to something like chambersETAL, thoETAL
