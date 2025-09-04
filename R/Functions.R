@@ -303,6 +303,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     }
   }
 
+  original_args <- as.list(match.call())[-1]
+
   #Define different subsets of the data
   #Binary indicator of length N, indicating whether or not each observation is an upwind observation
   upwind_expr = rlang::enquo(upwind_subset)
@@ -443,7 +445,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     permutation_plot_result = NULL
   }
 
-  return(list(
+  output = list(
     all_fitted_models = all_fitted_models,
     hatattr = hatattr,
     hatsate = hatsate$estimates,
@@ -454,11 +456,200 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     permutation_result = permutation_result,
     permutation_p_value_result = permutation_p_value_result,
     permutation_plot_result = permutation_plot_result,
+    args = original_args,
     #temporary - will be removed later sicne we dont need to return data. Currently included for debugging purposes
     data = fitted_models$data
-  ))
+  )
+
+  class(output) = "rain_attr"
+
+  return(output)
 }
 
+#' @export
+print.rain_attr <- function(x, ...) {
+  cat("Two Stage LMM Rainfall Enhancement Analysis Result\n")
+  cat("===================================\n\n")
+
+  # Point estimates
+  cat("Point Estimates:\n")
+
+  # Attribution (hatattr) as %
+  hatattr_values <- c(
+    apo = if(!is.null(x$hatattr$apo)) paste0(round(x$hatattr$apo * 100, 2), "%") else NA,
+    apl = if(!is.null(x$hatattr$apl)) paste0(round(x$hatattr$apl * 100, 2), "%") else NA
+  )
+  cat("Attribution (%) Assuming Log-Rainfall being Modelled:\n")
+  print(noquote(hatattr_values))
+  cat("\n")
+
+  # SATE estimates (hatsate)
+  sate_names <- c("sate.mb", "sate.ipw", "sate.ipw.l", "sate.ipw.ma", "sate.aipw")
+  sate_values <- sapply(sate_names, function(nm) if(!is.null(x$hatsate[[nm]])) x$hatsate[[nm]] else NA)
+
+  cat("SATE Estimates (hatsate):\n\n")
+  print(noquote(format(sate_values, digits = 4)))
+
+  cat("===================================\n\n")
+  # Indicate whether bootstrap or permutation was carried out
+  cat("Inference:\n")
+  if (!is.null(x$bootstrap_result)) {
+    cat("Bootstrap inference has been carried out. See summary() for detailed results.\n\n")
+  } else {
+    cat("Bootstrap inference has NOT been carried out.\n\n")
+  }
+
+  if (!is.null(x$permutation_result)) {
+    cat("Permutation inference has been carried out. See summary() for detailed results.\n\n")
+  } else {
+    cat("Permutation inference has NOT been carried out.\n\n")
+  }
+
+  cat("===================================\n\n")
+  # Upwind formula and stats
+  upwind_formula <- x$args$upwind_lmm_formula
+  upwind_fit <- x$all_fitted_models$upwind_lmm_fit
+
+  cat("Upwind (First Stage) LMM Formula:\n")
+  print(upwind_formula)
+
+  cat('\n')
+  cat("Data subset used: ")
+  cat(deparse(x$args$data),"[", deparse(x$args$upwind_subset), " & ", deparse(x$args$positive_subset), ", ]\n")
+
+
+  n_obs_up <- nobs(upwind_fit)
+  n_groups_up <- length(unique(lme4::getME(upwind_fit, "flist")[[1]]))
+  cat(sprintf("Number of observations: %d, ", n_obs_up))
+  cat(sprintf("Number of groups: %d\n\n", n_groups_up))
+
+
+  cat("===================================\n\n")
+  # Downwind formula and stats
+  downwind_formula <- x$args$downwind_lmm_formula
+  downwind_fit <- x$all_fitted_models$downwind_lmm_fit
+
+  cat("Downwind (Second Stage) LMM Formula:\n")
+  print(downwind_formula)
+
+  cat('\n')
+  cat("Data subset used: ")
+  cat(deparse(x$args$data),"[", deparse(x$args$downwind_subset), " & ", deparse(x$args$positive_subset), ", ]\n")
+
+
+  n_obs_down <- nobs(downwind_fit)
+  n_groups_down <- length(unique(lme4::getME(downwind_fit, "flist")[[1]]))
+  cat(sprintf("Number of observations: %d, ", n_obs_down))
+  cat(sprintf("Number of groups: %d\n\n", n_groups_down))
+
+  invisible(x)
+}
+
+
+#' @export
+#'
+
+
+#TODO: Consider to remove bootstrap p-value and bootstrap CI, and permutation p-value computation from rain_attr() and only include it into summary()
+#TODO: Consider to return residuals of the second stage fit, but this should be available from summary(rain_attr_object)$summary_downwind_fit$residuals
+#TODO: Add a print() for summary.rain_attr()
+summary.rain_attr <- function(object, ...) {
+  # Extract data name
+  data_name <- deparse(object$args$data)
+
+  # Prepare subset expressions with data$var notation
+  upwind_subset_expr <- paste(
+    deparse(x$args$upwind_subset), " & ", deparse(x$args$positive_subset)
+  )
+  downwind_subset_expr <- paste(
+    deparse(x$args$downwind_subset), " & ", deparse(x$args$positive_subset)
+  )
+
+  # Upwind/Downwind stats
+  upwind_fit <- object$all_fitted_models$upwind_lmm_fit
+  downwind_fit <- object$all_fitted_models$downwind_lmm_fit
+
+  # Attribution table
+  attr_rows <- c("apo", "apl")
+  attr_table <- data.frame(
+    Estimate = sapply(attr_rows, function(nm) if(!is.null(object$hatattr[[nm]])) paste0(round(object$hatattr[[nm]]*100,2), "%") else NA),
+    row.names = attr_rows
+  )
+
+  if(!is.null(object$bootstrap_result)) {
+    ci_mat = bootstrap_CI(object$bootstrap_result$hatattr[, attr_rows],level = ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level) )
+    attr_table$Bootstrap_CI = apply(ci_mat, 1, function(r) paste0("(", round(r[1] * 100, 4), "%", ", ", round(r[2] * 100, 2), "%", ")"))
+    attr_table$Bootstrap_p = round(bootstrap_p_value(object$bootstrap_result$hatattr[, attr_rows]),2)
+  }else{
+    attr_table$Bootstrap_CI = NA
+    attr_table$Bootstrap_p = NA
+  }
+
+
+  if(!is.null(object$permutation_result)) {
+    attr_table$Permutation_p = round(permutation_p_value(object$permutation_result$hatattr[, attr_rows],
+                                                         ori_est = sapply(attr_rows, FUN = function(nm){
+                                                           object$hatattr[[nm]]
+                                                         })),2)
+  }else{
+    attr_table$Permutation_p <- NA
+  }
+
+  colnames(attr_table) = c('Estimate',
+                           paste0(ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level)*100, "% Bootstrap CI"),
+                           'Bootstrap P-Val','Permutation P-Val')
+
+
+  # SATE table
+  sate_rows <- c("sate.mb","sate.ipw","sate.ipw.l","sate.ipw.ma","sate.aipw")
+  sate_table <- data.frame(
+    Estimate = sapply(sate_rows, function(nm) if(!is.null(object$hatsate[[nm]])) round(object$hatsate[[nm]],4) else NA),
+    row.names = sate_rows
+  )
+
+  # Bootstrap CI and p-values
+  if(!is.null(object$bootstrap_result)) {
+    ci_mat_sate <- bootstrap_CI(object$bootstrap_result$hatsate[, sate_rows],
+                                level = ifelse(is.null(object$args$bootstrap_option$CI_level),
+                                               bootstrap_option()$CI_level,
+                                               object$args$bootstrap_option$CI_level))
+    sate_table$Bootstrap_CI <- apply(ci_mat_sate, 1, function(r) paste0("(", round(r[1],4), ", ", round(r[2],4), ")"))
+    sate_table$Bootstrap_p <- round(bootstrap_p_value(object$bootstrap_result$hatsate[, sate_rows]),2)
+  } else {
+    sate_table$Bootstrap_CI <- NA
+    sate_table$Bootstrap_p <- NA
+  }
+
+  # Permutation p-values
+  if(!is.null(object$permutation_result)) {
+    sate_table$Permutation_p <- round(permutation_p_value(object$permutation_result$hatsate[, sate_rows],
+                                                          ori_est = sapply(sate_rows, function(nm) object$hatsate[[nm]])), 2)
+  } else {
+    sate_table$Permutation_p <- NA
+  }
+
+  colnames(sate_table) = c('Estimate', 'Bootstrap P-Val','Permutation P-Val')
+
+
+  summary_list <- list(
+    data_name = data_name,
+    upwind_subset_expr = upwind_subset_expr,
+    downwind_subset_expr = downwind_subset_expr,
+    upwind_formula = object$args$upwind_lmm_formula,
+    downwind_formula = object$args$downwind_lmm_formula,
+    n_obs_upwind = nobs(upwind_fit),
+    n_groups_upwind = length(unique(lme4::getME(upwind_fit, "flist")[[1]])),
+    n_obs_downwind = nobs(downwind_fit),
+    n_groups_downwind = length(unique(lme4::getME(downwind_fit, "flist")[[1]])),
+    attr_table = attr_table,
+    sate_table = sate_table,
+    summary_upwind_fit = summary(upwind_fit),
+    summary_downwind_fit = summary(downwind_fit)
+  )
+
+  class(summary_list) <- "summary.rain_attr"
+  return(summary_list)
+}
 
 
 #Note that hatu should be for downwind positive (i,t) regardless of target_only
