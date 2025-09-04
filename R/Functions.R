@@ -553,6 +553,8 @@ print.rain_attr <- function(x, ...) {
 #TODO: Consider to remove bootstrap p-value and bootstrap CI, and permutation p-value computation from rain_attr() and only include it into summary()
 #TODO: Consider to return residuals of the second stage fit, but this should be available from summary(rain_attr_object)$summary_downwind_fit$residuals
 #TODO: Add a print() for summary.rain_attr()
+#TODO: Add residuals, fitted.values from upwind/downwind LMM and maybe also for the downwind logsitic and downwind propensity score?
+#TODO: Think whether to add fixed effect coef and variance components estimates from upwind/downwind LMM to summary() and/or rain_attr()?
 summary.rain_attr <- function(object, ...) {
   # Extract data name
   data_name <- deparse(object$args$data)
