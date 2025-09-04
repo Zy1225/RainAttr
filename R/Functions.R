@@ -555,6 +555,8 @@ print.rain_attr <- function(x, ...) {
 #TODO: Add a print() for summary.rain_attr()
 #TODO: Add residuals, fitted.values from upwind/downwind LMM and maybe also for the downwind logsitic and downwind propensity score?
 #TODO: Think whether to add fixed effect coef and variance components estimates from upwind/downwind LMM to summary() and/or rain_attr()?
+#       Maybe add point estimates to rain_attr(), but add the full table with Std.Error/t value/Pr(>|t|) to the summary()
+#TODO: Also, add the printing of fixed effect coef and variance component point estimates to print.rain_attr().
 summary.rain_attr <- function(object, ...) {
   # Extract data name
   data_name <- deparse(object$args$data)
