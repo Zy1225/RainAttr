@@ -210,10 +210,12 @@
 #TODO: for EDA plot, remember to plot the histogram of cluster sizes
 #TODO: Add documentation for visualization functions
 
+#TODO: Try to see if our rain_attr bootstrap and permutation could replicate the previous bootstrap/permutation results using older code (not from package)
+
 #TODO: Write vignettes to show how to use the package to replicate Ray's analysis, and to perform our recommended analysis using the recommended options
 
 
-#TODO: Add coef(), fitted(), predict() for class 'rain_attr'
+#TODO: Add coef(), fitted(), predict() for class 'rain_attr' with argument = 'model'
 #TODO: Add documentation for S3 methods, and also modify the documentation for output of rain_attr to be an S3 object of class 'rain_attr'
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
@@ -832,6 +834,8 @@ residuals.rain_attr <- function(object, model = "downwind_lmm",
 #TODO: Continue working on the code for downwind/upwind LMM diagnostic using plot function
 #TODO: Check what is the default diagnostic plot (and residual type) used in plot.merMod
 #TODO: Consider to allow for plot_quantity being a vector of length 2, to plot both attr and sate, on different pages?
+#TODO: Add the plotting of other models, such as downwind logistic etc., and also set plot_type = 'model' vs. 'bootstrap' vs. 'ermutation'
+#      and add an argument named model (similar to other S3 methods)
 plot.rain_attr <- function(object, plot_type, plot_quantity = c("attr", "sate"),
                            residual_type = "response", residual_scaled = TRUE, ...) {
 
