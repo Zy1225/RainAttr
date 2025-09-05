@@ -206,8 +206,14 @@
 #TODO: Fix the formatting of "Value" section, so that bootstrap_result is correctly formatted
 #TODO: Add reference lists to each documentation
 
+#TODO: Add visualization function to perform EDA on rainfall enhancement data
 #TODO: for EDA plot, remember to plot the histogram of cluster sizes
-#TODO: Add plot(), predict() for class 'rain_attr'
+#TODO: Add documentation for visualization functions
+
+#TODO: Write vignettes to show how to use the package to replicate Ray's analysis, and to perform our recommended analysis using the recommended options
+
+
+#TODO: Add coef(), fitted(), predict() for class 'rain_attr'
 #TODO: Add documentation for S3 methods, and also modify the documentation for output of rain_attr to be an S3 object of class 'rain_attr'
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
