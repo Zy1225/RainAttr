@@ -216,6 +216,7 @@
 
 
 #TODO: Add coef(), fitted(), predict() for class 'rain_attr' with argument = 'model'
+#TODO: Add asterisks to print.summary.rain_attr for different significance levels
 #TODO: Add documentation for S3 methods, and also modify the documentation for output of rain_attr to be an S3 object of class 'rain_attr'
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
@@ -721,6 +722,8 @@ summary.rain_attr <- function(object, ...) {
   class(summary_list) <- "summary.rain_attr"
   return(summary_list)
 }
+
+
 
 
 #' @export
