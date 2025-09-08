@@ -103,6 +103,7 @@ A list containing
 \describe{
 \item{hatattr}{A list of \code{ggplot} objects, each showing the permutation distribution of attribution estimates. Each plot includes a solid vertical line at the original estimate based on the observed data.}
 \item{hatsate}{A list of \code{ggplot} objects, each showing the permutation distribution of SATE estimates. Each plot includes a solid vertical line at the original estimate based on the observed data.}
+\item{args}{A list of the original function arguments.}
 }
 }
 }

@@ -199,12 +199,15 @@
 #' \describe{
 #' \item{hatattr}{A list of \code{ggplot} objects, each showing the permutation distribution of attribution estimates. Each plot includes a solid vertical line at the original estimate based on the observed data.}
 #' \item{hatsate}{A list of \code{ggplot} objects, each showing the permutation distribution of SATE estimates. Each plot includes a solid vertical line at the original estimate based on the observed data.}
+#' \item{args}{A list of the original function arguments.}
 #' }
 #'}
 #'@export
 
 #TODO: Fix the formatting of "Value" section, so that bootstrap_result is correctly formatted
 #TODO: Add reference lists to each documentation
+
+#
 
 #TODO: Add visualization function to perform EDA on rainfall enhancement data
 #TODO: for EDA plot, remember to plot the histogram of cluster sizes
@@ -215,9 +218,10 @@
 #TODO: Write vignettes to show how to use the package to replicate Ray's analysis, and to perform our recommended analysis using the recommended options
 
 
-#TODO: Add coef(), fitted(), predict() for class 'rain_attr' with argument = 'model'
+#NOTE: Currently not including fixef.rain_attr() and ranef.rain_attr() to avoid masking effect from lme4's functions with same name
 #TODO: Add asterisks to print.summary.rain_attr for different significance levels
 #TODO: Add documentation for S3 methods, and also modify the documentation for output of rain_attr to be an S3 object of class 'rain_attr'
+#TODO: Remember to note that we can't plot 'partial' residuals, or 'terms' prediction
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
                      rain_col_name,
@@ -480,6 +484,36 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 }
 
 #' @export
+coef.rain_attr = function(object, model = "downwind_lmm", ...){
+  # Map model names to stored fitted models
+  model_map = list(
+    upwind_lmm = object$all_fitted_models$upwind_lmm_fit,
+    downwind_lmm = object$all_fitted_models$downwind_lmm_fit,
+    downwind_logistic = object$all_fitted_models$downwind_logistic_fit,
+    downwind_propensity = object$all_fitted_models$downwind_propensity_fit,
+    downwind_target_lmm = object$all_fitted_models$downwind_positive_target_lmm_fit,
+    downwind_control_lmm = object$all_fitted_models$downwind_positive_control_lmm_fit
+  )
+
+  if (!model %in% names(model_map)) {
+    stop(paste("Invalid model. Choose one of:", paste(names(model_map), collapse = ", ")))
+  }
+
+  selected_model = model_map[[model]]
+
+  if(model %in%  c('upwind_lmm', 'downwind_lmm', 'downwind_target_lmm', 'downwind_control_lmm' )){
+    output = list(
+      fixef_coef = lme4::fixef(selected_model),
+      ranef_coef = lme4::ranef(selected_model)[[1]]
+    )
+  }else{
+    output = coef(selected_model)
+  }
+
+  return(output)
+}
+
+#' @export
 print.rain_attr <- function(object, ...) {
   cat("Two Stage LMM Rainfall Enhancement Analysis Result\n")
   cat("======================================================================\n\n")
@@ -732,14 +766,44 @@ print.summary.rain_attr <- function(object, ...) {
   cat("Summary of Two Stage LMM Rainfall Enhancement Analysis\n")
   cat("======================================================================\n\n")
 
+  signif_stars <- function(p) {
+    stars <- rep("", length(p))
+    stars[!is.na(p) & p < 0.001] <- "***"
+    stars[!is.na(p) & p >= 0.001 & p < 0.01] <- "**"
+    stars[!is.na(p) & p >= 0.01 & p < 0.05] <- "*"
+    stars[!is.na(p) & p >= 0.05 & p < 0.1] <- "."
+    return(stars)
+  }
+
   # Attribution Results Table
   cat("Attribution Results (Assuming Log-Rainfall being Modelled):\n")
-  print(object$attr_table)
-  cat("\n")
+  # print(object$attr_table)
+  # cat("\n")
+
+  attr_tbl = object$attr_table
+
+  # Append stars to all P-Val columns
+  pval_cols = grep("P-Val", colnames(attr_tbl))
+  for(col in pval_cols){
+    stars = signif_stars(as.numeric(attr_tbl[,col]))
+    attr_tbl[,col] = paste0(attr_tbl[,col], stars)
+  }
+  print(attr_tbl)
+  cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\n")
 
   # SATE Results Table
   cat("SATE Results:\n")
-  print(object$sate_table)
+  # print(object$sate_table)
+
+  sate_tbl <- object$sate_table
+  pval_cols <- grep("P-Val", colnames(sate_tbl))
+  for(col in pval_cols){
+    stars <- signif_stars(as.numeric(sate_tbl[,col]))
+    sate_tbl[,col] <- paste0(sate_tbl[,col], stars)
+  }
+  print(sate_tbl)
+  cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\n")
+
   cat("\n======================================================================\n\n")
 
   # Upwind LMM Results Table
@@ -789,7 +853,7 @@ print.summary.rain_attr <- function(object, ...) {
 #' @export
 
 residuals.rain_attr <- function(object, model = "downwind_lmm",
-                                type = NULL, scaled = FALSE, ...) {
+                                residual_type = NULL, residual_scaled = TRUE, ...) {
   # Match arguments
   model_map <- list(
     upwind_lmm = object$all_fitted_models$upwind_lmm_fit,
@@ -808,22 +872,22 @@ residuals.rain_attr <- function(object, model = "downwind_lmm",
 
   #
   if (inherits(selected_model, "merMod")) {
-    if (is.null(type)) type <- "response"  # Default for LMM
+    if (is.null(residual_type)) residual_type <- "response"  # Default for LMM
     valid_types <- c("working", "response", "deviance", "pearson")
-    if (!type %in% valid_types) {
-      stop(paste("For LMM models, type must be one of:", paste(valid_types, collapse = ", ")))
+    if (!residual_type %in% valid_types) {
+      stop(paste("For LMM models, residual_type must be one of:", paste(valid_types, collapse = ", ")))
     }
-    res <- resid(selected_model, type = type, scaled = scaled)
+    res <- resid(selected_model, type = residual_type, scaled = residual_scaled)
   }
 
   if (inherits(selected_model, "glm")) {
     # GLM models
-    if (is.null(type)) type <- "deviance"  # Default for GLM
+    if (is.null(residual_type)) residual_type <- "deviance"  # Default for GLM
     valid_types <- c("deviance", "pearson", "response", "working", "partial")
-    if (!type %in% valid_types) {
-      stop(paste("For GLM models, type must be one of:", paste(valid_types, collapse = ", ")))
+    if (!residual_type %in% valid_types) {
+      stop(paste("For GLM models, residual_type must be one of:", paste(valid_types, collapse = ", ")))
     }
-    res <- residuals(selected_model, type = type)
+    res <- residuals(selected_model, type = residual_type)
 
   }
 
@@ -834,15 +898,104 @@ residuals.rain_attr <- function(object, model = "downwind_lmm",
 
 #' @export
 
-#TODO: Continue working on the code for downwind/upwind LMM diagnostic using plot function
-#TODO: Check what is the default diagnostic plot (and residual type) used in plot.merMod
-#TODO: Consider to allow for plot_quantity being a vector of length 2, to plot both attr and sate, on different pages?
-#TODO: Add the plotting of other models, such as downwind logistic etc., and also set plot_type = 'model' vs. 'bootstrap' vs. 'ermutation'
-#      and add an argument named model (similar to other S3 methods)
-plot.rain_attr <- function(object, plot_type, plot_quantity = c("attr", "sate"),
-                           residual_type = "response", residual_scaled = TRUE, ...) {
+fitted.rain_attr = function(object, model = "downwind_lmm", ...){
+  return(
+    predict.rain_attr(object, model = model, predict_type = "response")
+  )
+}
 
-  allowed_plot_type = c("bootstrap", "permutation", "upwind_lmm", "downwind_lmm")
+
+
+
+
+if (!exists("varcomp", mode = "function")) {
+  varcomp <- function(x, ...) {
+    UseMethod("varcomp")
+  }
+}
+
+#' @export
+varcomp.rain_attr <- function(object, ...) {
+
+  # Extract LMMs
+  lmm_list <- list(
+    upwind_lmm = object$all_fitted_models$upwind_lmm_fit,
+    downwind_lmm = object$all_fitted_models$downwind_lmm_fit,
+    downwind_target_lmm = object$all_fitted_models$downwind_positive_target_lmm_fit,
+    downwind_control_lmm = object$all_fitted_models$downwind_positive_control_lmm_fit
+  )
+
+  #
+  res_mat <- matrix(NA, nrow = 4, ncol = 2)
+  rownames(res_mat) <- names(lmm_list)
+
+
+  # Fill in variance components
+  for (i in seq_along(lmm_list)) {
+    res_mat[i,] = as.data.frame(lme4::VarCorr(lmm_list[[i]]))[,'vcov']
+  }
+  colnames(res_mat) <- as.data.frame(lme4::VarCorr(lmm_list[[i]]))[,'grp']
+
+  return(res_mat)
+}
+
+
+
+
+#' @export
+#'
+predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
+                              re_include = TRUE, fixef_include = TRUE, allow.new.levels = FALSE,
+                              predict_type = "link", ...) {
+  # Map model names to stored fitted models
+  model_map = list(
+    upwind_lmm = object$all_fitted_models$upwind_lmm_fit,
+    downwind_lmm = object$all_fitted_models$downwind_lmm_fit,
+    downwind_logistic = object$all_fitted_models$downwind_logistic_fit,
+    downwind_propensity = object$all_fitted_models$downwind_propensity_fit,
+    downwind_target_lmm = object$all_fitted_models$downwind_positive_target_lmm_fit,
+    downwind_control_lmm = object$all_fitted_models$downwind_positive_control_lmm_fit
+  )
+
+  if (!model %in% names(model_map)) {
+    stop(paste("Invalid model. Choose one of:", paste(names(model_map), collapse = ", ")))
+  }
+
+  selected_model = model_map[[model]]
+
+  # Predictions for lme4::merMod
+  if (inherits(selected_model, "merMod")) {
+    if(re_include){
+      fit = predict(selected_model, newdata = newdata,
+                     re.form = NULL,
+                     random.only = !fixef_include,
+                     allow.new.levels = allow.new.levels, ...)
+    }else{
+      fit = predict(selected_model, newdata = newdata,
+                     re.form = NA,
+                     random.only = !fixef_include,
+                     allow.new.levels = allow.new.levels, ...)
+    }
+  }
+
+  # Predictions for glm
+  if (inherits(selected_model, "glm")) {
+    fit = predict(selected_model, newdata = newdata,
+                   type = predict_type, ...)
+  }
+
+  return(fit)
+}
+
+#' @export
+
+#TODO: Think if we want to modify the qqplot for glm to be a half normal qqplot, or we need to at least add a note to be careful when viewing the residual plots of glm since these residuals are not required to be normal
+plot.rain_attr = function(object, plot_type, plot_quantity = "attr",
+                           model = 'downwind_lmm', residual_type = NULL, residual_scaled = TRUE,
+                          re_include = TRUE, fixef_include = TRUE, allow.new.levels = FALSE, predict_type = "link",
+                          ...) {
+
+  allowed_plot_type = c("bootstrap", "permutation", "model")
   if(!(plot_type %in% allowed_plot_type)) {
     stop(
       sprintf("Invalid plot_type. Must be one of: %s", paste(allowed_plot_type, collapse = ", "))
@@ -888,34 +1041,153 @@ plot.rain_attr <- function(object, plot_type, plot_quantity = c("attr", "sate"),
 
   }
 
-  if (plot_type %in% c("upwind_lmm", "downwind_lmm")) {
+  if (plot_type == 'model') {
 
-    if (plot_type == "upwind_lmm") {
-      selected_model <- object$all_fitted_models$upwind_lmm_fit
-      plot_title = 'Upwind LMM'
-    } else if (plot_type == "downwind_lmm") {
-      selected_model <- object$all_fitted_models$downwind_lmm_fit
-      plot_title = 'Downwind LMM'
+    model_map = list(
+      upwind_lmm = object$all_fitted_models$upwind_lmm_fit,
+      downwind_lmm = object$all_fitted_models$downwind_lmm_fit,
+      downwind_logistic = object$all_fitted_models$downwind_logistic_fit,
+      downwind_propensity = object$all_fitted_models$downwind_propensity_fit,
+      downwind_target_lmm = object$all_fitted_models$downwind_positive_target_lmm_fit,
+      downwind_control_lmm = object$all_fitted_models$downwind_positive_control_lmm_fit
+    )
+
+    plot_title_map = list(
+      upwind_lmm = 'Upwind LMM',
+      downwind_lmm = 'Downwind LMM',
+      downwind_logistic = 'Downwind Logistic Model',
+      downwind_propensity = 'Downwind Propensity Score Model',
+      downwind_target_lmm = 'Downwind Target-Only LMM',
+      downwind_control_lmm = 'Downwind Control-Only LMM'
+    )
+
+    if (!model %in% names(model_map)) {
+      stop(paste("Invalid model. Choose one of:", paste(names(model_map), collapse = ", ")))
     }
 
-    if (!inherits(selected_model, "merMod")) stop("Diagnostics only implemented for merMod objects.")
+    selected_model = model_map[[model]]
+    plot_title = plot_title_map[[model]]
 
-    # Extract residuals
-    res <- residuals(selected_model, type = residual_type, scaled = residual_scaled)
-    fit <- predict(selected_model)
 
-    # Basic diagnostic plots: residuals vs fitted and QQ plot
-    par(mfrow = c(1, 2))
-    plot(fit, res,
-         xlab = "Fitted values",
-         ylab = paste0("Residuals (type = ", residual_type,
-                       ", scaled = ", residual_scaled, ")"),
-         main = paste(plot_title, "Residuals vs Fitted"))
-    abline(h = 0, col = "red", lty = 2)
+    # Extract residuals and fitted values
+    res = residuals(object, model = model, residual_type = residual_type, residual_scaled = residual_scaled)
+    fit = predict(object, newdata = NULL, model = model, re_include = re_include, fixef_include = fixef_include, allow.new.levels = allow.new.levels, predict_type = predict_type)
 
-    qqnorm(res, main = paste(plot_title, "Normal Q-Q Plot"))
-    qqline(res, col = "red", lty = 2)
-    par(mfrow = c(1, 1))
+
+
+    #
+    if (model == "downwind_lmm") {
+      downwind_positive_target = rlang::eval_tidy(
+        object$args$downwind_target_subset,
+        data = object$data[rlang::eval_tidy(object$args$downwind_subset, data = object$data) &
+                             rlang::eval_tidy(object$args$positive_subset, data = object$data), ]
+      )
+      df = data.frame(
+        Fitted = fit,
+        Residuals = res,
+        Group = factor(ifelse(downwind_positive_target, "Target", "Control"))
+      )
+
+      legend_title = as.character(object$args$downwind_target_subset)[2]
+
+      color_vals = c("Target" = "#1f77b4", "Control" = "#ff7f0e")
+      shape_vals = c("Target" = 16, "Control" = 17)
+
+      # Residuals vs Fitted
+      p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals, color = Group, shape = Group)) +
+        ggplot2::geom_point() +
+        ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+        ggplot2::labs(title = paste("Residuals vs Fitted for", plot_title),
+                      y = paste0("Residuals (type=", ifelse(is.null(residual_type), 'response', residual_type), ", scaled=", residual_scaled, ")",),
+                      x = paste0("Fitted (fixef_include =", fixef_include, ", re_include =", re_include, ")"),
+                      color = legend_title, shape = legend_title) +
+        ggplot2::theme_bw() +
+        ggplot2::scale_color_manual(values = color_vals) +
+        ggplot2::scale_shape_manual(values = shape_vals)
+
+      # QQ plot
+      qq_vals = stats::qqnorm(res, plot.it = FALSE)
+      qq_df = data.frame(Theoretical = qq_vals$x, Sample = qq_vals$y, Group = df$Group)
+
+      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample, color = Group, shape = Group)) +
+        ggplot2::geom_point() +
+        ggplot2::geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+        ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals"),
+                      color = legend_title, shape = legend_title) +
+        ggplot2::theme_bw() +
+        ggplot2::scale_color_manual(values = color_vals) +
+        ggplot2::scale_shape_manual(values = shape_vals)
+
+      # Arrange side by side with shared legend
+      print(ggpubr::ggarrange(p1, p2, ncol = 2, common.legend = TRUE, legend = "bottom"))
+
+    }
+
+    if(model %in% c('upwind_lmm', 'downwind_target_lmm', 'downwind_control_lmm')){
+      df = data.frame(Fitted = fit, Residuals = res)
+      color_vals = "black"
+      shape_vals = 16
+
+      #Residuals vs Fitted
+      p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals, color = if(model=="downwind_lmm") Group else NULL, shape = if(model=="downwind_lmm") Group else NULL)) +
+        ggplot2::geom_point() +
+        ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+        ggplot2::labs(title = paste("Residuals vs Fitted for", plot_title),
+                      y = paste0("Residuals (type=", ifelse(is.null(residual_type), 'response', residual_type),")"),
+                      x = paste0("Fitted (fixef_include =", fixef_include, ", re_include =", re_include, ")")) +
+        ggplot2::theme_bw() +
+        ggplot2::scale_color_manual(values = color_vals) +
+        ggplot2::scale_shape_manual(values = shape_vals)
+
+
+      # QQ plot
+      qq_vals = stats::qqnorm(res, plot.it = FALSE)
+      qq_df = data.frame(Theoretical = qq_vals$x, Sample = qq_vals$y)
+      if (model == "downwind_lmm") qq_df$Group = df$Group
+
+      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample, color = if(model=="downwind_lmm") Group else NULL, shape = if(model=="downwind_lmm") Group else NULL)) +
+        ggplot2::geom_point() +
+        ggplot2::geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+        ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals")) +
+        ggplot2::theme_bw() +
+        ggplot2::scale_color_manual(values = color_vals) +
+        ggplot2::scale_shape_manual(values = shape_vals)
+
+      print(ggpubr::ggarrange(p1, p2, ncol = 2))
+    }
+
+    if(model %in% c('downwind_logistic', 'downwind_propensity')){
+      df = data.frame(Fitted = fit, Residuals = res)
+      color_vals = "black"
+      shape_vals = 16
+
+      #Residuals vs Fitted
+      p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals, color = if(model=="downwind_lmm") Group else NULL, shape = if(model=="downwind_lmm") Group else NULL)) +
+        ggplot2::geom_point() +
+        ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+        ggplot2::labs(title = paste("Residuals vs Fitted for", plot_title),
+                      y = paste0("Residuals (type=", ifelse(is.null(residual_type), 'deviance', residual_type), ", scaled=", residual_scaled, ")"),
+                      x = paste0("Fitted (type=", predict_type, ")") )  +
+        ggplot2::theme_bw() +
+        ggplot2::scale_color_manual(values = color_vals) +
+        ggplot2::scale_shape_manual(values = shape_vals)
+
+
+      # QQ plot
+      qq_vals = stats::qqnorm(res, plot.it = FALSE)
+      qq_df = data.frame(Theoretical = qq_vals$x, Sample = qq_vals$y)
+      if (model == "downwind_lmm") qq_df$Group = df$Group
+
+      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample, color = if(model=="downwind_lmm") Group else NULL, shape = if(model=="downwind_lmm") Group else NULL)) +
+        ggplot2::geom_point() +
+        ggplot2::geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+        ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals")) +
+        ggplot2::theme_bw() +
+        ggplot2::scale_color_manual(values = color_vals) +
+        ggplot2::scale_shape_manual(values = shape_vals)
+
+      print(ggpubr::ggarrange(p1, p2, ncol = 2))
+    }
 
   }
 }
@@ -1448,7 +1720,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
   }
 
 
-  r_vec <- lme4::getME(ori_fitted_models$downwind_lmm_fit, 'y')  - predict(ori_fitted_models$downwind_lmm_fit, re.form = NA)
+  r_vec = lme4::getME(ori_fitted_models$downwind_lmm_fit, 'y')  - predict(ori_fitted_models$downwind_lmm_fit, re.form = NA)
   group_name = names(lme4::getME(ori_fitted_models$downwind_lmm_fit, "flist"))
   ori_downwind_positive_group = ori_data[downwind & ori_positive , group_name]
   ori_downwind_positive_group_label = unique(ori_downwind_positive_group)
@@ -1460,9 +1732,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     })
 
 
-    hat.e <- rep(0,sum(downwind & ori_positive))
+    hat.e = rep(0,sum(downwind & ori_positive))
     for(h in 1:ori_D_groups){
-      hat.e[ori_downwind_positive_group==ori_downwind_positive_group_label[h]] <- r_vec[ori_downwind_positive_group==ori_downwind_positive_group_label[h]]- hat.u[h]
+      hat.e[ori_downwind_positive_group==ori_downwind_positive_group_label[h]] = r_vec[ori_downwind_positive_group==ori_downwind_positive_group_label[h]]- hat.u[h]
     }
 
     final.hat.u = hat.u
@@ -1474,13 +1746,13 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       mean(r_vec[ori_downwind_positive_group == x])
     })
 
-    hat.e <- rep(0,sum(downwind & ori_positive))
+    hat.e = rep(0,sum(downwind & ori_positive))
     for(h in 1:ori_D_groups){
-      hat.e[ori_downwind_positive_group==ori_downwind_positive_group_label[h]] <- r_vec[ori_downwind_positive_group==ori_downwind_positive_group_label[h]]- hat.u[h]
+      hat.e[ori_downwind_positive_group==ori_downwind_positive_group_label[h]] = r_vec[ori_downwind_positive_group==ori_downwind_positive_group_label[h]]- hat.u[h]
     }
 
 
-    vc_df <- as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))
+    vc_df = as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))
     hatsigma2.u = vc_df[vc_df$grp == group_name, "vcov"]
     hat.u.c = hat.u - mean(hat.u)
     if(bootstrap_type == 'REB1'){
@@ -1571,9 +1843,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
         b_fitted = predict(ori_fitted_models$downwind_lmm_fit, newdata = b_downwind_positive_data, re.form = NA)
 
-        b_y <- rep(NA, b_num_downwind_positive)
+        b_y = rep(NA, b_num_downwind_positive)
 
-        b_donor_group_label <- sample(x = ori_downwind_positive_group_label,
+        b_donor_group_label = sample(x = ori_downwind_positive_group_label,
                                       size = b_D_groups,
                                       replace = T,
                                       prob = cluster_sample_prob)
@@ -1592,7 +1864,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
           }
 
 
-          b_y[target.units] <- b_fitted[target.units] + b_u[h] + final.hat.e[donating.units]
+          b_y[target.units] = b_fitted[target.units] + b_u[h] + final.hat.e[donating.units]
         }
 
         #Back-transform into raw rainfall, depending on whether offset term is included on LHS of downwind_lmm_formula
@@ -1616,21 +1888,21 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
         #Perform (optional) adjustment of raw rainfall
         if(discretize_rain){
-          b_raw_y[b_raw_y<0.3] <- 0.2
-          b_raw_y[(b_raw_y>0.3)&(b_raw_y<0.5)] <- 0.4
-          b_raw_y[(b_raw_y>0.5)&(b_raw_y<0.7)] <- 0.6
-          b_raw_y[(b_raw_y>0.7)&(b_raw_y<0.9)] <- 0.8
+          b_raw_y[b_raw_y<0.3] = 0.2
+          b_raw_y[(b_raw_y>0.3)&(b_raw_y<0.5)] = 0.4
+          b_raw_y[(b_raw_y>0.5)&(b_raw_y<0.7)] = 0.6
+          b_raw_y[(b_raw_y>0.7)&(b_raw_y<0.9)] = 0.8
         }
 
 
 
         if(winsorize_individual_rain){
-          b_raw_y[b_raw_y> individual_rain_interval[2]] <- individual_rain_interval[1] + (individual_rain_interval[2] - individual_rain_interval[1]) * runif(n=sum(b_raw_y> individual_rain_interval[2]))
+          b_raw_y[b_raw_y> individual_rain_interval[2]] = individual_rain_interval[1] + (individual_rain_interval[2] - individual_rain_interval[1]) * runif(n=sum(b_raw_y> individual_rain_interval[2]))
         }
 
         if(winsorize_total_rain){
           if(sum(b_raw_y)< total_rain_interval[1] | sum(b_raw_y)> total_rain_interval[2]){
-            b_raw_y <- b_raw_y*(runif(n=1,min=total_rain_interval[1], max=total_rain_interval[2]))/sum(b_raw_y)
+            b_raw_y = b_raw_y*(runif(n=1,min=total_rain_interval[1], max=total_rain_interval[2]))/sum(b_raw_y)
           }
         }
 
@@ -1728,7 +2000,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     parallel::clusterExport(cl, varlist = c('attr_est', 'sate_est'))
     doParallel::registerDoParallel(cl)
     doRNG::registerDoRNG(seed = bootstrap_seed)
-    `%dopar%` <- foreach::`%dopar%`
+    `%dopar%` = foreach::`%dopar%`
 
     results = foreach::foreach(b = 1:B_bootstrap, .packages = c("lme4","rlang","formula.tools"), .errorhandling = 'remove') %dopar% {
       if(bootstrap_zero){
@@ -1747,9 +2019,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
       b_fitted = predict(ori_fitted_models$downwind_lmm_fit, newdata = b_downwind_positive_data, re.form = NA)
 
-      b_y <- rep(NA, b_num_downwind_positive)
+      b_y = rep(NA, b_num_downwind_positive)
 
-      b_donor_group_label <- sample(x = ori_downwind_positive_group_label,
+      b_donor_group_label = sample(x = ori_downwind_positive_group_label,
                                     size = b_D_groups,
                                     replace = T,
                                     prob = cluster_sample_prob)
@@ -1767,7 +2039,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
         }
 
 
-        b_y[target.units] <- b_fitted[target.units] + b_u[h] + final.hat.e[donating.units]
+        b_y[target.units] = b_fitted[target.units] + b_u[h] + final.hat.e[donating.units]
       }
 
       #Back-transform into raw rainfall, depending on whether offset term is included on LHS of downwind_lmm_formula
@@ -1790,10 +2062,10 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
       #Perform (optional) adjustment of raw rainfall
       if(discretize_rain){
-        b_raw_y[b_raw_y<0.3] <- 0.2
-        b_raw_y[(b_raw_y>0.3)&(b_raw_y<0.5)] <- 0.4
-        b_raw_y[(b_raw_y>0.5)&(b_raw_y<0.7)] <- 0.6
-        b_raw_y[(b_raw_y>0.7)&(b_raw_y<0.9)] <- 0.8
+        b_raw_y[b_raw_y<0.3] = 0.2
+        b_raw_y[(b_raw_y>0.3)&(b_raw_y<0.5)] = 0.4
+        b_raw_y[(b_raw_y>0.5)&(b_raw_y<0.7)] = 0.6
+        b_raw_y[(b_raw_y>0.7)&(b_raw_y<0.9)] = 0.8
       }
 
       if(winsorize_individual_rain){
