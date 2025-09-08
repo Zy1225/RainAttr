@@ -12,7 +12,7 @@
 \alias{summary.rain_attr}
 \alias{print.summary.rain_attr}
 \alias{rain_attr-class}
-\title{Class "rain_attr" of Rainfall Attribution Analysis}
+\title{Class "rain_attr" of Two-Stage LMM Fitted to Rainfall Enhancement Trial Data}
 \usage{
 \method{coef}{rain_attr}(object, model = "downwind_lmm", ...)
 
@@ -59,14 +59,31 @@
 
 \method{print}{summary.rain_attr}(summary_object, ...)
 }
+\arguments{
+\item{object}{An \bold{R} object of class \code{\link{rain_attr-class}}, i.e., as resulting from \code{\link{rain_attr}()}.}
+
+\item{model}{A character string specifying which fitted model to focus on. Must be one of \code{upwind_lmm}, \code{downwind_lmm}, \code{downwind_target_lmm}, \code{downwind_control_lmm}, \code{downwind_logistic}, or \code{downwind_propensity}. See "Details" for more information.}
+}
 \description{
 Objects of class \code{rain_attr} represent results from the two-stage LMM-based
-rainfall enhancement analysis, including fitted models, bootstrap/permutation
-summaries, and diagnostic tools.
+rainfall enhancement analysis, created by calls to \code{\link{rain_attr}}.
 }
 \details{
-A \code{rain_attr} object contains fitted mixed models (LMMs), GLMs, and associated
-results such as attribution estimates, SATE, and variance components.
+A \code{rain_attr} object contains fitted LMMs:
+\describe{
+\item{\code{upwind_lmm}}{Upwind (first stage) LMM.}
+\item{\code{downwind_lmm}}{Downwind (second stage) LMM.}
+\item{\code{downwind_target_lmm}}{Downwind (second stage) treatment-only LMM.}
+\item{\code{downwind_control_lmm}}{Downwind (second stage) control-only LMM.}
+}
+and fitted GLMs:
+\describe{
+\item{\code{downwind_logistic}}{Downwind (second stage) logistic model of rainfall event indicator.}
+\item{\code{downwind_propensity}}{Downwind (second stage) propensity score model for the treatment indicator.}
+}
+
+The object also includes attribution estimates, SATE, and results from bootstrap and permutation-based procedures if \code{bootstrap = TRUE}
+or \code{permutation = TRUE} were specified in the original call.
 }
 \section{Methods}{
 
