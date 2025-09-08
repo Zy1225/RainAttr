@@ -219,7 +219,6 @@
 
 
 #NOTE: Currently not including fixef.rain_attr() and ranef.rain_attr() to avoid masking effect from lme4's functions with same name
-#TODO: Add asterisks to print.summary.rain_attr for different significance levels
 #TODO: Add documentation for S3 methods, and also modify the documentation for output of rain_attr to be an S3 object of class 'rain_attr'
 #TODO: Remember to note that we can't plot 'partial' residuals, or 'terms' prediction
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
@@ -483,6 +482,11 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   return(output)
 }
 
+
+
+
+
+#' @rdname rain_attr-class
 #' @export
 coef.rain_attr = function(object, model = "downwind_lmm", ...){
   # Map model names to stored fitted models
@@ -513,6 +517,8 @@ coef.rain_attr = function(object, model = "downwind_lmm", ...){
   return(output)
 }
 
+
+#' @rdname rain_attr-class
 #' @export
 print.rain_attr <- function(object, ...) {
   cat("Two Stage LMM Rainfall Enhancement Analysis Result\n")
@@ -615,241 +621,8 @@ print.rain_attr <- function(object, ...) {
 }
 
 
-#' @export
-#'
 
-
-
-
-#TODO: Consider to remove bootstrap p-value and bootstrap CI, and permutation p-value computation from rain_attr() and only include it into summary()
-#ANS: Maybe not, since 1. we are not having all bootstrap results in the summary object, such as those for downwind logistic etc. Also, 2. the bootstrap results stored in rain_attr() object is better for directly extracting the lower/upper quantile of bootstrap CI rather than combined into a string (lower,upper) in summary object
-
-
-#TODO: Think if we want to add the summary results for downwind_logistic, downwind_propensity, downwind_treatment_lmm, downwind_control_lmm
-#ANS: Maybe not, since our focus is not really on these models, and these models results can be recovered from rain_attr output anyway.
-
-#TODO: Think if we want to add the bootstrap CI results for the fixef effect and variance components of downwind_lmm
-#ANS: Maybe not, since the focus of bootstrap inference is for attribution but not the parameters of downwind_lmm, and also that the bootstrap CI is conditional on upwind model and might involve resampling of rainfall event indicators so could be confusing when compared to the original estimate/std error reported by lme4
-
-summary.rain_attr <- function(object, ...) {
-  # Extract data name
-  data_name <- deparse(object$args$data)
-
-  # Prepare subset expressions with data$var notation
-  upwind_subset_expr <- paste(
-    deparse(object$args$upwind_subset), " & ", deparse(object$args$positive_subset)
-  )
-  downwind_subset_expr <- paste(
-    deparse(object$args$downwind_subset), " & ", deparse(object$args$positive_subset)
-  )
-
-  # Upwind/Downwind LMM
-  upwind_fit <- object$all_fitted_models$upwind_lmm_fit
-  downwind_fit <- object$all_fitted_models$downwind_lmm_fit
-
-  upwind_lmm_coef = round(summary(upwind_fit)$coefficients,4)
-  upwind_lmm_ranef = as.data.frame(lme4::VarCorr(upwind_fit))[, c('grp','var1','vcov')]
-  colnames(upwind_lmm_ranef) = c('Groups', 'Name', 'Variance')
-  upwind_lmm_ranef$Name[is.na(upwind_lmm_ranef$Name)] = ""
-
-  #Add Bootstrap CI results to downwind_lmm_coef and downwind_lmm_ranef
-  downwind_lmm_coef = round(summary(downwind_fit)$coefficients,4)
-  downwind_lmm_ranef = as.data.frame(lme4::VarCorr(downwind_fit))[, c('grp','var1','vcov')]
-  colnames(downwind_lmm_ranef) = c('Groups', 'Name', 'Variance')
-  downwind_lmm_ranef$Name[is.na(downwind_lmm_ranef$Name)] = ""
-
-
-  # Attribution table
-  attr_rows <- c("apo", "apl")
-  attr_table <- data.frame(
-    Estimate = sapply(attr_rows, function(nm) if(!is.null(object$hatattr[[nm]])) paste0(round(object$hatattr[[nm]]*100,2), "%") else NA),
-    row.names = attr_rows
-  )
-
-  if(!is.null(object$bootstrap_result)) {
-    ci_mat = bootstrap_CI(object$bootstrap_result$hatattr[, attr_rows],level = ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level) )
-    attr_table$Bootstrap_CI = apply(ci_mat, 1, function(r) paste0("(", round(r[1] * 100, 4), "%", ", ", round(r[2] * 100, 2), "%", ")"))
-    attr_table$Bootstrap_p = round(bootstrap_p_value(object$bootstrap_result$hatattr[, attr_rows]),2)
-  }else{
-    attr_table$Bootstrap_CI = NA
-    attr_table$Bootstrap_p = NA
-  }
-
-
-  if(!is.null(object$permutation_result)) {
-    attr_table$Permutation_p = round(permutation_p_value(object$permutation_result$hatattr[, attr_rows],
-                                                         ori_est = sapply(attr_rows, FUN = function(nm){
-                                                           object$hatattr[[nm]]
-                                                         })),2)
-  }else{
-    attr_table$Permutation_p <- NA
-  }
-
-  colnames(attr_table) = c('Estimate',
-                           paste0(ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level)*100, "% Bootstrap CI"),
-                           'Bootstrap P-Val','Permutation P-Val')
-
-
-  # SATE table
-  sate_rows <- c("sate.mb","sate.ipw","sate.ipw.l","sate.ipw.ma","sate.aipw")
-  sate_table <- data.frame(
-    Estimate = sapply(sate_rows, function(nm) if(!is.null(object$hatsate[[nm]])) round(object$hatsate[[nm]],4) else NA),
-    row.names = sate_rows
-  )
-
-  # Bootstrap CI and p-values
-  if(!is.null(object$bootstrap_result)) {
-    ci_mat_sate <- bootstrap_CI(object$bootstrap_result$hatsate[, sate_rows],
-                                level = ifelse(is.null(object$args$bootstrap_option$CI_level),
-                                               bootstrap_option()$CI_level,
-                                               object$args$bootstrap_option$CI_level))
-    sate_table$Bootstrap_CI <- apply(ci_mat_sate, 1, function(r) paste0("(", round(r[1],4), ", ", round(r[2],4), ")"))
-    sate_table$Bootstrap_p <- round(bootstrap_p_value(object$bootstrap_result$hatsate[, sate_rows]),2)
-  } else {
-    sate_table$Bootstrap_CI <- NA
-    sate_table$Bootstrap_p <- NA
-  }
-
-  # Permutation p-values
-  if(!is.null(object$permutation_result)) {
-    sate_table$Permutation_p <- round(permutation_p_value(object$permutation_result$hatsate[, sate_rows],
-                                                          ori_est = sapply(sate_rows, function(nm) object$hatsate[[nm]])), 2)
-  } else {
-    sate_table$Permutation_p <- NA
-  }
-
-  colnames(sate_table) = c('Estimate',
-                           paste0(ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level)*100, "% Bootstrap CI"),
-                           'Bootstrap P-Val','Permutation P-Val')
-
-
-  summary_list <- list(
-    data_name = data_name,
-
-    #upwind
-    upwind_subset_expr = upwind_subset_expr,
-    upwind_formula = object$args$upwind_lmm_formula,
-    n_obs_upwind = nobs(upwind_fit),
-    n_groups_upwind = length(unique(lme4::getME(upwind_fit, "flist")[[1]])),
-    upwind_summary = summary(upwind_fit),
-    upwind_fitted = predict(upwind_fit, re.form = NULL), #including random effects
-    upwind_residuals = residuals(upwind_fit, type = 'response', scaled = TRUE),  #including random effects
-    upwind_lmm_coef = upwind_lmm_coef,
-    upwind_lmm_ranef = upwind_lmm_ranef,
-
-    #downwind
-    downwind_subset_expr = downwind_subset_expr,
-    downwind_formula = object$args$downwind_lmm_formula,
-    downwind_n_obs= nobs(downwind_fit),
-    downwind_n_groups = length(unique(lme4::getME(downwind_fit, "flist")[[1]])),
-    downwind_summary = summary(downwind_fit),
-    downwind_fitted = predict(downwind_fit, re.form = NULL),  #including random effects
-    downwind_residuals = residuals(downwind_fit, type = 'response', scaled = TRUE),  #including random effects
-    downwind_lmm_coef = downwind_lmm_coef,
-    downwind_lmm_ranef = downwind_lmm_ranef,
-
-    #
-    attr_table = attr_table,
-    sate_table = sate_table
-  )
-
-  class(summary_list) <- "summary.rain_attr"
-  return(summary_list)
-}
-
-
-
-
-#' @export
-
-print.summary.rain_attr <- function(object, ...) {
-  cat("Summary of Two Stage LMM Rainfall Enhancement Analysis\n")
-  cat("======================================================================\n\n")
-
-  signif_stars <- function(p) {
-    stars <- rep("", length(p))
-    stars[!is.na(p) & p < 0.001] <- "***"
-    stars[!is.na(p) & p >= 0.001 & p < 0.01] <- "**"
-    stars[!is.na(p) & p >= 0.01 & p < 0.05] <- "*"
-    stars[!is.na(p) & p >= 0.05 & p < 0.1] <- "."
-    return(stars)
-  }
-
-  # Attribution Results Table
-  cat("Attribution Results (Assuming Log-Rainfall being Modelled):\n")
-  # print(object$attr_table)
-  # cat("\n")
-
-  attr_tbl = object$attr_table
-
-  # Append stars to all P-Val columns
-  pval_cols = grep("P-Val", colnames(attr_tbl))
-  for(col in pval_cols){
-    stars = signif_stars(as.numeric(attr_tbl[,col]))
-    attr_tbl[,col] = paste0(attr_tbl[,col], stars)
-  }
-  print(attr_tbl)
-  cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\n")
-
-  # SATE Results Table
-  cat("SATE Results:\n")
-  # print(object$sate_table)
-
-  sate_tbl <- object$sate_table
-  pval_cols <- grep("P-Val", colnames(sate_tbl))
-  for(col in pval_cols){
-    stars <- signif_stars(as.numeric(sate_tbl[,col]))
-    sate_tbl[,col] <- paste0(sate_tbl[,col], stars)
-  }
-  print(sate_tbl)
-  cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\n")
-
-  cat("\n======================================================================\n\n")
-
-  # Upwind LMM Results Table
-  cat("Upwind (First Stage) LMM:\n")
-  cat("Formula:\n")
-  print(object$upwind_formula)
-  cat('\n')
-  cat("Data subset used: ")
-  cat(object$data_name, "[", object$upwind_subset_expr, ", ]\n")
-  cat(sprintf("Number of observations: %d, Number of groups: %d\n\n",
-              object$n_obs_upwind, object$n_groups_upwind))
-
-  # Random effects
-  cat("Random effects:\n")
-  print(object$upwind_lmm_ranef, row.names = FALSE)
-  cat("\n")
-
-  # Fixed effects
-  cat("Fixed effects:\n")
-  print(object$upwind_lmm_coef)
-  cat("\n======================================================================\n\n")
-
-  # Downwind LMM Results Table
-  cat("Downwind (Second Stage) LMM:\n")
-  cat("Formula:\n")
-  print(object$downwind_formula)
-  cat('\n')
-  cat("Data subset used: ")
-  cat(object$data_name, "[", object$downwind_subset_expr, ", ]\n")
-  cat(sprintf("Number of observations: %d, Number of groups: %d\n\n",
-              object$downwind_n_obs, object$downwind_n_groups))
-
-  # Random effects
-  cat("Random effects:\n")
-  print(object$downwind_lmm_ranef, row.names = FALSE)
-  cat("\n")
-
-  # Fixed effects
-  cat("Fixed effects:\n")
-  print(object$downwind_lmm_coef)
-
-  invisible(object)
-
-}
-
-
+#' @rdname rain_attr-class
 #' @export
 
 residuals.rain_attr <- function(object, model = "downwind_lmm",
@@ -895,7 +668,7 @@ residuals.rain_attr <- function(object, model = "downwind_lmm",
 }
 
 
-
+#' @rdname rain_attr-class
 #' @export
 
 fitted.rain_attr = function(object, model = "downwind_lmm", ...){
@@ -914,6 +687,7 @@ if (!exists("varcomp", mode = "function")) {
   }
 }
 
+#' @rdname rain_attr-class
 #' @export
 varcomp.rain_attr <- function(object, ...) {
 
@@ -941,7 +715,7 @@ varcomp.rain_attr <- function(object, ...) {
 
 
 
-
+#' @rdname rain_attr-class
 #' @export
 #'
 predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
@@ -987,6 +761,7 @@ predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
   return(fit)
 }
 
+#' @rdname rain_attr-class
 #' @export
 
 #TODO: Think if we want to modify the qqplot for glm to be a half normal qqplot, or we need to at least add a note to be careful when viewing the residual plots of glm since these residuals are not required to be normal
@@ -1190,6 +965,238 @@ plot.rain_attr = function(object, plot_type, plot_quantity = "attr",
     }
 
   }
+}
+
+
+#' @rdname rain_attr-class
+#' @export
+#'
+
+#TODO: Consider to remove bootstrap p-value and bootstrap CI, and permutation p-value computation from rain_attr() and only include it into summary()
+#ANS: Maybe not, since 1. we are not having all bootstrap results in the summary object, such as those for downwind logistic etc. Also, 2. the bootstrap results stored in rain_attr() object is better for directly extracting the lower/upper quantile of bootstrap CI rather than combined into a string (lower,upper) in summary object
+
+
+#TODO: Think if we want to add the summary results for downwind_logistic, downwind_propensity, downwind_treatment_lmm, downwind_control_lmm
+#ANS: Maybe not, since our focus is not really on these models, and these models results can be recovered from rain_attr output anyway.
+
+#TODO: Think if we want to add the bootstrap CI results for the fixef effect and variance components of downwind_lmm
+#ANS: Maybe not, since the focus of bootstrap inference is for attribution but not the parameters of downwind_lmm, and also that the bootstrap CI is conditional on upwind model and might involve resampling of rainfall event indicators so could be confusing when compared to the original estimate/std error reported by lme4
+summary.rain_attr <- function(object, ...) {
+  # Extract data name
+  data_name <- deparse(object$args$data)
+
+  # Prepare subset expressions with data$var notation
+  upwind_subset_expr <- paste(
+    deparse(object$args$upwind_subset), " & ", deparse(object$args$positive_subset)
+  )
+  downwind_subset_expr <- paste(
+    deparse(object$args$downwind_subset), " & ", deparse(object$args$positive_subset)
+  )
+
+  # Upwind/Downwind LMM
+  upwind_fit <- object$all_fitted_models$upwind_lmm_fit
+  downwind_fit <- object$all_fitted_models$downwind_lmm_fit
+
+  upwind_lmm_coef = round(summary(upwind_fit)$coefficients,4)
+  upwind_lmm_ranef = as.data.frame(lme4::VarCorr(upwind_fit))[, c('grp','var1','vcov')]
+  colnames(upwind_lmm_ranef) = c('Groups', 'Name', 'Variance')
+  upwind_lmm_ranef$Name[is.na(upwind_lmm_ranef$Name)] = ""
+
+  #Add Bootstrap CI results to downwind_lmm_coef and downwind_lmm_ranef
+  downwind_lmm_coef = round(summary(downwind_fit)$coefficients,4)
+  downwind_lmm_ranef = as.data.frame(lme4::VarCorr(downwind_fit))[, c('grp','var1','vcov')]
+  colnames(downwind_lmm_ranef) = c('Groups', 'Name', 'Variance')
+  downwind_lmm_ranef$Name[is.na(downwind_lmm_ranef$Name)] = ""
+
+
+  # Attribution table
+  attr_rows <- c("apo", "apl")
+  attr_table <- data.frame(
+    Estimate = sapply(attr_rows, function(nm) if(!is.null(object$hatattr[[nm]])) paste0(round(object$hatattr[[nm]]*100,2), "%") else NA),
+    row.names = attr_rows
+  )
+
+  if(!is.null(object$bootstrap_result)) {
+    ci_mat = bootstrap_CI(object$bootstrap_result$hatattr[, attr_rows],level = ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level) )
+    attr_table$Bootstrap_CI = apply(ci_mat, 1, function(r) paste0("(", round(r[1] * 100, 4), "%", ", ", round(r[2] * 100, 2), "%", ")"))
+    attr_table$Bootstrap_p = round(bootstrap_p_value(object$bootstrap_result$hatattr[, attr_rows]),2)
+  }else{
+    attr_table$Bootstrap_CI = NA
+    attr_table$Bootstrap_p = NA
+  }
+
+
+  if(!is.null(object$permutation_result)) {
+    attr_table$Permutation_p = round(permutation_p_value(object$permutation_result$hatattr[, attr_rows],
+                                                         ori_est = sapply(attr_rows, FUN = function(nm){
+                                                           object$hatattr[[nm]]
+                                                         })),2)
+  }else{
+    attr_table$Permutation_p <- NA
+  }
+
+  colnames(attr_table) = c('Estimate',
+                           paste0(ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level)*100, "% Bootstrap CI"),
+                           'Bootstrap P-Val','Permutation P-Val')
+
+
+  # SATE table
+  sate_rows <- c("sate.mb","sate.ipw","sate.ipw.l","sate.ipw.ma","sate.aipw")
+  sate_table <- data.frame(
+    Estimate = sapply(sate_rows, function(nm) if(!is.null(object$hatsate[[nm]])) round(object$hatsate[[nm]],4) else NA),
+    row.names = sate_rows
+  )
+
+  # Bootstrap CI and p-values
+  if(!is.null(object$bootstrap_result)) {
+    ci_mat_sate <- bootstrap_CI(object$bootstrap_result$hatsate[, sate_rows],
+                                level = ifelse(is.null(object$args$bootstrap_option$CI_level),
+                                               bootstrap_option()$CI_level,
+                                               object$args$bootstrap_option$CI_level))
+    sate_table$Bootstrap_CI <- apply(ci_mat_sate, 1, function(r) paste0("(", round(r[1],4), ", ", round(r[2],4), ")"))
+    sate_table$Bootstrap_p <- round(bootstrap_p_value(object$bootstrap_result$hatsate[, sate_rows]),2)
+  } else {
+    sate_table$Bootstrap_CI <- NA
+    sate_table$Bootstrap_p <- NA
+  }
+
+  # Permutation p-values
+  if(!is.null(object$permutation_result)) {
+    sate_table$Permutation_p <- round(permutation_p_value(object$permutation_result$hatsate[, sate_rows],
+                                                          ori_est = sapply(sate_rows, function(nm) object$hatsate[[nm]])), 2)
+  } else {
+    sate_table$Permutation_p <- NA
+  }
+
+  colnames(sate_table) = c('Estimate',
+                           paste0(ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level)*100, "% Bootstrap CI"),
+                           'Bootstrap P-Val','Permutation P-Val')
+
+
+  summary_list <- list(
+    data_name = data_name,
+
+    #upwind
+    upwind_subset_expr = upwind_subset_expr,
+    upwind_formula = object$args$upwind_lmm_formula,
+    n_obs_upwind = nobs(upwind_fit),
+    n_groups_upwind = length(unique(lme4::getME(upwind_fit, "flist")[[1]])),
+    upwind_summary = summary(upwind_fit),
+    upwind_fitted = predict(upwind_fit, re.form = NULL), #including random effects
+    upwind_residuals = residuals(upwind_fit, type = 'response', scaled = TRUE),  #including random effects
+    upwind_lmm_coef = upwind_lmm_coef,
+    upwind_lmm_ranef = upwind_lmm_ranef,
+
+    #downwind
+    downwind_subset_expr = downwind_subset_expr,
+    downwind_formula = object$args$downwind_lmm_formula,
+    downwind_n_obs= nobs(downwind_fit),
+    downwind_n_groups = length(unique(lme4::getME(downwind_fit, "flist")[[1]])),
+    downwind_summary = summary(downwind_fit),
+    downwind_fitted = predict(downwind_fit, re.form = NULL),  #including random effects
+    downwind_residuals = residuals(downwind_fit, type = 'response', scaled = TRUE),  #including random effects
+    downwind_lmm_coef = downwind_lmm_coef,
+    downwind_lmm_ranef = downwind_lmm_ranef,
+
+    #
+    attr_table = attr_table,
+    sate_table = sate_table
+  )
+
+  class(summary_list) <- "summary.rain_attr"
+  return(summary_list)
+}
+
+
+
+#' @rdname rain_attr-class
+#' @export
+
+print.summary.rain_attr <- function(summary_object, ...) {
+  cat("Summary of Two Stage LMM Rainfall Enhancement Analysis\n")
+  cat("======================================================================\n\n")
+
+  signif_stars <- function(p) {
+    stars <- rep("", length(p))
+    stars[!is.na(p) & p < 0.001] <- "***"
+    stars[!is.na(p) & p >= 0.001 & p < 0.01] <- "**"
+    stars[!is.na(p) & p >= 0.01 & p < 0.05] <- "*"
+    stars[!is.na(p) & p >= 0.05 & p < 0.1] <- "."
+    return(stars)
+  }
+
+  # Attribution Results Table
+  cat("Attribution Results (Assuming Log-Rainfall being Modelled):\n")
+  # print(summary_object$attr_table)
+  # cat("\n")
+
+  attr_tbl = summary_object$attr_table
+
+  # Append stars to all P-Val columns
+  pval_cols = grep("P-Val", colnames(attr_tbl))
+  for(col in pval_cols){
+    stars = signif_stars(as.numeric(attr_tbl[,col]))
+    attr_tbl[,col] = paste0(attr_tbl[,col], stars)
+  }
+  print(attr_tbl)
+  cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\n")
+
+  # SATE Results Table
+  cat("SATE Results:\n")
+  # print(summary_object$sate_table)
+
+  sate_tbl <- summary_object$sate_table
+  pval_cols <- grep("P-Val", colnames(sate_tbl))
+  for(col in pval_cols){
+    stars <- signif_stars(as.numeric(sate_tbl[,col]))
+    sate_tbl[,col] <- paste0(sate_tbl[,col], stars)
+  }
+  print(sate_tbl)
+  cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\n")
+
+  cat("\n======================================================================\n\n")
+
+  # Upwind LMM Results Table
+  cat("Upwind (First Stage) LMM:\n")
+  cat("Formula:\n")
+  print(summary_object$upwind_formula)
+  cat('\n')
+  cat("Data subset used: ")
+  cat(summary_object$data_name, "[", summary_object$upwind_subset_expr, ", ]\n")
+  cat(sprintf("Number of observations: %d, Number of groups: %d\n\n",
+              summary_object$n_obs_upwind, summary_object$n_groups_upwind))
+
+  # Random effects
+  cat("Random effects:\n")
+  print(summary_object$upwind_lmm_ranef, row.names = FALSE)
+  cat("\n")
+
+  # Fixed effects
+  cat("Fixed effects:\n")
+  print(summary_object$upwind_lmm_coef)
+  cat("\n======================================================================\n\n")
+
+  # Downwind LMM Results Table
+  cat("Downwind (Second Stage) LMM:\n")
+  cat("Formula:\n")
+  print(summary_object$downwind_formula)
+  cat('\n')
+  cat("Data subset used: ")
+  cat(summary_object$data_name, "[", summary_object$downwind_subset_expr, ", ]\n")
+  cat(sprintf("Number of observations: %d, Number of groups: %d\n\n",
+              summary_object$downwind_n_obs, summary_object$downwind_n_groups))
+
+  # Random effects
+  cat("Random effects:\n")
+  print(summary_object$downwind_lmm_ranef, row.names = FALSE)
+  cat("\n")
+
+  # Fixed effects
+  cat("Fixed effects:\n")
+  print(summary_object$downwind_lmm_coef)
+
+  invisible(summary_object)
+
 }
 
 
