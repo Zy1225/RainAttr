@@ -70,7 +70,7 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 \item{permutation_option}{An optional list containing all permutation settings, used only when \code{permutation = TRUE}. See \code{\link{permutation_option}} for the default list elements and their usage.}
 }
 \value{
-A list containing
+An object of class \code{\link[=rain_attr-class]{rain_attr}}, which is a list containing
 \describe{
 \item{all_fitted_models}{A list of model objects from \code{\link[lme4]{lmer}} for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from \code{\link{glm}} for the logistic model of rainfall event indicator (\code{NULL} if \code{downwind_logistic_formula} is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.}
 \item{hatattr}{A vector containing the attribution estimates.}

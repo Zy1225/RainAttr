@@ -75,7 +75,7 @@
 #'   \item{\code{upwind_lmm_varcomp}, \code{downwind_lmm_varcomp}}{Data frames containing the estimated variance components for the upwind and downwind LMMs.}
 #' }
 
-#' @seealso \code{\link{rain_attr}}, \code{\link{summary.rain_attr}}
+#' @seealso \code{\link{rain_attr}}
 #'
 #' @docType class
 #' @name rain_attr-class

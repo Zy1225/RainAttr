@@ -149,5 +149,5 @@ The following describes the output from \code{summary.rain_attr}:
 }
 
 \seealso{
-\code{\link{rain_attr}}, \code{\link{summary.rain_attr}}
+\code{\link{rain_attr}},
 }

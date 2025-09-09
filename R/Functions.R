@@ -166,7 +166,7 @@
 #' @param permutation_option An optional list containing all permutation settings, used only when \code{permutation = TRUE}. See \code{\link{permutation_option}} for the default list elements and their usage.
 #'
 #'
-#' @returns A list containing
+#' @returns An object of class \code{\link[=rain_attr-class]{rain_attr}}, which is a list containing
 #' \describe{
 #' \item{all_fitted_models}{A list of model objects from \code{\link[lme4]{lmer}} for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from \code{\link{glm}} for the logistic model of rainfall event indicator (\code{NULL} if \code{downwind_logistic_formula} is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.}
 #' \item{hatattr}{A vector containing the attribution estimates.}
@@ -218,9 +218,6 @@
 #TODO: Write vignettes to show how to use the package to replicate Ray's analysis, and to perform our recommended analysis using the recommended options
 
 
-#NOTE: Currently not including fixef.rain_attr() and ranef.rain_attr() to avoid masking effect from lme4's functions with same name
-#TODO: Add documentation for S3 methods, and also modify the documentation for output of rain_attr to be an S3 object of class 'rain_attr'
-#TODO: Remember to note that we can't plot 'partial' residuals, or 'terms' prediction
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
                      rain_col_name,
