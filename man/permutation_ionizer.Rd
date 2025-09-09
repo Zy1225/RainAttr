@@ -80,7 +80,7 @@ The row order of this data frame must match that of \code{gaugeday_downwind}.
 \item{downwind_lmm_formula}{A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
+\item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{attr_type}{A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.

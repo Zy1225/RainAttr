@@ -12,6 +12,7 @@
 \alias{summary.rain_attr}
 \alias{print.summary.rain_attr}
 \alias{rain_attr-class}
+\alias{summary.rain_attr-class}
 \title{Class "rain_attr" of Two-Stage LMM Fitted to Rainfall Enhancement Trial Data}
 \usage{
 \method{coef}{rain_attr}(object, model = "downwind_lmm", ...)
@@ -43,7 +44,7 @@
 
 \method{plot}{rain_attr}(
   object,
-  plot_type,
+  plot_type = "bootstrap",
   plot_quantity = "attr",
   model = "downwind_lmm",
   residual_type = NULL,
@@ -60,9 +61,33 @@
 \method{print}{summary.rain_attr}(summary_object, ...)
 }
 \arguments{
-\item{object}{An \bold{R} object of class \code{\link{rain_attr-class}}, i.e., as resulting from \code{\link{rain_attr}()}.}
+\item{object}{An \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}.}
 
-\item{model}{A character string specifying which fitted model to focus on. Must be one of \code{upwind_lmm}, \code{downwind_lmm}, \code{downwind_target_lmm}, \code{downwind_control_lmm}, \code{downwind_logistic}, or \code{downwind_propensity}. See "Details" for more information.}
+\item{model}{An optional character string specifying which fitted model to focus on. Must be one of \code{"upwind_lmm"}, \code{"downwind_lmm"} (default), \code{"downwind_target_lmm"}, \code{"downwind_control_lmm"}, \code{"downwind_logistic"}, or \code{"downwind_propensity"}. See "Details" for more information.}
+
+\item{residual_type}{An optional character string specifying the type of residuals. Must be one of \code{"response"} (default for LMMs), \code{"deviance"} (default for GLMs), \code{"working"}, or \code{"pearson"}. An additional choice for GLMs is \code{"partial"}, but this residual type can only be used with \code{\link{residuals.rain_attr}} but not \code{\link{plot.rain_attr}}.
+See \code{\link[lme4]{residuals.merMod}} and \code{\link{residuals.glm}} for definition of each residual type of LMMs and GLMs, respectively.}
+
+\item{residual_scaled}{An optional logical. Only used when \code{model} is one of the LMMs. If \code{TRUE} (default), the residuals are scaled by residual standard deviation i.e., \eqn{\hat{\sigma}_e}. If \code{FALSE}, no scaling is done for the residuals.}
+
+\item{newdata}{An optional data frame in which to look for variables to predict from, based on the chosen \code{model}. If omitted, predictions are based on the original data used to fit \code{model}.}
+
+\item{re_include}{An optional logical. Only used when \code{model} is one of the LMMs. If \code{TRUE} (default), random intercepts are included when predicting. If \code{FALSE}, random intercepts are not included when predicting.}
+
+\item{fixef_include}{An optional logical. Only used when \code{model} is one of the LMMs. If \code{TRUE} (default), fixed effects are included in predicting. If \code{FALSE}, fixed effects are not included in predicting.}
+
+\item{allow.new.levels}{An optional logical. Only used when \code{model} is one of the LMMs. If \code{TRUE}, new days (groups) are allowed in \code{newdata}, where the prediction will use zeros (population-level mean) as the predicted random effects. If \code{FALSE} (default), such new days (groups) in \code{newdata} will trigger an error.}
+
+\item{predict_type}{An optional character string specifying the type of prediction. Only used when \code{model} is one of the GLMs. Must be one of \code{"link"} (default), \code{"response"}, or \code{"terms"}.
+\code{"link"} gives predictions on the scale of the linear predictors of the GLMs i.e., log-odds. \code{"response"} gives predictions on the scale of the response variable, i.e., the predicted probabilities. \code{"terms"} return a matrix giving the fitted values of each term in the model formula on the linear predictor (log-odds) scale, so \code{"terms"} can only be used with \code{\link{predict.rain_attr}} but not \code{\link{plot.rain_attr}}.}
+
+\item{plot_type}{An optional character string specifying the type of plots. Must be one of \code{"bootstrap"} (default), \code{"permutation"}, or \code{"model"}.
+\code{"bootstrap"} or \code{"permutation"} should only be used when the original call to \code{\link{rain_attr}} in creating \code{object} has \code{bootstrap = TRUE} or \code{permutation = TRUE}, respectively, which will plot the bootstrap or permutation distribution of the chosen \code{plot_quantity}.
+\code{"model"} provides two diagnostic plots for the chosen \code{model}: a plot of residuals against fitted values, and a Q-Q plot of residuals.}
+
+\item{plot_quantity}{An optional character string specifying the quantity whose bootstrap or permutation distribution is to be plotted. Only used when \code{plot_type  = "bootstrap"} or \code{plot_type  = "permutation"}.  Must be one of \code{"attr"} (default) or \code{"sate"}. \code{"attr"} stands for the attribution estimates (\code{apo}, \code{apl}), while \code{"sate"} stands for the sample average treatment effect estimates (\code{sate.mb}, \code{sate.ipw}, \code{sate.ipw.l}, \code{sate.ipw.ma}, \code{sate.aipw}). See \code{\link{rain_attr}} for more details.}
+
+\item{summary_object}{An \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}, i.e., an output from applying \code{\link{summary.rain_attr}} to an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}.}
 }
 \description{
 Objects of class \code{rain_attr} represent results from the two-stage LMM-based
@@ -85,16 +110,41 @@ and fitted GLMs:
 The object also includes attribution estimates, SATE, and results from bootstrap and permutation-based procedures if \code{bootstrap = TRUE}
 or \code{permutation = TRUE} were specified in the original call.
 }
-\section{Methods}{
+\section{S3 Methods}{
 
 \describe{
-\item{\code{summary(object, ...)}}{Summarizes attribution, SATE, and model details.}
-\item{\code{print(object, ...)}}{Prints a short description of the object.}
-\item{\code{plot(object, ...)}}{Diagnostic and bootstrap/permutation plots.}
-\item{\code{residuals(object, ...)}}{Extracts residuals for a given model.}
-\item{\code{predict(object, ...)}}{Predicts fitted values from the models.}
-\item{\code{coef(object, ...)}}{Extracts fixed effects or coefficients.}
-\item{\code{varcomp(object, ...)}}{Extracts variance components for LMMs.}
+\item{\code{coef}}{Computes the fixed effect coefficients and the empirical best linear unbiased predictors (EBLUPs) of random intercepts if the selected \code{model} is one of the LMMs, or the regression coefficients if the selected \code{model} is one of the GLMs. }
+\item{\code{print}}{Print the point estimates of attributions and SATE and indicate whether bootstrap and permutation has been performed. Also print the model formula, data subset, number of observations, number of days (groups), and point estimates of fixed effect coefficients for the upwind (first stage) and downwind (second stage) LMMs.}
+\item{\code{residuals}}{Compute residuals of the selected \code{model}. Residual type is controlled by \code{residual_type}, while scaling (only for LMMs) is controlled by \code{residual_scaled}.}
+\item{\code{fitted}}{Compute fitted values of the selected \code{model}. For more flexible access to fitted values, use \code{\link{predict.rain_attr}}. }
+\item{\code{varcomp}}{Compute the random intercept variance and error variance estimates for each of the four LMMs.}
+\item{\code{predict}}{Compute predictions from the selected \code{model}. The \code{newdata} argument allows predictions for a new data frame; if omitted, predictions are based on the original data used to fit the model.
+For GLMs, the type of prediction is controlled by \code{predict_type}. For LMMs, \code{re_include}, \code{fixef_include}, \code{allow.new.levels} control how fixed effects and random effects are handled when making predictions.}
+\item{\code{plot}}{Depending on \code{plot_type}, it can plot bootstrap or permutation distributions of attribution or SATE estimates, or model diagnostic plots (residuals vs fitted and Q-Q plots) for a selected \code{model}.
+The \code{plot_quantity} argument controls which estimates to display for bootstrap or permutation plots. For bootstrap plots, a solid vertical line represents the estimate based on the original data and a dotted vertical line represents zero. For permutation plots, a solid vertical line represents the estimate based on the original data.
+For diagnostic plots of \code{model = "downwind_lmm"}, the treatment and control observations are plotted using different colors and shapes. }
+\item{\code{summary}}{Returns a list of summary statistics of the two-stage LMM approach, which is an \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}. For details of this list, see the "Value from \code{summary.rain_attr}" section below. }
+\item{\code{print.summary}}{Print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values if bootstrap and permutation has been performed.
+Also print the model formula, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard error and t-values computed from \code{\link[lme4]{summary.merMod}}.}
+}
+}
+
+\section{Value from \code{summary.rain_attr}}{
+
+The following describes the output from \code{summary.rain_attr}:
+\describe{
+\item{\code{attr_table}}{A data frame containing attribution estimates, along with their bootstrap confidence intervals, bootstrap p-values, and permutation p-values. If no bootstrap or permutation has been carried out, their corresponding confidence intervals or p-values are set as \code{NA}.}
+\item{\code{sate_table}}{A data frame containing SATE estimates, along with their bootstrap confidence intervals, bootstrap p-values, and permutation p-values. If no bootstrap or permutation has been carried out, their corresponding confidence intervals or p-values are set as \code{NA}.}
+\item{\code{data_name}}{The name of the data frame used in the original call to \code{\link{rain_attr}}.}
+\item{\code{upwind_subset_expr}, \code{downwind_subset_expr}}{Expressions used to subset the data for fitting the upwind and downwind LMMs.}
+\item{\code{upwind_formula}, \code{downwind_formula}}{Model formulas used for fitting the upwind (first stage) and downwind (second stage) LMMs.}
+\item{\code{upwind_n_obs}, \code{downwind_n_obs}}{Number of observations used for fitting the upwind and downwind LMMs.}
+\item{\code{upwind_n_groups}, \code{downwind_n_groups}}{Number of unique days (groups) used for fitting the upwind and downwind LMMs.}
+\item{\code{upwind_summary}, \code{downwind_summary}}{Objects of class \code{\link[=merMod-class]{summary.merMod}} containing summaries of the fitted upwind and downwind LMMs.}
+\item{\code{upwind_fitted}, \code{downwind_fitted}}{Fitted values of the upwind and downwind LMMs, which include both the fixed effects and the predicted random intercepts.}
+\item{\code{upwind_residuals}, \code{downwind_residuals}}{Scaled residuals of the upwind and downwind LMMs, which take the general form of (observed - fitted)/\eqn{\hat{\sigma}_e}, where the fitted values are either \code{upwind_fitted} or \code{downwind_fitted} and \eqn{\hat{\sigma}_e} denote the corresponding estimated error variance. }
+\item{\code{upwind_lmm_fixef}, \code{downwind_lmm_fixef}}{Matrices of fixed effect coefficients for the upwind and downwind LMMs, along with their corresponding standard error estimates and t-value computed from \code{\link[lme4]{summary.merMod}}.}
+\item{\code{upwind_lmm_varcomp}, \code{downwind_lmm_varcomp}}{Data frames containing the estimated variance components for the upwind and downwind LMMs.}
 }
 }
 

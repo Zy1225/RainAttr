@@ -106,7 +106,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{target_only}{Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
+\item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{ori_attr_est}{A numeric vector containing the original attribution estimates (\code{apo} and \code{apl}) from the original dataset.

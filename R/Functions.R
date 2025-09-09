@@ -149,8 +149,8 @@
 #' @param instr_pred_name A character string to store the variable name of the fitted values generated from the upwind (first stage) LMM.
 #' @param instr_pred_type Type of fitted values generated from the upwind (first stage) LMM.. If "Unconditional" the fitted values equal to only the estimated fixed effects. If "Conditional" the fitted values equal to the sum of estimated fixed effects and EBLUPs of random intercepts.
 #' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM. This formula should contain the variable name specified in \code{instr_pred_name}.
-#' @param downwind_logistic_formula An optional two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a logistic model to the indicators of rainfall event. This only needs to be specified when \code{bootstrap = TRUE} and \code{bootstrap_option$bootstrap_zero = TRUE}.
-#' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
+#' @param downwind_logistic_formula An optional two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a logistic model to the indicators of rainfall event. This only needs to be specified when \code{bootstrap = TRUE} and \code{bootstrap_option$bootstrap_zero = TRUE}.
+#' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 #' @param rain_col_name A character string that refers to the column name of the raw scale rainfall in \code{data}.
 #' @param upwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == "Upwind"}.
 #' @param downwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the downwind (second stage) LMM fitting. For example, \code{Gauge.Day.Type \%in\% c("Target","Control")}.
@@ -168,7 +168,7 @@
 #'
 #' @returns A list containing
 #' \describe{
-#' \item{all_fitted_models}{A list of model objects from \code{\link{lme4}{lmer}} for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from \code{\link{stats}{glm}} for the logistic model of rainfall event indicator (\code{NULL} if \code{downwind_logistic_formula} is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.}
+#' \item{all_fitted_models}{A list of model objects from \code{\link[lme4]{lmer}} for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from \code{\link{glm}} for the logistic model of rainfall event indicator (\code{NULL} if \code{downwind_logistic_formula} is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.}
 #' \item{hatattr}{A vector containing the attribution estimates.}
 #' \item{hatsate}{A vector containing the sample average treatment effect estimates.}
 #' \item{bootstrap_result}{A list of matrices with the following elements:}
@@ -754,6 +754,10 @@ predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
 
   # Predictions for glm
   if (inherits(selected_model, "glm")) {
+    if(!predict_type %in% c("link", "response", "terms")){
+      stop(paste("Invalid predict_type. Choose one of:", paste(c("link", "response", "terms"), collapse = ", ")))
+    }
+
     fit = predict(selected_model, newdata = newdata,
                    type = predict_type, ...)
   }
@@ -765,7 +769,7 @@ predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
 #' @export
 
 #TODO: Think if we want to modify the qqplot for glm to be a half normal qqplot, or we need to at least add a note to be careful when viewing the residual plots of glm since these residuals are not required to be normal
-plot.rain_attr = function(object, plot_type, plot_quantity = "attr",
+plot.rain_attr = function(object, plot_type = "bootstrap", plot_quantity = "attr",
                            model = 'downwind_lmm', residual_type = NULL, residual_scaled = TRUE,
                           re_include = TRUE, fixef_include = TRUE, allow.new.levels = FALSE, predict_type = "link",
                           ...) {
@@ -997,16 +1001,16 @@ summary.rain_attr <- function(object, ...) {
   upwind_fit <- object$all_fitted_models$upwind_lmm_fit
   downwind_fit <- object$all_fitted_models$downwind_lmm_fit
 
-  upwind_lmm_coef = round(summary(upwind_fit)$coefficients,4)
-  upwind_lmm_ranef = as.data.frame(lme4::VarCorr(upwind_fit))[, c('grp','var1','vcov')]
-  colnames(upwind_lmm_ranef) = c('Groups', 'Name', 'Variance')
-  upwind_lmm_ranef$Name[is.na(upwind_lmm_ranef$Name)] = ""
+  upwind_lmm_fixef = round(summary(upwind_fit)$coefficients,4)
+  upwind_lmm_varcomp = as.data.frame(lme4::VarCorr(upwind_fit))[, c('grp','var1','vcov')]
+  colnames(upwind_lmm_varcomp) = c('Groups', 'Name', 'Variance')
+  upwind_lmm_varcomp$Name[is.na(upwind_lmm_varcomp$Name)] = ""
 
-  #Add Bootstrap CI results to downwind_lmm_coef and downwind_lmm_ranef
-  downwind_lmm_coef = round(summary(downwind_fit)$coefficients,4)
-  downwind_lmm_ranef = as.data.frame(lme4::VarCorr(downwind_fit))[, c('grp','var1','vcov')]
-  colnames(downwind_lmm_ranef) = c('Groups', 'Name', 'Variance')
-  downwind_lmm_ranef$Name[is.na(downwind_lmm_ranef$Name)] = ""
+  #
+  downwind_lmm_fixef = round(summary(downwind_fit)$coefficients,4)
+  downwind_lmm_varcomp = as.data.frame(lme4::VarCorr(downwind_fit))[, c('grp','var1','vcov')]
+  colnames(downwind_lmm_varcomp) = c('Groups', 'Name', 'Variance')
+  downwind_lmm_varcomp$Name[is.na(downwind_lmm_varcomp$Name)] = ""
 
 
   # Attribution table
@@ -1079,13 +1083,13 @@ summary.rain_attr <- function(object, ...) {
     #upwind
     upwind_subset_expr = upwind_subset_expr,
     upwind_formula = object$args$upwind_lmm_formula,
-    n_obs_upwind = nobs(upwind_fit),
-    n_groups_upwind = length(unique(lme4::getME(upwind_fit, "flist")[[1]])),
+    upwind_n_obs = nobs(upwind_fit),
+    upwind_n_groups = length(unique(lme4::getME(upwind_fit, "flist")[[1]])),
     upwind_summary = summary(upwind_fit),
     upwind_fitted = predict(upwind_fit, re.form = NULL), #including random effects
     upwind_residuals = residuals(upwind_fit, type = 'response', scaled = TRUE),  #including random effects
-    upwind_lmm_coef = upwind_lmm_coef,
-    upwind_lmm_ranef = upwind_lmm_ranef,
+    upwind_lmm_fixef = upwind_lmm_fixef,
+    upwind_lmm_varcomp = upwind_lmm_varcomp,
 
     #downwind
     downwind_subset_expr = downwind_subset_expr,
@@ -1095,8 +1099,8 @@ summary.rain_attr <- function(object, ...) {
     downwind_summary = summary(downwind_fit),
     downwind_fitted = predict(downwind_fit, re.form = NULL),  #including random effects
     downwind_residuals = residuals(downwind_fit, type = 'response', scaled = TRUE),  #including random effects
-    downwind_lmm_coef = downwind_lmm_coef,
-    downwind_lmm_ranef = downwind_lmm_ranef,
+    downwind_lmm_fixef = downwind_lmm_fixef,
+    downwind_lmm_varcomp = downwind_lmm_varcomp,
 
     #
     attr_table = attr_table,
@@ -1164,16 +1168,16 @@ print.summary.rain_attr <- function(summary_object, ...) {
   cat("Data subset used: ")
   cat(summary_object$data_name, "[", summary_object$upwind_subset_expr, ", ]\n")
   cat(sprintf("Number of observations: %d, Number of groups: %d\n\n",
-              summary_object$n_obs_upwind, summary_object$n_groups_upwind))
+              summary_object$upwind_n_obs, summary_object$upwind_n_groups))
 
   # Random effects
   cat("Random effects:\n")
-  print(summary_object$upwind_lmm_ranef, row.names = FALSE)
+  print(summary_object$upwind_lmm_varcomp, row.names = FALSE)
   cat("\n")
 
   # Fixed effects
   cat("Fixed effects:\n")
-  print(summary_object$upwind_lmm_coef)
+  print(summary_object$upwind_lmm_fixef)
   cat("\n======================================================================\n\n")
 
   # Downwind LMM Results Table
@@ -1188,12 +1192,12 @@ print.summary.rain_attr <- function(summary_object, ...) {
 
   # Random effects
   cat("Random effects:\n")
-  print(summary_object$downwind_lmm_ranef, row.names = FALSE)
+  print(summary_object$downwind_lmm_varcomp, row.names = FALSE)
   cat("\n")
 
   # Fixed effects
   cat("Fixed effects:\n")
-  print(summary_object$downwind_lmm_coef)
+  print(summary_object$downwind_lmm_fixef)
 
   invisible(summary_object)
 
@@ -1678,7 +1682,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
+#' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param ori_attr_est A numeric vector containing the original attribution estimates (\code{apo} and \code{apl}) from the original dataset.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -2475,7 +2479,7 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
+#' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})

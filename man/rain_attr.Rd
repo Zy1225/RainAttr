@@ -39,9 +39,9 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 
 \item{downwind_lmm_formula}{A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM. This formula should contain the variable name specified in \code{instr_pred_name}.}
 
-\item{downwind_logistic_formula}{An optional two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a logistic model to the indicators of rainfall event. This only needs to be specified when \code{bootstrap = TRUE} and \code{bootstrap_option$bootstrap_zero = TRUE}.}
+\item{downwind_logistic_formula}{An optional two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a logistic model to the indicators of rainfall event. This only needs to be specified when \code{bootstrap = TRUE} and \code{bootstrap_option$bootstrap_zero = TRUE}.}
 
-\item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{stats}{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.}
+\item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.}
 
 \item{rain_col_name}{A character string that refers to the column name of the raw scale rainfall in \code{data}.}
 
@@ -72,7 +72,7 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 \value{
 A list containing
 \describe{
-\item{all_fitted_models}{A list of model objects from \code{\link{lme4}{lmer}} for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from \code{\link{stats}{glm}} for the logistic model of rainfall event indicator (\code{NULL} if \code{downwind_logistic_formula} is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.}
+\item{all_fitted_models}{A list of model objects from \code{\link[lme4]{lmer}} for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from \code{\link{glm}} for the logistic model of rainfall event indicator (\code{NULL} if \code{downwind_logistic_formula} is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.}
 \item{hatattr}{A vector containing the attribution estimates.}
 \item{hatsate}{A vector containing the sample average treatment effect estimates.}
 \item{bootstrap_result}{A list of matrices with the following elements:}
