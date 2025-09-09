@@ -1,7 +1,7 @@
 
 #TODO: Add the following types of EDA
 
-# Table summarizing number of observations/unique groups of Upwind/Downwind/Target/Control vs. Positive/Zero
+# Table summarizing number of observations/unique groups of Upwind/Downwind/Target/Control vs. Positive/Zero (DONE)
 
 # Histogram of cluster sizes for Upwind+Positive / Downwind+Positive
 
@@ -71,15 +71,15 @@ eda = function(eda_type,
 
 
   if(eda_type == 'hist_day_group_sizes'){
-    day_values <- data[[day_column_name]]
+    day_values = data[[day_column_name]]
 
     # Upwind & Positive group sizes
-    upwind_days <- day_values[upwind & positive]
-    upwind_sizes <- as.numeric(table(upwind_days))
+    upwind_days = day_values[upwind & positive]
+    upwind_sizes = as.numeric(table(upwind_days))
 
     # Downwind (Target + Control) & Positive group sizes
-    downwind_days <- day_values[downwind & positive]
-    downwind_sizes <- as.numeric(table(downwind_days))
+    downwind_days = day_values[downwind & positive]
+    downwind_sizes = as.numeric(table(downwind_days))
 
     upwind_title <- paste0("Histogram of Day Group Sizes \n(",
                            deparse(original_args$upwind_subset),
