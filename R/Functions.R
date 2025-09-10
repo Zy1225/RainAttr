@@ -218,6 +218,7 @@
 #TODO: Write vignettes to show how to use the package to replicate Ray's analysis, and to perform our recommended analysis using the recommended options
 
 
+
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
                      rain_col_name,
@@ -500,6 +501,13 @@ coef.rain_attr = function(object, model = "downwind_lmm", ...){
     stop(paste("Invalid model. Choose one of:", paste(names(model_map), collapse = ", ")))
   }
 
+  if(model == 'downwind_logistic'){
+    if (is.null(object$all_fitted_models$downwind_logistic_fit)) {
+      stop("No downwind_logistic_formula has been specified in the original call of rain_attr.
+               Please rerun rain_attr with downwind_logistic_formula specified.")
+    }
+  }
+
   selected_model = model_map[[model]]
 
   if(model %in%  c('upwind_lmm', 'downwind_lmm', 'downwind_target_lmm', 'downwind_control_lmm' )){
@@ -638,6 +646,13 @@ residuals.rain_attr <- function(object, model = "downwind_lmm",
     stop(paste("Invalid model. Choose one of:", paste(names(model_map), collapse = ", ")))
   }
 
+  if(model == 'downwind_logistic'){
+    if (is.null(object$all_fitted_models$downwind_logistic_fit)) {
+      stop("No downwind_logistic_formula has been specified in the original call of rain_attr.
+               Please rerun rain_attr with downwind_logistic_formula specified.")
+    }
+  }
+
   selected_model <- model_map[[model]]
 
   #
@@ -730,6 +745,13 @@ predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
 
   if (!model %in% names(model_map)) {
     stop(paste("Invalid model. Choose one of:", paste(names(model_map), collapse = ", ")))
+  }
+
+  if(model == 'downwind_logistic'){
+    if (is.null(object$all_fitted_models$downwind_logistic_fit)) {
+      stop("No downwind_logistic_formula has been specified in the original call of rain_attr.
+               Please rerun rain_attr with downwind_logistic_formula specified.")
+    }
   }
 
   selected_model = model_map[[model]]
@@ -841,6 +863,13 @@ plot.rain_attr = function(object, plot_type = "bootstrap", plot_quantity = "attr
       stop(paste("Invalid model. Choose one of:", paste(names(model_map), collapse = ", ")))
     }
 
+    if(model == 'downwind_logistic'){
+      if (is.null(object$all_fitted_models$downwind_logistic_fit)) {
+        stop("No downwind_logistic_formula has been specified in the original call of rain_attr.
+               Please rerun rain_attr with downwind_logistic_formula specified.")
+      }
+    }
+
     selected_model = model_map[[model]]
     plot_title = plot_title_map[[model]]
 
@@ -874,7 +903,7 @@ plot.rain_attr = function(object, plot_type = "bootstrap", plot_quantity = "attr
         ggplot2::geom_point() +
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Residuals vs Fitted for", plot_title),
-                      y = paste0("Residuals (type=", ifelse(is.null(residual_type), 'response', residual_type), ", scaled=", residual_scaled, ")",),
+                      y = paste0("Residuals (type=", ifelse(is.null(residual_type), 'response', residual_type), ", scaled=", residual_scaled, ")"),
                       x = paste0("Fitted (fixef_include =", fixef_include, ", re_include =", re_include, ")"),
                       color = legend_title, shape = legend_title) +
         ggplot2::theme_bw() +
@@ -882,12 +911,18 @@ plot.rain_attr = function(object, plot_type = "bootstrap", plot_quantity = "attr
         ggplot2::scale_shape_manual(values = shape_vals)
 
       # QQ plot
-      qq_vals = stats::qqnorm(res, plot.it = FALSE)
+      qq_vals = qqnorm(res, plot.it = FALSE)
       qq_df = data.frame(Theoretical = qq_vals$x, Sample = qq_vals$y, Group = df$Group)
+
+      q_sample = quantile(res, probs = c(0.25, 0.75))
+      q_theory = qnorm(c(0.25, 0.75))
+      qqline_slope = diff(q_sample) / diff(q_theory)
+      qqline_intercept = q_sample[1] - qqline_slope * q_theory[1]
+
 
       p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample, color = Group, shape = Group)) +
         ggplot2::geom_point() +
-        ggplot2::geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+        ggplot2::geom_abline(intercept = qqline_intercept, slope = qqline_slope, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals"),
                       color = legend_title, shape = legend_title) +
         ggplot2::theme_bw() +
@@ -901,66 +936,64 @@ plot.rain_attr = function(object, plot_type = "bootstrap", plot_quantity = "attr
 
     if(model %in% c('upwind_lmm', 'downwind_target_lmm', 'downwind_control_lmm')){
       df = data.frame(Fitted = fit, Residuals = res)
-      color_vals = "black"
-      shape_vals = 16
+
 
       #Residuals vs Fitted
-      p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals, color = if(model=="downwind_lmm") Group else NULL, shape = if(model=="downwind_lmm") Group else NULL)) +
+      p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals)) +
         ggplot2::geom_point() +
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Residuals vs Fitted for", plot_title),
-                      y = paste0("Residuals (type=", ifelse(is.null(residual_type), 'response', residual_type),")"),
+                      y = paste0("Residuals (type=", ifelse(is.null(residual_type), 'response', residual_type), ", scaled=", residual_scaled, ")"),
                       x = paste0("Fitted (fixef_include =", fixef_include, ", re_include =", re_include, ")")) +
-        ggplot2::theme_bw() +
-        ggplot2::scale_color_manual(values = color_vals) +
-        ggplot2::scale_shape_manual(values = shape_vals)
+        ggplot2::theme_bw()
 
 
       # QQ plot
-      qq_vals = stats::qqnorm(res, plot.it = FALSE)
+      qq_vals = qqnorm(res, plot.it = FALSE)
       qq_df = data.frame(Theoretical = qq_vals$x, Sample = qq_vals$y)
-      if (model == "downwind_lmm") qq_df$Group = df$Group
 
-      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample, color = if(model=="downwind_lmm") Group else NULL, shape = if(model=="downwind_lmm") Group else NULL)) +
+      q_sample = quantile(res, probs = c(0.25, 0.75))
+      q_theory = qnorm(c(0.25, 0.75))
+      qqline_slope = diff(q_sample) / diff(q_theory)
+      qqline_intercept = q_sample[1] - qqline_slope * q_theory[1]
+
+      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample)) +
         ggplot2::geom_point() +
-        ggplot2::geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+        ggplot2::geom_abline(intercept = qqline_intercept, slope = qqline_slope, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals")) +
-        ggplot2::theme_bw() +
-        ggplot2::scale_color_manual(values = color_vals) +
-        ggplot2::scale_shape_manual(values = shape_vals)
+        ggplot2::theme_bw()
 
       print(ggpubr::ggarrange(p1, p2, ncol = 2))
     }
 
     if(model %in% c('downwind_logistic', 'downwind_propensity')){
       df = data.frame(Fitted = fit, Residuals = res)
-      color_vals = "black"
-      shape_vals = 16
+
 
       #Residuals vs Fitted
-      p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals, color = if(model=="downwind_lmm") Group else NULL, shape = if(model=="downwind_lmm") Group else NULL)) +
+      p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals)) +
         ggplot2::geom_point() +
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Residuals vs Fitted for", plot_title),
                       y = paste0("Residuals (type=", ifelse(is.null(residual_type), 'deviance', residual_type), ", scaled=", residual_scaled, ")"),
                       x = paste0("Fitted (type=", predict_type, ")") )  +
-        ggplot2::theme_bw() +
-        ggplot2::scale_color_manual(values = color_vals) +
-        ggplot2::scale_shape_manual(values = shape_vals)
+        ggplot2::theme_bw()
 
 
       # QQ plot
       qq_vals = stats::qqnorm(res, plot.it = FALSE)
       qq_df = data.frame(Theoretical = qq_vals$x, Sample = qq_vals$y)
-      if (model == "downwind_lmm") qq_df$Group = df$Group
 
-      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample, color = if(model=="downwind_lmm") Group else NULL, shape = if(model=="downwind_lmm") Group else NULL)) +
+      q_sample = quantile(res, probs = c(0.25, 0.75))
+      q_theory = qnorm(c(0.25, 0.75))
+      qqline_slope = diff(q_sample) / diff(q_theory)
+      qqline_intercept = q_sample[1] - qqline_slope * q_theory[1]
+
+      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample)) +
         ggplot2::geom_point() +
-        ggplot2::geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+        ggplot2::geom_abline(intercept = qqline_intercept, slope = qqline_slope, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals")) +
-        ggplot2::theme_bw() +
-        ggplot2::scale_color_manual(values = color_vals) +
-        ggplot2::scale_shape_manual(values = shape_vals)
+        ggplot2::theme_bw()
 
       print(ggpubr::ggarrange(p1, p2, ncol = 2))
     }
