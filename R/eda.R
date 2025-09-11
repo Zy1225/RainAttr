@@ -31,9 +31,13 @@
 
 #Think if we want to add smoothed (static/dynamic) spatial map
 
+#TODO: For documentation, remember to add a note that log(0) are plotted at the bottommost of the plot
+#TODO: Add another version of map_dynamc when input_sf is NULL, and also another version when chosen_year=NULL
 eda = function(eda_type,
                data, rain_col_name, day_column_name, year_column_name, use_raw,
-               longlat_column_names, ts_filter_gauge = NULL,
+               gauge_id_column_name, ts_focus_gauge = NULL,
+               longlat_column_names, long_lim, lat_lim, input_sf = NULL,
+               chosen_year,
                upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset){
 
   original_args = as.list(match.call())[-1]
@@ -224,7 +228,7 @@ eda = function(eda_type,
     ))
   }
 
-  if(eda_type == 'ts_average_by_year'){
+  if(eda_type == 'ts_by_type'){
 
     if(!use_raw){
       data[,rain_col_name] = log(data[,rain_col_name])
@@ -280,13 +284,200 @@ eda = function(eda_type,
 
   }
 
+  if(eda_type == 'ts_by_gauge'){
+    if(!use_raw){
+      data[,rain_col_name] = log(data[,rain_col_name])
+      rain_label = paste0("log(", rain_col_name, ")")
+    }else{
+      rain_label = rain_col_name
+    }
+
+    if(!is.null(ts_focus_gauge)){
+      data[,gauge_id_column_name] = factor(data[,gauge_id_column_name])
+      output_plot = ggplot2::ggplot(data, ggplot2::aes(x = .data[[day_column_name]], y = .data[[rain_col_name]], group = .data[[gauge_id_column_name]])) +
+        ggplot2::geom_line(data = data[!data[,gauge_id_column_name] %in% ts_focus_gauge,] ,
+                           ggplot2::aes(color = "Other"), alpha = 0.8) +
+        ggplot2::geom_point(data = data[!data[,gauge_id_column_name] %in% ts_focus_gauge,] ,
+                            ggplot2::aes(color = "Other"), alpha = 0.8) +
+        ggplot2::geom_line(data = data[data[,gauge_id_column_name] %in% ts_focus_gauge,] ,
+                           ggplot2::aes(color = .data[[gauge_id_column_name]]), alpha = 0.8, linewidth = 1) +
+        ggplot2::geom_point(data = data[data[,gauge_id_column_name] %in% ts_focus_gauge,] ,
+                            ggplot2::aes(color = .data[[gauge_id_column_name]]), alpha = 0.8) +
+        ggplot2::scale_color_manual(
+          values = c("Other" = "grey80",
+                     setNames(viridis::viridis(length(ts_focus_gauge), option = "D"),
+                              ts_focus_gauge))
+        ) +
+        ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = 'free') +
+        ggplot2::labs(title = paste0('Time Series Plots of ', rain_label, ' of All Gauges'),
+                      y = rain_label,
+                      color = gauge_id_column_name) +
+        ggplot2::theme_bw()+
+        ggplot2::theme(legend.position = "bottom")
+    }else{
+      output_plot = ggplot2::ggplot(data, ggplot2::aes(x = .data[[day_column_name]], y = .data[[rain_col_name]], group = .data[[gauge_id_column_name]])) +
+        ggplot2::geom_line(alpha = 0.8, color = "grey80") +
+        ggplot2::geom_point(color = "grey80") +
+        ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = 'free') +
+        ggplot2::labs(title = paste0('Time Series Plots of ', rain_label, ' of All Gauges'),
+                      y = rain_label,
+                      color = gauge_id_column_name) +
+        ggplot2::theme_bw()
+    }
+
+
+    print(output_plot)
+
+    return(output_plot)
+
+
+  }
+
+  if(eda_type == 'ts_by_gauge_interactive'){
+    if(!use_raw){
+      data[,rain_col_name] = log(data[,rain_col_name])
+      rain_label = paste0("log(", rain_col_name, ")")
+    }else{
+      rain_label = rain_col_name
+    }
+
+
+    data[,gauge_id_column_name] <- factor(data[,gauge_id_column_name])
+
+    output_plot = ggplot2::ggplot(data, ggplot2::aes(x = .data[[day_column_name]],
+                                                     y = .data[[rain_col_name]],
+                                                     group = .data[[gauge_id_column_name]],
+                                                     # color = .data[[gauge_id_column_name]],
+                                                     text = paste("Gauge:", .data[[gauge_id_column_name]]))) +
+      ggplot2::geom_line(alpha = 0.8, color = "grey80") +
+      ggplot2::geom_point(color = "grey80") +
+      ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = "free") +
+      ggplot2::labs(title = paste0('Time Series Plots of ', rain_label, ' of All Gauges (Hover over points to see Gauge ID)'),
+                    y = rain_label) +
+      ggplot2::theme_bw()
+
+    plotly_output = plotly::ggplotly(output_plot, tooltip = "text")
+
+    print(plotly_output)
+    print('hi')
+    return(plotly_output)
+  }
+
+  if(eda_type == "map_static"){
+    if(!use_raw){
+      data[,rain_col_name] = log(data[,rain_col_name])
+      rain_label = paste0("log(", rain_col_name, ")")
+    }else{
+      rain_label = rain_col_name
+    }
+
+    positive_df = data[positive, c(longlat_column_names, year_column_name, rain_col_name)]
+    positive_df_avg = aggregate(as.formula(
+      paste(rain_col_name, "~", paste(c(longlat_column_names, year_column_name), collapse = " + "))
+    ), data = positive_df, FUN = mean, na.rm = TRUE)
+
+
+    #the following need either 'maps' package or 'rnaturalearthhires' for creating input_sf
+    if(!is.null(input_sf)){
+      points_sf <- sf::st_as_sf(
+        positive_df_avg,
+        coords = c(longlat_column_names[1], longlat_column_names[2]),
+        crs = 4326
+      )
+
+      output_plot = ggplot2::ggplot() +
+        ggplot2::geom_sf(data = input_sf, fill = "white", color = "black") +
+        ggplot2::geom_sf(data = points_sf, ggplot2::aes(color = .data[[rain_col_name]])) +
+        ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
+        ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]])) +
+        ggplot2::labs(title = paste0('Spatial Plots of ', rain_label, ' Averaged Across\n All Days Satisfying ',
+                                     deparse(original_args$positive_subset)),
+                      x = 'Longitude', y = 'Latitude', color = rain_label) +
+        ggplot2::scale_color_viridis_c() +
+        ggplot2::theme_bw() +
+        ggplot2::theme(legend.position = 'bottom')
+
+    }else{
+      output_plot = ggplot2::ggplot(positive_df_avg, ggplot2::aes(x = .data[[longlat_column_names[1]]],
+                                                                  y = .data[[longlat_column_names[2]]],
+                                                                  color = .data[[rain_col_name]])) +
+        ggplot2::borders()+
+        ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
+        ggplot2::geom_point() +
+        ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = "free") +
+        ggplot2::labs(title = paste0('Spatial Plots of ', rain_label, ' Averaged Across\n All Days Satisfying ',
+                                     deparse(original_args$positive_subset)),
+                      x = 'Longitude', y = 'Latitude', color = rain_label) +
+        ggplot2::scale_color_viridis_c() +
+        ggplot2::theme_bw() +
+        ggplot2::theme(legend.position = 'bottom')
+    }
+
+    print(output_plot)
+    return(output_plot)
+
+
+  }
+
+  if(eda_type == 'map_dynamic'){
+
+    if(!use_raw){
+      data[,rain_col_name] = log(data[,rain_col_name])
+      rain_label = paste0("log(", rain_col_name, ")")
+    }else{
+      rain_label = rain_col_name
+    }
+
+    positive_df = data[positive, c(longlat_column_names, day_column_name, year_column_name, rain_col_name)]
+
+    points_sf <- sf::st_as_sf(
+      positive_df,
+      coords = c(longlat_column_names[1], longlat_column_names[2]),
+      crs = 4326
+    )
+
+
+    points_sf_year <- points_sf[points_sf[[year_column_name]] == chosen_year, ]
+
+    output_plot = ggplot2::ggplot() +
+      ggplot2::geom_sf(data = input_sf, fill = "white", color = "black", linewidth = 0.3) +
+      ggplot2::geom_sf(
+        data = points_sf_year,
+        ggplot2::aes(color = .data[[rain_col_name]]),
+        size = 2
+      ) +
+      ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
+      ggplot2::labs(
+        title = paste0(
+          "Spatial Plots of ", rain_label, " for Year ", chosen_year,
+          "\nDay: {closest_state}"
+        ),
+        x = "Longitude",
+        y = "Latitude",
+        color = rain_label
+      ) +
+      ggplot2::scale_color_viridis_c(name = rain_label) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "bottom") +
+      gganimate::transition_states(
+        states = .data[[day_column_name]],
+        state_length = 1,
+        transition_length = 1
+      ) +
+      gganimate::ease_aes("linear")
+
+    gganimate::animate(output_plot)
+    return(gganimate::animate(output_plot))
+  }
+
 }
 
-qwe =eda(eda_type = 'ts_average_by_year',
+qwe =eda(eda_type = 'map_dynamic',
          # 'num_obs_days'
          # 'num_obs_days_by_year'
          # 'hist_day_group_sizes'
          # 'qq_rain'
+    # data = oman,
     data = oman,
 
 
@@ -295,7 +486,15 @@ qwe =eda(eda_type = 'ts_average_by_year',
     day_column_name = 'TrialDay',
     year_column_name = 'Year',
 
-    use_raw = T,
+    use_raw = F,
+
+    gauge_id_column_name = 'Gauge.ID', ts_focus_gauge = c(1,3,212,213),
+    longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
+    long_lim = c(55,60),
+    lat_lim = c(20,25),
+    input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
+
+    chosen_year = 2015,
 
     #Logical expression identifying subset of observations to which upwind_lmm_formula is fitted
     upwind_subset = Gauge.Day.Type == 'Upwind',
@@ -310,7 +509,7 @@ qwe =eda(eda_type = 'ts_average_by_year',
     downwind_control_subset = Gauge.Day.Type == 'Control',
 
     #Logical expression identifying subset of observations with rainfall event
-    positive_subset = Rain.Gauge.Measurement > 0,
+    positive_subset = Rain.Gauge.Measurement > 0
 )
 # qwe
 #do.call(sum,lapply(qwe, function(x){x$num_obs}))
