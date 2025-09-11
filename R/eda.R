@@ -32,7 +32,9 @@
 #Think if we want to add smoothed (static/dynamic) spatial map
 
 #TODO: For documentation, remember to add a note that log(0) are plotted at the bottommost of the plot
-#TODO: Add another version of map_dynamc when input_sf is NULL, and also another version when chosen_year=NULL
+#TODO: Add another version of ts_by_gauge_interactive to enable ts_focus_gauge
+#TODO: Check if ts_by_gauge_interactive's plotly viewer is working correctly when we have A LARGE number of gauges
+#TODO: Add another version of map_dynamic when input_sf is NULL, and also another version when chosen_year=NULL
 eda = function(eda_type,
                data, rain_col_name, day_column_name, year_column_name, use_raw,
                gauge_id_column_name, ts_focus_gauge = NULL,
