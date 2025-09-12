@@ -207,11 +207,6 @@
 #TODO: Fix the formatting of "Value" section, so that bootstrap_result is correctly formatted
 #TODO: Add reference lists to each documentation
 
-#
-
-#TODO: Add visualization function to perform EDA on rainfall enhancement data
-#TODO: for EDA plot, remember to plot the histogram of cluster sizes
-#TODO: Add documentation for visualization functions
 
 #TODO: Try to see if our rain_attr bootstrap and permutation could replicate the previous bootstrap/permutation results using older code (not from package)
 
