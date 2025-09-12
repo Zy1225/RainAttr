@@ -1,72 +1,192 @@
+#' Exploratory Data Analysis for Rainfall Enhancement Trial Data
+#'
+#' Performs various exploratory data analyses (EDA) on rainfall enhancement trial data,
+#' including summaries of observation types and positive rainfall events, time series plots, Q-Q plots, and static or animated spatial maps.
+#'
+#' @param eda_type A character string specifying the type of EDA to perform. Must be one of
+#'   \code{"num_obs_days"}, \code{"num_obs_days_by_year"}, \code{"hist_day_group_sizes"},
+#'   \code{"qq_rain"}, \code{"ts_by_type"}, \code{"ts_by_gauge"},
+#'   \code{"ts_by_gauge_interactive"}, \code{"map_static"}, \code{"map_dynamic"}.
+#' @param data A data frame containing the rainfall enhancement trial data.
+#' @param rain_col_name A character string that refers to the column name of the raw scale rainfall in \code{data}.
+#' @param day_column_name A character string that refers to the column name of day identifiers in \code{data}.
+#' @param year_column_name A character string that refers to the column name of year identifiers in \code{data}.
+#' @param use_raw Logical. If TRUE, EDA is performed on raw scale rainfall. if FALSE, EDA is performed on log-transformed rainfall.
+#' @param gauge_id_column_name A character string that refers to the column name of gauge identifiers in \code{data}.
+#' @param ts_focus_gauge An optional vector of gauge identifiers to highlight in time series plots. If \code{ts_focus_gauge} is not supplied, no highlighting is done and all gauges are plotted with the same color.
+#' @param longlat_column_names A character vector of length 2 specifying the column names of longitude and latitude in \code{data}, for plotting spatial plots.
+#' @param long_lim A numeric vector of length 2 specifying longitude limits for spatial plots.
+#' @param lat_lim A numeric vector of length 2 specifying latitude limits for spatial plots.
+#' @param input_sf An optional \code{\link[sf:st_as_sf]{sf}} object for polygon layers (e.g., country borders) in spatial plots. For example, \code{rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf")}.
+#' If \code{input_sf} is not supplied, then a default map is drawn using \code{ggplot2::borders()}.
+#' @param focus_year An optional vector specifying years to filter for animated maps. If \code{focus_year} is not supplied, all years are included.
+#' @param fps An optional numeric specifying frames per second for animated maps. Default is \code{10}.
+#' @param upwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == "Upwind"}.
+#' @param downwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the downwind (second stage) LMM fitting. For example, \code{Gauge.Day.Type \%in\% c("Target","Control")}.
+#' @param downwind_target_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Target"}.
+#' @param downwind_control_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Control"}.
+#' @param positive_subset A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall. For example, \code{Rain.Gauge.Measurement > 0}.
+#'
+#' @details
+#' Each \code{eda_type} has its own behavior and relevant arguments provided in parentheses:
+#'
+#' \describe{
+#'   \item{`num_obs_days` (\code{data}, \code{day_column_name}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset})}{
+#'     Computes contingency tables of the number of observations and number of unique days for each subset
+#'     (\code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}), with columns corresponding to positive vs zero rainfall events.
+#'   }
+#'   \item{`num_obs_days_by_year` (\code{data}, \code{day_column_name}, \code{year_column_name}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset})}{
+#'     Same as \code{num_obs_days}, but computed separately for each year.
+#'   }
+#'   \item{`hist_day_group_sizes` (\code{data}, \code{day_column_name}, \code{upwind_subset}, \code{downwind_subset}, \code{positive_subset})}{
+#'     Plots histograms of group sizes for days in \code{upwind_subset} and \code{downwind_subset} with positive rainfall.
+#'     The group size for a given day and type (\code{upwind_subset}, \code{downwind_subset}) is defined as the number of gauges satisfying that type and having positive rainfall on that day.
+#'   }
+#'   \item{`qq_rain` (\code{data}, \code{rain_col_name}, \code{use_raw}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset})}{
+#'     Produces Normal Q-Q plots for rainfall values (raw or log-transformed) for all observations satisfying \code{upwind_subset & positive_subset}, as well as those observations satisfying \code{downwind_subset & positive_subset}.
+#'   }
+#'   \item{`ts_by_type` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw}, \code{upwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset})}{
+#'     Plots daily average rainfall (raw or log-transformed) by subset (\code{upwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}), facetted by year.
+#'     Averaging is performed only over observations with positive rainfall within each day.
+#'   }
+#'   \item{`ts_by_gauge` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw}, \code{gauge_id_column_name}, \code{ts_focus_gauge})}{
+#'     Plots daily rainfall (raw or log-transformed) time series for each gauge, optionally highlighting a subset of gauges, with faceting by year.
+#'     When plotting log-transformed rainfall using \code{\link[ggplot2:ggplot]{ggplot2}}, observations with zero rainfall are represented as a point at the bottommost of the plot.
+#'   }
+#'   \item{`ts_by_gauge_interactive` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw}, \code{gauge_id_column_name}, \code{ts_focus_gauge})}{
+#'     Interactive version of \code{ts_by_gauge} using \code{\link[plotly:plot_ly]{plotly}}. Points show gauge identifiers on hover.
+#'     When plotting log-transformed rainfall (\code{use_raw = FALSE}), zero rainfall values result in \code{-Inf}.
+#'     Unlike \code{\link[ggplot2:ggplot]{ggplot2}}, \code{\link[plotly:plot_ly]{plotly}} will omit these points, breaking the lines. Therefore, users should be aware that lines may appear broken for days with zero rainfall when plotting log-transformed rainfall.
+#'   }
+#'   \item{`map_static` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw},  \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{positive_subset})}{
+#'     Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf}, with faceting by year.
+#'     Averaging is performed only over days with positive rainfall for each gauge. Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied.
+#'   }
+#'   \item{`map_dynamic` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{focus_year}, \code{fps})}{
+#'     Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf}.
+#'     The animation frames are displayed in the order of \code{data[,day_column_name]}. Users should ensure that \code{data[,day_column_name]} contains values that can be meaningfully ordered (e.g., numeric or Date), rather than nominal/factor values, so the animation reflects the correct temporal progression.
+#'     Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map.
+#'   }
+#' }
+#'
+#' @return Depending on \code{eda_type}:
+#'   - Data summaries as lists (\code{"num_obs_days"}, \code{"num_obs_days_by_year"})
+#'   - \code{\link[ggplot2]{ggplot}} objects (\code{"hist_day_group_sizes"}, \code{"qq_rain"}, \code{"ts_by_type"},
+#'     \code{"ts_by_gauge"}, \code{"map_static"})
+#'   - Interactive \code{\link[plotly:plot_ly]{plotly}} object (\code{"ts_by_gauge_interactive"})
+#'   - Animated \code{\link[gganimate:gganimate-package]{gganim}} object (\code{"map_dynamic"})
+#'
 
-#TODO: Add the following types of EDA
 
-# Table summarizing number of observations/unique groups of Upwind/Downwind/Target/Control vs. Positive/Zero (DONE)
-# Maybe add separate tables for each year? (DONE)
+#TODO: Think if we want to add smoothed (static/dynamic) spatial map
 
-# Histogram of cluster sizes for Upwind+Positive / Downwind+Positive (DONE)
-# Maybe add separate plots for each year?
-# - maybe not since we are not really interested in each year's cluster size distribution
-# - Also, we only really want to look at the OVERALL cluster size distribution, to decide what bootstrap to be used, since we are fitting model to all years but not separately to each year
-# - Also, we could generate separate plots for each year by manually hacking eda(), by setting positive_subset = Rain.Gauge.Measurement > 0 & Year == XXX
-
-# QQplots of raw/log rainfall for Upwind+Positive / Downwind+Positive (DONE)
-# Maybe add separate plots for each year?
-# - Maybe not since we are fitting models to ALL years but not separately to each year
-# - Also, we could generate separate plots for each year by manually hacking eda(), by setting positive_subset = Rain.Gauge.Measurement > 0 & Year == XXX
-
-# 2-dimensional heatmap plot for raw/lograinfall (including those with zeros), with row = gauge, column = day
-# Maybe not since this is not really useful due to not having spatial information
-
-# Time series plot (separate for each year) with each line representing mean (with and without zeros) raw/log rainfall of Upwind/Target/Control (DONE)
-#Maybe just consider mean without zeros, since we are modelling only non-zeros as well as there are TOO MANY ZEROS
-
-# Time series plot (separate for each year) with each line representing the OBSERVED raw/log rainfall of each gauge, with optional filtering of gauges
-#Maybe need to add a restriction to only plot a small number of gauges
-
-# A static spatial plot of map (separate for each year) with dots colored based on the mean raw/log rainfall (averaged within each year, with and without zeros) of each gauge
-
-#A dynamic spatial plot of map (focused on each year) with dots colored based on the daily raw/log rainfall of each gauge
-#using gganimate and transition_time(day)
-
-#Think if we want to add smoothed (static/dynamic) spatial map
-
-#TODO: For documentation, remember to add a note that log(0) are plotted at the bottommost of the plot
-#TODO: Add another version of ts_by_gauge_interactive to enable ts_focus_gauge
-#TODO: Check if ts_by_gauge_interactive's plotly viewer is working correctly when we have A LARGE number of gauges
-#TODO: Add another version of map_dynamic when input_sf is NULL, and also another version when chosen_year=NULL
 eda = function(eda_type,
                data, rain_col_name, day_column_name, year_column_name, use_raw,
                gauge_id_column_name, ts_focus_gauge = NULL,
                longlat_column_names, long_lim, lat_lim, input_sf = NULL,
-               chosen_year,
+               focus_year = NULL, fps = 10,
                upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset){
 
   original_args = as.list(match.call())[-1]
 
-  #Binary indicator of length N, indicating whether or not each observation is an upwind observation
-  upwind_expr = rlang::enquo(upwind_subset)
-  upwind = rlang::eval_tidy(upwind_expr, data = data)
 
-  #Binary indicator of length N, indicating whether or not each observation is a downwind observation
-  downwind_expr = rlang::enquo(downwind_subset)
-  downwind = rlang::eval_tidy(downwind_expr, data = data)
+  allowed_eda_type = c("num_obs_days", "num_obs_days_by_year", "hist_day_group_sizes", "qq_rain", "ts_by_type", "ts_by_gauge", "ts_by_gauge_interactive", "map_static", "map_dynamic")
+  if(!eda_type %in% allowed_eda_type){
+    stop(paste("Invalid eda_type. Choose one of:", paste(allowed_eda_type, collapse = ", ")))
+  }
 
-  #Binary indicator of length N, indicating whether or not each observation has positive rainfall
-  #Could consider to replace this by positive = (!is.na(data[,all.vars(downwind_lmm_formula)[1]])), which allow us to drop rain_col_name, but we still need rain_col_name to compute the attribution estimate anyway
-  #positive = ( data[,rain_col_name] > 0)
-  positive_expr = rlang::enquo(positive_subset)
-  positive = rlang::eval_tidy(positive_expr, data = data)
+  if (eda_type == "num_obs_days") {
+    if (missing(data) || missing(day_column_name) ||
+        missing(upwind_subset) || missing(downwind_subset) ||
+        missing(downwind_target_subset) || missing(downwind_control_subset) ||
+        missing(positive_subset)) {
+      stop("When eda_type = 'num_obs_days', you must supply: data, day_column_name, upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset.")
+    }
+  }
 
-  #Binary indicator of length N_downwind_positive, indicating whether or not each downwind positive observation is target observation
-  downwind_target_expr = rlang::enquo(downwind_target_subset)
-  target = rlang::eval_tidy(downwind_target_expr, data = data)
+  if (eda_type == "num_obs_days_by_year") {
+    if (missing(data) || missing(day_column_name) || missing(year_column_name) ||
+        missing(upwind_subset) || missing(downwind_subset) ||
+        missing(downwind_target_subset) || missing(downwind_control_subset) ||
+        missing(positive_subset)) {
+      stop("When eda_type = 'num_obs_days_by_year', you must supply: data, day_column_name, year_column_name, upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset.")
+    }
+  }
 
-  #Binary indicator of length N_downwind_positive, indicating whether or not each downwind positive observation is control observation
-  downwind_control_expr = rlang::enquo(downwind_control_subset)
-  control = rlang::eval_tidy(downwind_control_expr, data = data)
+  if (eda_type == "hist_day_group_sizes") {
+    if (missing(data) || missing(day_column_name) ||
+        missing(upwind_subset) || missing(downwind_subset) || missing(positive_subset)) {
+      stop("When eda_type = 'hist_day_group_sizes', you must supply: data, day_column_name, upwind_subset, downwind_subset, positive_subset.")
+    }
+  }
+
+  if (eda_type == "qq_rain") {
+    if (missing(data) || missing(rain_col_name) || missing(use_raw) ||
+        missing(upwind_subset) || missing(downwind_subset) ||
+        missing(downwind_target_subset) || missing(downwind_control_subset) ||
+        missing(positive_subset)) {
+      stop("When eda_type = 'qq_rain', you must supply: data, rain_col_name, use_raw, upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset.")
+    }
+  }
+
+  if (eda_type == "ts_by_type") {
+    if (missing(data) || missing(rain_col_name) || missing(day_column_name) ||
+        missing(year_column_name) || missing(use_raw) ||
+        missing(upwind_subset) || missing(downwind_target_subset) || missing(downwind_control_subset) ||
+        missing(positive_subset)) {
+      stop("When eda_type = 'ts_by_type', you must supply: data, rain_col_name, day_column_name, year_column_name, use_raw, upwind_subset, downwind_target_subset, downwind_control_subset, positive_subset.")
+    }
+  }
+
+  if (eda_type == "ts_by_gauge") {
+    if (missing(data) || missing(rain_col_name) || missing(day_column_name) ||
+        missing(year_column_name) || missing(use_raw) || missing(gauge_id_column_name)) {
+      stop("When eda_type = 'ts_by_gauge', you must supply: data, rain_col_name, day_column_name, year_column_name, use_raw, gauge_id_column_name.")
+    }
+  }
+
+  if (eda_type == "ts_by_gauge_interactive") {
+    if (missing(data) || missing(rain_col_name) || missing(day_column_name) ||
+        missing(year_column_name) || missing(use_raw) || missing(gauge_id_column_name)) {
+      stop("When eda_type = 'ts_by_gauge_interactive', you must supply: data, rain_col_name, day_column_name, year_column_name, use_raw, gauge_id_column_name.")
+    }
+  }
+
+  if (eda_type == "map_static") {
+    if (missing(data) || missing(rain_col_name) || missing(day_column_name) ||
+        missing(year_column_name) || missing(use_raw) ||
+        missing(longlat_column_names) || missing(long_lim) || missing(lat_lim) ||
+        missing(positive_subset)) {
+      stop("When eda_type = 'map_static', you must supply: data, rain_col_name, day_column_name, year_column_name, use_raw, longlat_column_names, long_lim, lat_lim, positive_subset.")
+    }
+  }
+
+  if (eda_type == "map_dynamic") {
+    if (missing(data) || missing(rain_col_name) || missing(day_column_name) ||
+        missing(year_column_name) || missing(use_raw) ||
+        missing(longlat_column_names) || missing(long_lim) || missing(lat_lim)) {
+      stop("When eda_type = 'map_dynamic', you must supply: data, rain_col_name, day_column_name, year_column_name, use_raw, longlat_column_names, long_lim, lat_lim.")
+    }
+  }
+
 
   if(eda_type == 'num_obs_days'){
+    upwind_expr = rlang::enquo(upwind_subset)
+    upwind = rlang::eval_tidy(upwind_expr, data = data)
+
+    downwind_expr = rlang::enquo(downwind_subset)
+    downwind = rlang::eval_tidy(downwind_expr, data = data)
+
+
+    positive_expr = rlang::enquo(positive_subset)
+    positive = rlang::eval_tidy(positive_expr, data = data)
+
+    downwind_target_expr = rlang::enquo(downwind_target_subset)
+    target = rlang::eval_tidy(downwind_target_expr, data = data)
+
+    downwind_control_expr = rlang::enquo(downwind_control_subset)
+    control = rlang::eval_tidy(downwind_control_expr, data = data)
+
     output_obs = rbind(
       c(sum(upwind & positive), sum(upwind & !positive)),
       c(sum(downwind & positive), sum(downwind & !positive)),
@@ -91,6 +211,22 @@ eda = function(eda_type,
   }
 
   if(eda_type == 'num_obs_days_by_year'){
+    upwind_expr = rlang::enquo(upwind_subset)
+    upwind = rlang::eval_tidy(upwind_expr, data = data)
+
+    downwind_expr = rlang::enquo(downwind_subset)
+    downwind = rlang::eval_tidy(downwind_expr, data = data)
+
+
+    positive_expr = rlang::enquo(positive_subset)
+    positive = rlang::eval_tidy(positive_expr, data = data)
+
+    downwind_target_expr = rlang::enquo(downwind_target_subset)
+    target = rlang::eval_tidy(downwind_target_expr, data = data)
+
+    downwind_control_expr = rlang::enquo(downwind_control_subset)
+    control = rlang::eval_tidy(downwind_control_expr, data = data)
+
     final_output =
       lapply(
         unique(data[,year_column_name]), FUN = function(year_val){
@@ -128,13 +264,22 @@ eda = function(eda_type,
 
 
   if(eda_type == 'hist_day_group_sizes'){
+    upwind_expr = rlang::enquo(upwind_subset)
+    upwind = rlang::eval_tidy(upwind_expr, data = data)
+
+    downwind_expr = rlang::enquo(downwind_subset)
+    downwind = rlang::eval_tidy(downwind_expr, data = data)
+
+
+    positive_expr = rlang::enquo(positive_subset)
+    positive = rlang::eval_tidy(positive_expr, data = data)
+
+
     day_values = data[,day_column_name]
 
-    # Upwind & Positive group sizes
     upwind_days = day_values[upwind & positive]
     upwind_sizes = as.numeric(table(upwind_days))
 
-    # Downwind (Target + Control) & Positive group sizes
     downwind_days = day_values[downwind & positive]
     downwind_sizes = as.numeric(table(downwind_days))
 
@@ -150,12 +295,12 @@ eda = function(eda_type,
 
     # Create histograms
     p1 <- ggplot2::ggplot(data.frame(size = upwind_sizes), ggplot2::aes(x = size)) +
-      ggplot2::geom_histogram(binwidth = 1, fill = "#1f77b4", color = "black") +
+      ggplot2::geom_histogram(binwidth = 1, fill = 'grey', color='black') +
       ggplot2::labs(title = upwind_title, x = "Group Size", y = "Frequency") +
       ggplot2::theme_bw()
 
     p2 <- ggplot2::ggplot(data.frame(size = downwind_sizes), ggplot2::aes(x = size)) +
-      ggplot2::geom_histogram(binwidth = 1, fill = "#ff7f0e", color = "black") +
+      ggplot2::geom_histogram(binwidth = 1, fill = 'grey', color='black') +
       ggplot2::labs(title = downwind_title, x = "Group Size", y = "Frequency") +
       ggplot2::theme_bw()
 
@@ -168,6 +313,21 @@ eda = function(eda_type,
   }
 
   if(eda_type == 'qq_rain'){
+    upwind_expr = rlang::enquo(upwind_subset)
+    upwind = rlang::eval_tidy(upwind_expr, data = data)
+
+    downwind_expr = rlang::enquo(downwind_subset)
+    downwind = rlang::eval_tidy(downwind_expr, data = data)
+
+
+    positive_expr = rlang::enquo(positive_subset)
+    positive = rlang::eval_tidy(positive_expr, data = data)
+
+    downwind_target_expr = rlang::enquo(downwind_target_subset)
+    target = rlang::eval_tidy(downwind_target_expr, data = data)
+
+    downwind_control_expr = rlang::enquo(downwind_control_subset)
+    control = rlang::eval_tidy(downwind_control_expr, data = data)
 
     if(use_raw){
       rain_values = data[, rain_col_name]
@@ -232,6 +392,20 @@ eda = function(eda_type,
 
   if(eda_type == 'ts_by_type'){
 
+    upwind_expr = rlang::enquo(upwind_subset)
+    upwind = rlang::eval_tidy(upwind_expr, data = data)
+
+
+
+    positive_expr = rlang::enquo(positive_subset)
+    positive = rlang::eval_tidy(positive_expr, data = data)
+
+    downwind_target_expr = rlang::enquo(downwind_target_subset)
+    target = rlang::eval_tidy(downwind_target_expr, data = data)
+
+    downwind_control_expr = rlang::enquo(downwind_control_subset)
+    control = rlang::eval_tidy(downwind_control_expr, data = data)
+
     if(!use_raw){
       data[,rain_col_name] = log(data[,rain_col_name])
       rain_label = paste0("log(", rain_col_name, ")")
@@ -262,7 +436,6 @@ eda = function(eda_type,
 
     final_df_avg = rbind(upwind_df_avg, target_df_avg, control_df_avg)
     final_df_avg$type = factor(final_df_avg$type, levels = c('target','control','upwind'))
-    #browser()
 
     output_plot = ggplot2::ggplot(final_df_avg, ggplot2::aes(x = .data[[day_column_name]], y = .data[[rain_col_name]], group = type,
                                                              color = type)) +
@@ -287,6 +460,7 @@ eda = function(eda_type,
   }
 
   if(eda_type == 'ts_by_gauge'){
+
     if(!use_raw){
       data[,rain_col_name] = log(data[,rain_col_name])
       rain_label = paste0("log(", rain_col_name, ")")
@@ -314,7 +488,7 @@ eda = function(eda_type,
         ggplot2::labs(title = paste0('Time Series Plots of ', rain_label, ' of All Gauges'),
                       y = rain_label,
                       color = gauge_id_column_name) +
-        ggplot2::theme_bw()+
+        ggplot2::theme_bw() +
         ggplot2::theme(legend.position = "bottom")
     }else{
       output_plot = ggplot2::ggplot(data, ggplot2::aes(x = .data[[day_column_name]], y = .data[[rain_col_name]], group = .data[[gauge_id_column_name]])) +
@@ -344,28 +518,68 @@ eda = function(eda_type,
     }
 
 
-    data[,gauge_id_column_name] <- factor(data[,gauge_id_column_name])
 
-    output_plot = ggplot2::ggplot(data, ggplot2::aes(x = .data[[day_column_name]],
-                                                     y = .data[[rain_col_name]],
-                                                     group = .data[[gauge_id_column_name]],
-                                                     # color = .data[[gauge_id_column_name]],
-                                                     text = paste("Gauge:", .data[[gauge_id_column_name]]))) +
-      ggplot2::geom_line(alpha = 0.8, color = "grey80") +
-      ggplot2::geom_point(color = "grey80") +
-      ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = "free") +
-      ggplot2::labs(title = paste0('Time Series Plots of ', rain_label, ' of All Gauges (Hover over points to see Gauge ID)'),
-                    y = rain_label) +
-      ggplot2::theme_bw()
 
-    plotly_output = plotly::ggplotly(output_plot, tooltip = "text")
+    #browser()
+    if(!is.null(ts_focus_gauge)){
+      data[,gauge_id_column_name] <- factor(data[,gauge_id_column_name])
+      output_plot = ggplot2::ggplot(data, ggplot2::aes(x = .data[[day_column_name]],
+                                                       y = .data[[rain_col_name]],
+                                                       group = .data[[gauge_id_column_name]],
+                                                       text = paste("Gauge:", .data[[gauge_id_column_name]]))) +
+        ggplot2::geom_line(data = data[!data[,gauge_id_column_name] %in% ts_focus_gauge,] ,
+                           ggplot2::aes(color = "Other"), alpha = 0.8) +
+        ggplot2::geom_point(data = data[!data[,gauge_id_column_name] %in% ts_focus_gauge,] ,
+                            ggplot2::aes(color = "Other"), alpha = 0.8) +
+        ggplot2::geom_line(data = data[data[,gauge_id_column_name] %in% ts_focus_gauge,] ,
+                           ggplot2::aes(color = .data[[gauge_id_column_name]]), alpha = 0.8, linewidth = 1) +
+        ggplot2::geom_point(data = data[data[,gauge_id_column_name] %in% ts_focus_gauge,] ,
+                            ggplot2::aes(color = .data[[gauge_id_column_name]]), alpha = 0.8) +
+        ggplot2::scale_color_manual(
+          values = c("Other" = "grey80",
+                     setNames(viridis::viridis(length(ts_focus_gauge), option = "D"),
+                              ts_focus_gauge))
+        ) +
+        ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = "free") +
+        ggplot2::labs(title = paste0('Time Series Plots of ', rain_label, ' of All Gauges (Hover over points to see Gauge ID)'),
+                      y = rain_label,
+                      color = gauge_id_column_name) +
+        ggplot2::theme_bw() +
+        ggplot2::theme(legend.position = "bottom")
+    }else{
+      output_plot = ggplot2::ggplot(data, ggplot2::aes(x = .data[[day_column_name]],
+                                                       y = .data[[rain_col_name]],
+                                                       group = .data[[gauge_id_column_name]],
+                                                       text = paste("Gauge:", .data[[gauge_id_column_name]]))) +
+        ggplot2::geom_line(alpha = 0.8, color = "grey80") +
+        ggplot2::geom_point(color = "grey80") +
+        ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = "free") +
+        ggplot2::labs(title = paste0('Time Series Plots of ', rain_label, ' of All Gauges (Hover over points to see Gauge ID)'),
+                      y = rain_label) +
+        ggplot2::theme_bw()
+    }
+
+
+    plotly_output = plotly::layout(plotly::ggplotly(output_plot, tooltip = "text"),
+                                   legend = list(
+                                     orientation = "h",
+                                     x = 0.5,
+                                     xanchor = "center",
+                                     y = -0.2
+                                   ))
+
+
 
     print(plotly_output)
-    print('hi')
     return(plotly_output)
   }
 
   if(eda_type == "map_static"){
+
+    positive_expr = rlang::enquo(positive_subset)
+    positive = rlang::eval_tidy(positive_expr, data = data)
+
+
     if(!use_raw){
       data[,rain_col_name] = log(data[,rain_col_name])
       rain_label = paste0("log(", rain_col_name, ")")
@@ -379,7 +593,6 @@ eda = function(eda_type,
     ), data = positive_df, FUN = mean, na.rm = TRUE)
 
 
-    #the following need either 'maps' package or 'rnaturalearthhires' for creating input_sf
     if(!is.null(input_sf)){
       points_sf <- sf::st_as_sf(
         positive_df_avg,
@@ -392,7 +605,7 @@ eda = function(eda_type,
         ggplot2::geom_sf(data = points_sf, ggplot2::aes(color = .data[[rain_col_name]])) +
         ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
         ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]])) +
-        ggplot2::labs(title = paste0('Spatial Plots of ', rain_label, ' Averaged Across\n All Days Satisfying ',
+        ggplot2::labs(title = paste0('Spatial Plots of ', rain_label, ' Averaged Across\nAll Days Satisfying ',
                                      deparse(original_args$positive_subset)),
                       x = 'Longitude', y = 'Latitude', color = rain_label) +
         ggplot2::scale_color_viridis_c() +
@@ -407,7 +620,7 @@ eda = function(eda_type,
         ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
         ggplot2::geom_point() +
         ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = "free") +
-        ggplot2::labs(title = paste0('Spatial Plots of ', rain_label, ' Averaged Across\n All Days Satisfying ',
+        ggplot2::labs(title = paste0('Spatial Plots of ', rain_label, ' Averaged Across\nAll Days Satisfying ',
                                      deparse(original_args$positive_subset)),
                       x = 'Longitude', y = 'Latitude', color = rain_label) +
         ggplot2::scale_color_viridis_c() +
@@ -430,88 +643,90 @@ eda = function(eda_type,
       rain_label = rain_col_name
     }
 
-    positive_df = data[positive, c(longlat_column_names, day_column_name, year_column_name, rain_col_name)]
-
-    points_sf <- sf::st_as_sf(
-      positive_df,
-      coords = c(longlat_column_names[1], longlat_column_names[2]),
-      crs = 4326
-    )
+    data_df = data[, c(longlat_column_names, day_column_name, year_column_name, rain_col_name)]
 
 
-    points_sf_year <- points_sf[points_sf[[year_column_name]] == chosen_year, ]
 
-    output_plot = ggplot2::ggplot() +
-      ggplot2::geom_sf(data = input_sf, fill = "white", color = "black", linewidth = 0.3) +
-      ggplot2::geom_sf(
-        data = points_sf_year,
-        ggplot2::aes(color = .data[[rain_col_name]]),
-        size = 2
-      ) +
-      ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
-      ggplot2::labs(
-        title = paste0(
-          "Spatial Plots of ", rain_label, " for Year ", chosen_year,
-          "\nDay: {closest_state}"
-        ),
-        x = "Longitude",
-        y = "Latitude",
-        color = rain_label
-      ) +
-      ggplot2::scale_color_viridis_c(name = rain_label) +
-      ggplot2::theme_bw() +
-      ggplot2::theme(legend.position = "bottom") +
-      gganimate::transition_states(
-        states = .data[[day_column_name]],
-        state_length = 1,
-        transition_length = 1
-      ) +
-      gganimate::ease_aes("linear")
+    if(!is.null(input_sf)){
+      points_sf <- sf::st_as_sf(
+        data_df,
+        coords = c(longlat_column_names[1], longlat_column_names[2]),
+        crs = 4326
+      )
 
-    gganimate::animate(output_plot)
-    return(gganimate::animate(output_plot))
+
+      if(!is.null(focus_year)){
+        points_sf_year <- points_sf[ points_sf[[year_column_name]] %in% focus_year, ]
+      }else{
+        points_sf_year <- points_sf
+      }
+
+
+      output_plot = ggplot2::ggplot() +
+        ggplot2::geom_sf(data = input_sf, fill = "white", color = "black", linewidth = 0.3) +
+        ggplot2::geom_sf(
+          data = points_sf_year,
+          ggplot2::aes(color = .data[[rain_col_name]]),
+          size = 2
+        ) +
+        ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
+        ggplot2::labs(
+          title = paste0(
+            rain_label, " for ", day_column_name, " : {closest_state}"
+          ),
+          x = "Longitude",
+          y = "Latitude",
+          color = rain_label
+        ) +
+        ggplot2::scale_color_viridis_c(name = rain_label) +
+        ggplot2::theme_bw() +
+        ggplot2::theme(legend.position = "bottom") +
+        gganimate::transition_states(
+          states = .data[[day_column_name]],
+          state_length = 1,
+          transition_length = 1
+        ) +
+        gganimate::ease_aes("linear")
+      output_animate = gganimate::animate(output_plot, nframes = length(unique(points_sf_year[[day_column_name]])), fps = fps, end_pause = 20)
+    }else{
+      if(!is.null(focus_year)){
+        data_df_year <- data_df[ data_df[[year_column_name]] %in% focus_year, ]
+      }else{
+        data_df_year <- data_df
+      }
+
+
+
+      output_plot = ggplot2::ggplot(data_df_year, ggplot2::aes(x = .data[[longlat_column_names[1]]],
+                                                          y = .data[[longlat_column_names[2]]],
+                                                          color = .data[[rain_col_name]])) +
+        ggplot2::borders()+
+        ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
+        ggplot2::geom_point() +
+        ggplot2::labs(
+          title = paste0(rain_label, " for ", day_column_name, " : {closest_state}"),
+          x = "Longitude",
+          y = "Latitude",
+          color = rain_label) +
+        ggplot2::scale_color_viridis_c(name = rain_label) +
+        ggplot2::theme_bw() +
+        ggplot2::theme(legend.position = 'bottom')+
+        gganimate::transition_states(
+          states = .data[[day_column_name]],
+          state_length = 1,
+          transition_length = 1
+        ) +
+        gganimate::ease_aes("linear")
+      output_animate = gganimate::animate(output_plot, nframes = length(unique(data_df_year[[day_column_name]])), fps = fps, end_pause = 20)
+    }
+
+
+    print(output_animate)
+    return(output_plot)
   }
 
 }
 
-qwe =eda(eda_type = 'map_dynamic',
-         # 'num_obs_days'
-         # 'num_obs_days_by_year'
-         # 'hist_day_group_sizes'
-         # 'qq_rain'
-    # data = oman,
-    data = oman,
 
 
-    #Specify the column in input data that contains the raw rainfall
-    rain_col_name = 'Rain.Gauge.Measurement',
-    day_column_name = 'TrialDay',
-    year_column_name = 'Year',
 
-    use_raw = F,
-
-    gauge_id_column_name = 'Gauge.ID', ts_focus_gauge = c(1,3,212,213),
-    longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
-    long_lim = c(55,60),
-    lat_lim = c(20,25),
-    input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
-
-    chosen_year = 2015,
-
-    #Logical expression identifying subset of observations to which upwind_lmm_formula is fitted
-    upwind_subset = Gauge.Day.Type == 'Upwind',
-
-    #Logical expression identifying subset of observations to which downwind_lmm_formula is fitted
-    downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
-
-    #Logical expression identifying subset of observations of those that are 'Target'
-    downwind_target_subset = Gauge.Day.Type == 'Target',
-
-    #Logical expression identifying subset of observations of those that are 'Control'
-    downwind_control_subset = Gauge.Day.Type == 'Control',
-
-    #Logical expression identifying subset of observations with rainfall event
-    positive_subset = Rain.Gauge.Measurement > 0
-)
-# qwe
-#do.call(sum,lapply(qwe, function(x){x$num_obs}))

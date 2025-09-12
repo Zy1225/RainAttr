@@ -269,3 +269,26 @@ testing_perm$permutation_result
 #Plots of permutation distribution for attribution and SATE
 ggpubr::ggarrange(plotlist = testing_perm$permutation_plot_result$hatattr)
 ggpubr::ggarrange(plotlist = testing_perm$permutation_plot_result$hatsate)
+
+
+#### EDA ####
+qwe =eda(eda_type = "hist_day_group_sizes",
+         data = oman,
+         rain_col_name = 'Rain.Gauge.Measurement',
+         day_column_name = 'TrialDay',
+         year_column_name = 'Year',
+         use_raw = F,
+         gauge_id_column_name = 'Gauge.ID',
+         ts_focus_gauge = c(1,2),
+         longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
+         long_lim = c(55,60),
+         lat_lim = c(20,25),
+         input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
+         focus_year = c(2013),
+         # fps = 10,
+         upwind_subset = Gauge.Day.Type == 'Upwind',
+         downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+         downwind_target_subset = Gauge.Day.Type == 'Target',
+         downwind_control_subset = Gauge.Day.Type == 'Control',
+         positive_subset = Rain.Gauge.Measurement > 0
+)
