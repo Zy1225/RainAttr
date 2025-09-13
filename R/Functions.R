@@ -212,7 +212,7 @@
 
 #TODO: Write vignettes to show how to use the package to replicate Ray's analysis, and to perform our recommended analysis using the recommended options
 
-
+#TODO: Add documentation for each .rda file in data/
 
 rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
