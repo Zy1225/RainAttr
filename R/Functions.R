@@ -247,7 +247,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   }
 
   if(!attr_type %in% c('Chambers_Chandra','ThoEtAl', 'No')){
-    stop("attr_type should be one of 'Chambers_Chandra','ThoEtAl', or 'No''")
+    stop("attr_type should be one of 'Chambers_Chandra','ThoEtAl', or 'No'")
   }
 
   if(bootstrap){
