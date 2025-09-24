@@ -331,23 +331,40 @@ test_eda =eda(eda_type = "map_dynamic",
               positive_subset = Rain.Gauge.Measurement > 0
 )
 
-eda(eda_type = "num_obs_days_by_year",
-    data = oman,
-    rain_col_name = 'Rain.Gauge.Measurement',
-    day_column_name = 'TrialDay',
-    year_column_name = 'Year',
-    use_raw = F,
-    gauge_id_column_name = 'Gauge.ID',
-    ts_focus_gauge = c(1,2),
-    longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
-    long_lim = c(55,60),
-    lat_lim = c(20,25),
-    input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
-    focus_year = c(2013),
-    fps = 10,
-    upwind_subset = Gauge.Day.Type == 'Upwind',
-    downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
-    downwind_target_subset = Gauge.Day.Type == 'Target',
-    downwind_control_subset = Gauge.Day.Type == 'Control',
-    positive_subset = Rain.Gauge.Measurement > 0
+
+animation_out = eda(eda_type = "map_dynamic",
+                    data = oman,
+                    rain_col_name = 'Rain.Gauge.Measurement',
+                    day_column_name = 'TrialDay',
+                    year_column_name = 'Year',
+                    use_raw = F,
+                    gauge_id_column_name = 'Gauge.ID',
+                    ts_focus_gauge = c(1,2),
+                    longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
+                    long_lim = c(55,60),
+                    lat_lim = c(22,25),
+                    input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
+                    #focus_year = c(2013),
+                    fps = 30,
+                    upwind_subset = Gauge.Day.Type == 'Upwind',
+                    downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+                    downwind_target_subset = Gauge.Day.Type == 'Target',
+                    downwind_control_subset = Gauge.Day.Type == 'Control',
+                    positive_subset = Rain.Gauge.Measurement > 0
 )
+
+gganimate::animate(
+  animation_out,
+  nframes = 740,            # total frames
+  fps = 30,
+  width = 800,
+  height = 600,
+  res = 100,
+  renderer = gganimate::file_renderer(
+    dir = "frames",
+    prefix = "frame",
+    overwrite = TRUE
+  )
+)
+
+
