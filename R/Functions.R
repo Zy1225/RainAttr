@@ -84,6 +84,27 @@
 #'
 #'   }
 #'
+#'#' \item{\code{Chambers_Chandra_No_Winsorize}}{Attribution is estimated based on the approach of Chambers et al. (2022), to adjust for back-transformation bias due to the modelling of log-transformed rainfall:
+#'     \deqn{
+#'     \code{apo} = \sum_{(i,j)} Rain_{ij} \{ 1 - \lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}) \} /  \sum_{(i,j)}Rain_{ij}, \quad
+#'     \code{apl} = \sum_{(i,j)} Rain_{ij} \{ 1 - \lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}) \} /  \sum_{(i,j)}Rain_{ij} \lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}),
+#'     }
+#'     where the summation is either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}), \eqn{Rain_{ij}} is the observed raw rainfall (contained in the column specified by \code{rain_col_name}),
+#'     \deqn{
+#'     \lambda = 1 + \frac{\sqrt{ (1+m)^2 + 4(\mu - 1)m  } - (1+m)}{2m}, m = \frac{\hat{V}( x_{ij}^\top \hat{\alpha}  + \hat{u}_i ) }{\hat{V}(z_{ij}^\top \hat{\beta})},
+#'     }
+#'     with \eqn{\hat{V}(\cdot)} denoting the empirical variance either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}), and
+#'     \deqn{
+#'     \mu = \frac{1}{N} \sum_{(i,j)} \frac{Rain_{ij}}{\exp( x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i )},
+#'     }
+#'     and \eqn{N} is either the total number of observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or the total number of observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}).
+#'     When an offset term is included on the LHS of \code{downwind_lmm_formula}, the expressions of \eqn{m} and \eqn{\mu} become
+#'     \deqn{
+#'     m = \frac{\hat{V}( offset_{ij} + x_{ij}^\top \hat{\alpha}  + \hat{u}_i ) }{\hat{V}(z_{ij}^\top \hat{\beta})}, \mu = \frac{1}{N} \sum_{(i,j)} \frac{Rain_{ij}}{\exp( offset_{ij} + x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i )}.
+#'     }
+#'
+#'   }
+#'
 #' \item{\code{ThoEtAl}}{Attribution is estimated based on an alternative adjustment using the estimated covariance matrix \eqn{\hat{\Sigma}} of \eqn{\hat{\beta}}.
 #'     \deqn{
 #'     \code{apo} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} - 0.5 z_{ij}^\top \hat{\Sigma} z_{ij} ) \}/ \sum_{(i,j)}Rain_{ij}, \quad
@@ -157,7 +178,7 @@
 #' @param downwind_target_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Target"}.
 #' @param downwind_control_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Control"}.
 #' @param positive_subset A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall - these are the observations that are used in the fitting of upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, and the downwind (second stage) propensity score model.
-#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"ThoEtAl"}, or \code{"No"}. See "Details" for more information.
+#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"Chambers_Chandra_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See "Details" for more information.
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #' @param bootstrap An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.
@@ -246,8 +267,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     stop("At least one variable in x_downwind_name cannot be found on RHS of downwind_lmm_formula")
   }
 
-  if(!attr_type %in% c('Chambers_Chandra','ThoEtAl', 'No')){
-    stop("attr_type should be one of 'Chambers_Chandra','ThoEtAl', or 'No'")
+  if(!attr_type %in% c('Chambers_Chandra', 'Chambers_Chandra_No_Winsorize','ThoEtAl', 'No')){
+    stop("attr_type should be one of 'Chambers_Chandra', 'Chambers_Chandra_No_Winsorize,'ThoEtAl', or 'No'")
   }
 
   if(bootstrap){
@@ -341,7 +362,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   fitted_models = fit_upwind_downwind_models(data, upwind_lmm_formula, instr_pred_name, instr_pred_type, downwind_lmm_formula, downwind_logistic_formula, upwind, downwind, positive)
 
   downwind_positive_data = fitted_models$data[downwind & positive, ]
-  #Compute Point Estimates for Attribution - using Chambers_Chandra or ThoEtAl Estimates
+  #Compute Point Estimates for Attribution - using Chambers_Chandra or Chambers_Chandra_No_Winsorize or ThoEtAl Estimates
   hatattr = attr_est(attr_type, downwind_positive_data, rain_col_name, downwind_positive_target, downwind_positive_control,
                      x_downwind_name, target_only = target_only, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
@@ -1308,6 +1329,57 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
     hatA = y_vec - hatR
   }
 
+  if(attr_type == 'Chambers_Chandra_No_Winsorize'){
+    if(is.null(hatu)){
+      hatu = predict(downwind_lmm_fit, newdata = downwind_positive_data, random.only = TRUE)
+    }
+
+    #compute log_hatw = (1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t, for PDR (i,t) or PDR Target (i,t)
+    #Depends on if there is offset term on LHS of formula(downwind_lmm_fit)
+    if(length(formula.tools::lhs.vars(formula(downwind_lmm_fit))) == 1){
+      log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row])
+    }
+
+    if(length(formula.tools::lhs.vars(formula(downwind_lmm_fit))) > 1){
+      all_offset_terms = formula.tools::lhs.vars(formula(downwind_lmm_fit))[2:length(formula.tools::lhs.vars(formula(downwind_lmm_fit)))]
+      if(length(all_offset_terms) > 1){
+        log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + apply(downwind_positive_data[,all_offset_terms],1,sum)
+      }
+
+      if(length(all_offset_terms) == 1){
+        log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + as.vector(downwind_positive_data[,all_offset_terms])
+      }
+    }
+
+    # log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row])
+
+    #compute log_hatd = z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
+    log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
+
+    #compute log_haty_naive = (1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t + z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
+    log_haty_naive = log_hatw + log_hatd
+
+    #compute mu = (1/n) * sum of  (y_{i't'} / haty_{i't'}^naive ), where the sum is across PDR (i,t) or PDR Target (i,t), and n is the number of PDR (i,t) or PDR Target (i,t)  observation.
+    mu = mean( y_vec / exp(log_haty_naive) )
+
+    #compute m = Var{(1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t} / Var{z_it %*% hatbeta}, where the Var is across PDR (i,t) or PDR Target (i,t).
+    m = (var(log_hatw))/var(log_hatd)
+
+    #compute lambda based on the formula in Ray's ISR paper
+    lambda = 1 + (
+      (sqrt( (1 + m)^2 + 4 * (mu - 1) * m  ) - (1 + m)) / (2 * m)
+    )
+
+    #compute hatE_it + 1 = min{2, lambda * exp(z_it %*% hatbeta)}, for PDR (i,t) or PDR Target (i,t)
+    hatE_plus_one = lambda*exp(log_hatd)
+
+    #hatR_it = y_it / (hatE_it + 1), for PDR (i,t) or PDR Target (i,t)
+    hatR =  y_vec / hatE_plus_one
+
+    #compute hatA_it = y_it - hatR_it, for PDR (i,t) or PDR Target (i,t)
+    hatA = y_vec - hatR
+  }
+
   if(attr_type == 'ThoEtAl'){
     #compute log_hatd = z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
     log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
@@ -1701,7 +1773,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
+#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"Chambers_Chandra_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -2506,7 +2578,7 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
+#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"Chambers_Chandra_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
