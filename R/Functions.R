@@ -22,7 +22,7 @@
 #
 # x_downwind_name = c('Gauge.Elevation','natural_pred')
 # target_only = FALSE
-# attr_type = 'Chambers_Chandra'
+# attr_type = 'ChambersEtAl'
 #
 # bootstrap_zero = TRUE
 
@@ -63,7 +63,7 @@
 #' Two attribution estimates, namely \code{apo} and \code{apl} are computed based on the estimated fixed effect coefficients \eqn{\hat{\alpha}}, \eqn{\hat{\beta}} and EBLUPs \eqn{\hat{u}_i} from the fitted downwind (second stage) LMM. \code{apo} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total amount of observed downwind rainfall., while \code{apl} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total expected amount of downwind rainfall without the effect of ionizer (treatment).
 #' This function allows for three different ways of estimating \code{apo} and \code{apl} as specified by the argument \code{attr_type}:
 #' \describe{
-#' \item{\code{Chambers_Chandra}}{Attribution is estimated based on the approach of Chambers et al. (2022), to adjust for back-transformation bias due to the modelling of log-transformed rainfall:
+#' \item{\code{ChambersEtAl}}{Attribution is estimated based on the approach of Chambers et al. (2022), to adjust for back-transformation bias due to the modelling of log-transformed rainfall:
 #'     \deqn{
 #'     \code{apo} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij}, \quad
 #'     \code{apl} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij} \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\},
@@ -84,7 +84,7 @@
 #'
 #'   }
 #'
-#'#' \item{\code{Chambers_Chandra_No_Winsorize}}{Attribution is estimated based on the approach of Chambers et al. (2022), to adjust for back-transformation bias due to the modelling of log-transformed rainfall:
+#'#' \item{\code{ChambersEtAl_No_Winsorize}}{Attribution is estimated based on the approach of Chambers et al. (2022), to adjust for back-transformation bias due to the modelling of log-transformed rainfall:
 #'     \deqn{
 #'     \code{apo} = \sum_{(i,j)} Rain_{ij} \{ 1 - \lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}) \} /  \sum_{(i,j)}Rain_{ij}, \quad
 #'     \code{apl} = \sum_{(i,j)} Rain_{ij} \{ 1 - \lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}) \} /  \sum_{(i,j)}Rain_{ij} \lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}),
@@ -178,7 +178,7 @@
 #' @param downwind_target_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Target"}.
 #' @param downwind_control_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Control"}.
 #' @param positive_subset A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall - these are the observations that are used in the fitting of upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, and the downwind (second stage) propensity score model.
-#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"Chambers_Chandra_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See "Details" for more information.
+#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See "Details" for more information.
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #' @param bootstrap An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.
@@ -267,8 +267,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     stop("At least one variable in x_downwind_name cannot be found on RHS of downwind_lmm_formula")
   }
 
-  if(!attr_type %in% c('Chambers_Chandra', 'Chambers_Chandra_No_Winsorize','ThoEtAl', 'No')){
-    stop("attr_type should be one of 'Chambers_Chandra', 'Chambers_Chandra_No_Winsorize,'ThoEtAl', or 'No'")
+  if(!attr_type %in% c('ChambersEtAl', 'ChambersEtAl_No_Winsorize','ThoEtAl', 'No')){
+    stop("attr_type should be one of 'ChambersEtAl', 'ChambersEtAl_No_Winsorize,'ThoEtAl', or 'No'")
   }
 
   if(bootstrap){
@@ -362,7 +362,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   fitted_models = fit_upwind_downwind_models(data, upwind_lmm_formula, instr_pred_name, instr_pred_type, downwind_lmm_formula, downwind_logistic_formula, upwind, downwind, positive)
 
   downwind_positive_data = fitted_models$data[downwind & positive, ]
-  #Compute Point Estimates for Attribution - using Chambers_Chandra or Chambers_Chandra_No_Winsorize or ThoEtAl Estimates
+  #Compute Point Estimates for Attribution - using ChambersEtAl or ChambersEtAl_No_Winsorize or ThoEtAl Estimates
   hatattr = attr_est(attr_type, downwind_positive_data, rain_col_name, downwind_positive_target, downwind_positive_control,
                      x_downwind_name, target_only = target_only, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
@@ -1278,7 +1278,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
 
 
 
-  if(attr_type == 'Chambers_Chandra'){
+  if(attr_type == 'ChambersEtAl'){
     if(is.null(hatu)){
       hatu = predict(downwind_lmm_fit, newdata = downwind_positive_data, random.only = TRUE)
     }
@@ -1329,7 +1329,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
     hatA = y_vec - hatR
   }
 
-  if(attr_type == 'Chambers_Chandra_No_Winsorize'){
+  if(attr_type == 'ChambersEtAl_No_Winsorize'){
     if(is.null(hatu)){
       hatu = predict(downwind_lmm_fit, newdata = downwind_positive_data, random.only = TRUE)
     }
@@ -1773,7 +1773,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"Chambers_Chandra_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
+#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -2578,7 +2578,7 @@ bootstrap_plot = function(bootstrap_result, ori_est){
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"Chambers_Chandra"}, \code{"Chambers_Chandra_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
+#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -3034,7 +3034,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 
 
 
-#For checking: apo should be 0.111206, apl should be 0.1251201 for attr_type = 'Chambers_Chandra'
+#For checking: apo should be 0.111206, apl should be 0.1251201 for attr_type = 'ChambersEtAl'
 # apo  = 0.06265952, apl =  0.0668482 for attr_type = 'ThoEtAl'
 # # > asd$hatsate$sate.mb; asd$hatsate$sate.ipw; asd$hatsate$sate.ipw.l
 # [1] 0.1143799
@@ -3458,7 +3458,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #Note we need to use sample.kind = 'Rounding' due to previous analysis loaded RData8.Rdata, which caused sample.kind = 'Rounding' from older R version instead of sample.kind = 'Rejection' in the latest R version
 # RNGkind(kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rounding")
 # set.seed(123)
-# my_perm_result_TT_Chambers_Chandra = rain_attr(data = oman,
+# my_perm_result_TT_ChambersEtAl = rain_attr(data = oman,
 #                                            upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
 #                                            instr_pred_name = 'natural_pred',
 #                                            instr_pred_type = 'Unconditional',
@@ -3470,7 +3470,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                            downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                                            downwind_target_subset = Gauge.Day.Type == 'Target',
 #                                            downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
-#                                            attr_type = 'Chambers_Chandra',
+#                                            attr_type = 'ChambersEtAl',
 #                                            x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                                            target_only = FALSE,
 #                                            bootstrap =F,
@@ -3499,7 +3499,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 # )
 #
 # load('D:/Postdoc/Simulation/Replicate ISR Results/Rdata/permutation_result_Oman_Trial_Data_perm_row_between_gauge_day_F.Rdata')
-# max(abs(perm_result_TT$perm_attribution_Chambers_Chandra_matrix[1:6,c('apo','apl')] - my_perm_result_TT_Chambers_Chandra$permutation_result$hatattr))
+# max(abs(perm_result_TT$perm_attribution_ChambersEtAl_matrix[1:6,c('apo','apl')] - my_perm_result_TT_ChambersEtAl$permutation_result$hatattr))
 #
 #
 # RNGkind(kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rounding")
@@ -3549,7 +3549,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 # #Replicate previosu analysis with permute_between_gaugeday = T
 # RNGkind(kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rounding")
 # set.seed(123)
-# my_perm_result_TT_Chambers_Chandra = rain_attr(data = oman,
+# my_perm_result_TT_ChambersEtAl = rain_attr(data = oman,
 #                                            upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
 #                                            instr_pred_name = 'natural_pred',
 #                                            instr_pred_type = 'Unconditional',
@@ -3561,7 +3561,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                            downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
 #                                            downwind_target_subset = Gauge.Day.Type == 'Target',
 #                                            downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
-#                                            attr_type = 'Chambers_Chandra',
+#                                            attr_type = 'ChambersEtAl',
 #                                            x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                                            target_only = FALSE,
 #                                            bootstrap =F,
@@ -3590,7 +3590,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 # )
 #
 # load('D:/Postdoc/Simulation/Replicate ISR Results/Rdata/permutation_result_Oman_Trial_Data_perm_row_between_gauge_day_T.Rdata')
-# max(abs(perm_result_TT$perm_attribution_Chambers_Chandra_matrix[1:6,c('apo','apl')] - my_perm_result_TT_Chambers_Chandra$permutation_result$hatattr))
+# max(abs(perm_result_TT$perm_attribution_ChambersEtAl_matrix[1:6,c('apo','apl')] - my_perm_result_TT_ChambersEtAl$permutation_result$hatattr))
 #
 # RNGkind(kind = "Mersenne-Twister", normal.kind = "Inversion", sample.kind = "Rounding")
 # set.seed(123)
