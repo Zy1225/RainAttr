@@ -1750,7 +1750,7 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
 #' @param total_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting the total of bootstrapped rainfall values when \code{winsorize_total_rain = TRUE}.
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
-#' @param bootstrap_seed n integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation.
+#' @param bootstrap_seed An integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation.
 #' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
 #' @param bootstrap_parallel Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
 #' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
@@ -1931,7 +1931,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
   #browser()
   if(!bootstrap_parallel){
-    set.seed(bootstrap_seed)
+    if(!is.null(bootstrap_seed)){
+      set.seed(bootstrap_seed)
+    }
     for(b in 1:B_bootstrap){
       tryCatch({
 
@@ -2107,7 +2109,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     # }
     parallel::clusterExport(cl, varlist = c('attr_est', 'sate_est'))
     doParallel::registerDoParallel(cl)
-    doRNG::registerDoRNG(seed = bootstrap_seed)
+    if(!is.null(bootstrap_seed)){
+      doRNG::registerDoRNG(seed = bootstrap_seed)
+    }
     `%dopar%` = foreach::`%dopar%`
 
     results = foreach::foreach(b = 1:B_bootstrap, .packages = c("lme4","rlang","formula.tools"), .errorhandling = 'remove') %dopar% {
@@ -2402,7 +2406,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #' @param winsorize_total_rain Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are proportionally rescaled so that the total equals a random number drawn uniformly from
 #'   \code{[total_rain_interval[1], total_rain_interval[2]]} whenever the total bootstrapped rainfall falls outside this interval. Default is \code{TRUE}.
 #' @param total_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting the total of bootstrapped rainfall values when \code{winsorize_total_rain = TRUE}. Default is \code{c(6000,60000)}.
-#' @param bootstrap_seed An integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation. Default is 123.
+#' @param bootstrap_seed An integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation. Default is \code{NULL}, meaning no seed is set internally and users should call \code{set.seed()} beforehand to ensure reproducibility.
 #' @param bootstrap_parallel Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.
 #' @param bootstrap_parallel_num_worker An integer specifying the number of parallel workers to use when \code{bootstrap_parallel = TRUE}. Default is \code{parallel::detectCores() - 1}.
 #' @param CI_level A numeric value between 0 and 1 specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.
@@ -2437,7 +2441,7 @@ bootstrap_option = function(B_bootstrap = 10000,
                             individual_rain_interval = c(100,175),
                             winsorize_total_rain = T,
                             total_rain_interval = c(6000,60000),
-                            bootstrap_seed = 123,
+                            bootstrap_seed = NULL,
                             bootstrap_parallel = F,
                             bootstrap_parallel_num_worker = parallel::detectCores() - 1,
                             CI_level = 0.95){
@@ -2680,7 +2684,9 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
   # names(ionizer_operation_yearlist) = names(year_ionizer_list)
 
   if(!permutation_parallel){
-    set.seed(permutation_seed)
+    if(!is.null(permutation_seed)){
+      set.seed(permutation_seed)
+    }
 
     downwind = apply(gaugeday_downwind,1,sum) > 0
     positive = ( data[,rain_col_name] > 0)
@@ -2787,7 +2793,9 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
     permutation_cl = parallel::makeCluster(permutation_parallel_num_worker)
     parallel::clusterExport(permutation_cl, varlist = c('attr_est', 'sate_est'))
     doParallel::registerDoParallel(permutation_cl)
-    doRNG::registerDoRNG(seed = permutation_seed)
+    if(!is.null(permutation_seed)){
+      doRNG::registerDoRNG(seed = permutation_seed)
+    }
     `%dopar%` <- foreach::`%dopar%`
 
 
@@ -2922,7 +2930,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 #'   \code{c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10")}.
 #' @param ionizer_operation_year_column_name A character string specifying the column name of \code{ionizer_operation_input} containing the year of each day. Default is \code{'Year'}.
 #' @param ionizer_operation_day_column_name A character string specifying the column name of \code{ionizer_operation_input} containing the day of each observation. The same column name should also be found in the original dataset supplied to \code{\link{rain_attr}}. Default is \code{'TrialDay'}.
-#' @param permutation_seed An integer specifying the random seed for the permutation-based procedure. Reproducibility is guaranteed only if \code{permutation_parallel} is the same, since parallel execution changes the order of random number generation. Default is 123.
+#' @param permutation_seed An integer specifying the random seed for the permutation-based procedure. Reproducibility is guaranteed only if \code{permutation_parallel} is the same, since parallel execution changes the order of random number generation. Default is \code{NULL}, meaning no seed is set internally and users should call \code{set.seed()} beforehand to ensure reproducibility.
 #' @param permutation_parallel Logical. If \code{TRUE}, each permutation run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.
 #' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \code{permutation_parallel = TRUE}. Default is \code{parallel::detectCores() - 1}.
 #'
@@ -2972,7 +2980,7 @@ permutation_option = function(B_permutation = 10000,
                               data_target_column_names = c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10"),
                               ionizer_operation_year_column_name = 'Year',
                               ionizer_operation_day_column_name = 'TrialDay',
-                              permutation_seed = 123,
+                              permutation_seed = NULL,
                               permutation_parallel = F,
                               permutation_parallel_num_worker = parallel::detectCores() - 1){
   return(list(
