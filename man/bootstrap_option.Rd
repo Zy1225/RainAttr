@@ -14,7 +14,7 @@ bootstrap_option(
   individual_rain_interval = c(100, 175),
   winsorize_total_rain = T,
   total_rain_interval = c(6000, 60000),
-  bootstrap_seed = 123,
+  bootstrap_seed = NULL,
   bootstrap_parallel = F,
   bootstrap_parallel_num_worker = parallel::detectCores() - 1,
   CI_level = 0.95
@@ -43,7 +43,7 @@ Default is "PREB1".}
 
 \item{total_rain_interval}{Numeric vector of length 2 specifying the lower and upper bounds for adjusting the total of bootstrapped rainfall values when \code{winsorize_total_rain = TRUE}. Default is \code{c(6000,60000)}.}
 
-\item{bootstrap_seed}{An integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation. Default is 123.}
+\item{bootstrap_seed}{An integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation. Default is \code{NULL}, meaning no seed is set internally and users should call \code{set.seed()} beforehand to ensure reproducibility.}
 
 \item{bootstrap_parallel}{Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.}
 

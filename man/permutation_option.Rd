@@ -21,7 +21,7 @@ permutation_option(
     "Target.H.09", "Target.H.10"),
   ionizer_operation_year_column_name = "Year",
   ionizer_operation_day_column_name = "TrialDay",
-  permutation_seed = 123,
+  permutation_seed = NULL,
   permutation_parallel = F,
   permutation_parallel_num_worker = parallel::detectCores() - 1
 )
@@ -54,7 +54,7 @@ The order of names in this vector must match the column order of the correspondi
 
 \item{ionizer_operation_day_column_name}{A character string specifying the column name of \code{ionizer_operation_input} containing the day of each observation. The same column name should also be found in the original dataset supplied to \code{\link{rain_attr}}. Default is \code{'TrialDay'}.}
 
-\item{permutation_seed}{An integer specifying the random seed for the permutation-based procedure. Reproducibility is guaranteed only if \code{permutation_parallel} is the same, since parallel execution changes the order of random number generation. Default is 123.}
+\item{permutation_seed}{An integer specifying the random seed for the permutation-based procedure. Reproducibility is guaranteed only if \code{permutation_parallel} is the same, since parallel execution changes the order of random number generation. Default is \code{NULL}, meaning no seed is set internally and users should call \code{set.seed()} beforehand to ensure reproducibility.}
 
 \item{permutation_parallel}{Logical. If \code{TRUE}, each permutation run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.}
 
