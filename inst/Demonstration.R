@@ -50,7 +50,7 @@ replicate_result = rain_attr(
   positive_subset = Rain.Gauge.Measurement > 0,
 
   #Types of correction (for back-transformation bias) used for computing the attribution estimate: 'Chambers_Chandra', 'ThoEtAl', or 'No'
-  attr_type = 'Chambers_Chandra',
+  attr_type = 'ChambersEtAl',
 
   #Vector of variable names in downwind_lmm_formula to identify non-ionizer related covariates, whose effects are not included in the calculation of attribution and SATE
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
