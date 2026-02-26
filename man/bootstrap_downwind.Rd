@@ -207,9 +207,9 @@ Therefore, it is recommended to use either \code{bootstrap_type = "PREB1"} or \c
 After obtaining the bootstrapped \eqn{y_{ij}^*} that are assumed to be log-rainfall, it is possible to perform some adjustment to the bootstrap samples to ensure that they are similar to the observed data.
 
 Let \eqn{Rain_{ij}^* = \exp(y_{ij}^*)} be the bootstrapped raw rainfall.
-When \code{discretize_rain = TRUE}, bootstrap samples that satisfy \eqn{ Rain_{ij}^* \in (0, 0.3] } are replaced as 0.2, \eqn{ Rain_{ij}^* \in (0.3, 0.5] } are replaced as 0.4, \eqn{ Rain_{ij}^* \in (0.5, 0.7] } are replaced as 0.6, and \eqn{ Rain_{ij}^* \in (0.7, 0.9] } are replaced as 0.8.
+When \code{discretize_rain = TRUE}, bootstrap samples that satisfy \eqn{ Rain_{ij}^* \in (0, 0.3] } are replaced by 0.2, \eqn{ Rain_{ij}^* \in (0.3, 0.5] } are replaced by 0.4, \eqn{ Rain_{ij}^* \in (0.5, 0.7] } are replaced by 0.6, and \eqn{ Rain_{ij}^* \in (0.7, 0.9] } are replaced by 0.8.
 
-When \code{winsorize_individual_rain = TRUE}, bootstrap samples that satisfy \eqn{Rain_{ij}^* >  } \code{individual_rain_interval[2]} are replaced as random numbers drawn from a uniform distribution over the interval \eqn{[}\code{individual_rain_interval[1]}, \code{individual_rain_interval[2]}\eqn{]}.
+When \code{winsorize_individual_rain = TRUE}, bootstrap samples that satisfy \eqn{Rain_{ij}^* >  } \code{individual_rain_interval[2]} are replaced by random numbers drawn from a uniform distribution over the interval \eqn{[}\code{individual_rain_interval[1]}, \code{individual_rain_interval[2]}\eqn{]}.
 
 When \code{winsorize_total_rain = TRUE}, if \eqn{ \sum_{(i,j)} Rain_{ij}^* \notin [} \code{total_rain_interval[1]}, \code{total_rain_interval[2]} \eqn{]} where the summation is over the subset of observations in \code{ori_data} satisfying \code{downwind} and \eqn{L_{ij}^* = 1}, then all bootstrap samples of \eqn{Rain_{ij}^*} are rescaled by a common factor of \code{runif(n = 1, min = total_rain_interval[1], max = total_rain_interval[2])} \eqn{ / \sum_{(i,j)} Rain_{ij}^*  }.
 
