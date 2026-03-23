@@ -804,58 +804,108 @@ predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
 #' @export
 
 #TODO: Think if we want to modify the qqplot for glm to be a half normal qqplot, or we need to at least add a note to be careful when viewing the residual plots of glm since these residuals are not required to be normal
-plot.rain_attr = function(object, plot_type = "bootstrap", plot_quantity = "attr",
+plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plot_quantity = c("attr", "sate"),
                            model = 'downwind_lmm', residual_type = NULL, residual_scaled = TRUE,
                           re_include = TRUE, fixef_include = TRUE, allow.new.levels = FALSE, predict_type = "link",
                           ...) {
 
-  allowed_plot_type = c("bootstrap", "permutation", "model")
-  if(!(plot_type %in% allowed_plot_type)) {
-    stop(
-      sprintf("Invalid plot_type. Must be one of: %s", paste(allowed_plot_type, collapse = ", "))
-    )
+  allowed_single_type <- c("model", "bootstrap", "permutation")
+
+  if (length(plot_type) == 1) {
+    if (!plot_type %in% allowed_single_type) {
+      stop(sprintf("Invalid plot_type. Must be one of: %s",
+                   paste(allowed_single_type, collapse = ", ")))
+    }
+  } else if (length(plot_type) == 2) {
+    if (!setequal(plot_type, c("bootstrap", "permutation"))) {
+      stop("When plot_type has length 2, it must be exactly c('bootstrap','permutation').")
+    }
+  } else {
+    stop("plot_type must be either length 1 (model, bootstrap, or permutation) or length 2 (bootstrap, permutation).")
   }
 
 
+  allowed_single_quant <- c("attr", "sate")
+
+  if (length(plot_quantity) == 1) {
+    if (!plot_quantity %in% allowed_single_quant) {
+      stop(sprintf("Invalid plot_quantity. Must be one of: %s",
+                   paste(allowed_single_quant, collapse = ", ")))
+    }
+  } else if (length(plot_quantity) == 2) {
+    if (!setequal(plot_quantity, c("attr", "sate"))) {
+      stop("When plot_quantity has length 2, it must be exactly c('attr','sate').")
+    }
+  } else {
+    stop("plot_quantity must be either length 1 (attr or sate) or length 2 (attr, sate).")
+  }
 
 
-  # Plot bootstrap or permutation plots
-  if (plot_type %in% c("bootstrap", "permutation")) {
+  if (any(plot_type %in% c("bootstrap", "permutation"))) {
 
-    allowed_plot_quantity = c("attr", "sate")
-    if(!(plot_quantity %in% allowed_plot_quantity )){
-      stop(
-        sprintf("Invalid plot_quantity. Must be one of: %s", paste(allowed_plot_quantity, collapse = ", "))
+    plot_lists = list()
+    col_labels = c()
+
+    for (pt in c("bootstrap", "permutation")) {
+
+      if (!(pt %in% plot_type)) {
+        next
+      }
+
+      if (pt == "bootstrap"){
+        plot_obj = object$bootstrap_plot_result
+      }else{
+        plot_obj = object$permutation_plot_result
+      }
+
+      if (is.null(plot_obj)) {
+        stop(sprintf("No %s has been carried out. Please rerun rain_attr with %s = TRUE.",
+                     pt, pt))
+      }
+
+      pt_plots = list()
+
+      for (pq in plot_quantity) {
+
+        if (pq == "attr") {
+          plots_to_show = plot_obj$hatattr
+        }  else {
+          plots_to_show = plot_obj$hatsate
+        }
+
+        pt_plots = c(pt_plots, plots_to_show)
+      }
+
+      plot_lists[[pt]] = pt_plots
+
+      # Capitalize first letter for column label
+      col_labels = c(col_labels, paste0(toupper(substr(pt, 1, 1)), substr(pt, 2, nchar(pt))))
+    }
+
+    ncol = length(plot_lists)
+    nrow = max(sapply(plot_lists, length))
+
+    # Arrange each column vertically
+    column_arranges = lapply(names(plot_lists), function(pt) {
+      ggpubr::ggarrange(
+        plotlist = plot_lists[[pt]],
+        ncol = 1,
+        nrow = length(plot_lists[[pt]]),
+        labels = NULL
       )
-    }
+    })
 
-    if (plot_type == "bootstrap"){
-      plot_obj =  object$bootstrap_plot_result
-    }else{
-      plot_obj =  object$permutation_plot_result
-    }
-
-    if (is.null(plot_obj)) {
-      stop(sprintf("No %s has been carried out. Please rerun rain_attr with %s = TRUE.",
-                   plot_type, plot_type))
-    }
-
-    # Select attr or sate plots
-    if (plot_quantity == "attr") {
-      plots_to_show = plot_obj$hatattr
-    }
-
-    if (plot_quantity == "sate") {
-      plots_to_show = plot_obj$hatsate
-    }
+    combined_plot = do.call(
+      ggpubr::ggarrange,
+      c(column_arranges,
+        list(ncol = ncol, nrow = 1, labels = col_labels))
+    )
 
 
-    #
-    print(ggpubr::ggarrange(plotlist = plots_to_show, ncol = ifelse(plot_quantity == "attr",1,2), nrow = ifelse(plot_quantity == "attr",2,3)))
-
+    print(combined_plot)
   }
 
-  if (plot_type == 'model') {
+  if ('model' %in% plot_type) {
 
     model_map = list(
       upwind_lmm = object$all_fitted_models$upwind_lmm_fit,

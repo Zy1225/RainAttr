@@ -295,6 +295,96 @@ testing_perm = rain_attr(
 end_time = Sys.time()
 end_time - start_time
 
+#### Bootstrap and Permutation Inference ####
+start_time = Sys.time()
+test  = rain_attr(
+  data = oman,
+  upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+  instr_pred_name = 'natural_pred',
+  instr_pred_type = 'Unconditional',
+  downwind_lmm_formula = LogRain ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  downwind_logistic_formula = NULL,
+  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+  rain_col_name = 'Rain.Gauge.Measurement',
+  upwind_subset = Gauge.Day.Type == 'Upwind',
+  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+  downwind_target_subset = Gauge.Day.Type == 'Target',
+  downwind_control_subset = Gauge.Day.Type == 'Control', positive_subset = Rain.Gauge.Measurement > 0,
+  attr_type = 'No',
+  x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
+  target_only = FALSE,
+  #TRUE = perform bootstrap inference on attribution and SATE
+  bootstrap =T,
+  bootstrap_option = bootstrap_option(
+    #Number of bootstrap runs
+    B_bootstrap = 500,
+    #Type of bootstrap: 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
+    bootstrap_type = 'PREB1',
+    #Whether to bootstrap zeros (i.e., rainfall event indicators)
+    bootstrap_zero = F,
+    #Probability threshold used for bootstrapping rainfall event indicators
+    positive_prob_threshold = NULL,
+    #Whether to discretize the bootstrapped rainfall (at raw scale)
+    discretize_rain = T,
+    #Whether to winsorize individual bootstrapped rainfall to ensure each of them is <= individual_rain_interval[2]
+    winsorize_individual_rain = T,
+    #lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when winsorize_individual_rain = TRUE
+    individual_rain_interval = c(100, 175),
+    #Whether to winsorize the total bootstrapped rainfall (for all downwind observations) to ensure it is within total_rain_interval
+    winsorize_total_rain = F,
+    # lower and upper bounds for adjusting the total of bootstrapped rainfall values when winsorize_total_rain = TRUE
+    total_rain_interval = c(6000, 60000),
+    #Seed for reproducibility
+    bootstrap_seed = 123,
+    #Whether to parallelize the bootstraps
+    bootstrap_parallel = T,
+    #Number of workers for parallelization
+    bootstrap_parallel_num_worker = parallel::detectCores() - 1,
+    #Confidence level of bootstrap CI
+    CI_level = 0.95
+  ),
+  permutation = T,
+  permutation_option = permutation_option(
+    # Number of permutation run
+    B_permutation = 500,
+    # Whether to permute the elements within each row of ionizer_operation_input
+    permute_between_ionizer = T,
+    # Whether to permute the rows of ionizer_operation_input
+    permute_all_ionizers_between_day = F,
+    # Whether to permute the rows of gauge-day level of ionizer_operation_input
+    permute_between_gaugeday = T,
+    # Data frame containing day-level information on the operating states (1 for active, 0 for inactive) of all ionizers for all days of the trial
+    ionizer_operation_input = ionizer_operation,
+    # A matrix containing gauge-day (row) level information on whether each gauge is downwind of an ionizer (column) on a particular day
+    gaugeday_downwind_input = gaugeday_downwind,
+    # A list supplying information on deployed ionizers for each year
+    year_ionizer_list =
+      list(
+        '2013' = c('H1','H2'),
+        '2014' = c('H1','H2','H3','H4'),
+        '2015' = c('H1','H2','H3','H4','H5','H6'),
+        '2016' = c('H1','H2','H3','H4','H5','H6','H7','H8'),
+        '2017' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10'),
+        '2018' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10')
+      ),
+    # Vector of column names in the supplied data, that corresponds to each ionizer's target indicator
+    data_target_column_names = c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10"),
+    # Column name in ionizer_operation_input capturing year information
+    ionizer_operation_year_column_name = 'Year',
+    # Column name in ionizer_operation_input capturing day information
+    ionizer_operation_day_column_name = 'TrialDay',
+    #Seed for reproducibility
+    permutation_seed = 123,
+    #Whether to parallelize the permutations
+    permutation_parallel = T,
+    #Number of workers for parallelization
+    permutation_parallel_num_worker = parallel::detectCores() - 1
+  )
+)
+end_time = Sys.time()
+end_time - start_time
+
+
 #Permutation p-value (proportion of permuted estimates that are greater than or equal to original estimate) for attribution and SATE
 testing_perm$permutation_p_value_result
 
@@ -310,7 +400,7 @@ ggpubr::ggarrange(plotlist = testing_perm$permutation_plot_result$hatsate)
 
 #"num_obs_days", "num_obs_days_by_year", "hist_day_group_sizes", "qq_rain", "ts_by_type", "ts_by_gauge", "ts_by_gauge_interactive", "map_static", "map_dynamic"
 
-test_eda =eda(eda_type = "map_dynamic",
+test_eda =eda(eda_type = "map_static",
               data = oman,
               rain_col_name = 'Rain.Gauge.Measurement',
               day_column_name = 'TrialDay',
