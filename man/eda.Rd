@@ -20,6 +20,8 @@ eda(
   ionizer_location_df = NULL,
   ionizer_id_column_name = NULL,
   ionizer_longlat_column_names = NULL,
+  elev_contour = TRUE,
+  elev_resolution = 2,
   focus_year = NULL,
   fps = 10,
   upwind_subset,
@@ -65,6 +67,10 @@ The data frame must contain columns specified by \code{ionizer_id_column_name} a
 \item{ionizer_id_column_name}{An optional character string that refers to the column name of ionizer identifiers in \code{ionizer_location_df}. This must be supplied if \code{ionizer_location_df} is supplied.}
 
 \item{ionizer_longlat_column_names}{An optional character vector of length 2 specifying the column names of longitude and latitude in \code{ionizer_location_df}, for plotting ionizers. This must be supplied if \code{ionizer_location_df} is supplied.}
+
+\item{elev_contour}{An optional logical. If \code{TRUE}, elevation contour lines are added to the spatial plots. If \code{FALSE} (default), elevation contour lines are not included.}
+
+\item{elev_resolution}{An optional integer between 1 and 14, specifying the resolution of the elevation data obtained from Amazon Web Services Terrain Tiles via \code{\link[elevatr]{get_elev_raster}}. Defaults to 2. Higher values indicate higher resolution; see \code{\link[elevatr]{get_elev_raster}} for more details.}
 
 \item{focus_year}{An optional vector specifying years to filter for animated maps. If \code{focus_year} is not supplied, all years are included.}
 
@@ -125,14 +131,14 @@ Interactive version of \code{ts_by_gauge} using \code{\link[plotly:plot_ly]{plot
 When plotting log-transformed rainfall (\code{use_raw = FALSE}), zero rainfall values result in \code{-Inf}.
 Unlike \code{\link[ggplot2:ggplot]{ggplot2}}, \code{\link[plotly:plot_ly]{plotly}} will omit these points, breaking the lines. Therefore, users should be aware that lines may appear broken for days with zero rainfall when plotting log-transformed rainfall.
 }
-\item{\code{map_static} (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw},  \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{positive_subset})}{
-Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} and plotting ionizers supplied via \code{ionizer_location_df}, with faceting by year.
-Averaging is performed only over days with positive rainfall for each gauge. Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied.
+\item{\code{map_static} (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw},  \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{positive_subset})}{
+Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} and adding elevation contour lines if \code{elev_contour = TRUE} as well as plotting ionizers supplied via \code{ionizer_location_df}, with faceting by year.
+Averaging is performed only over days with positive rainfall for each gauge. Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines when \code{elev_contour = TRUE}.
 }
-\item{\code{map_dynamic} (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{focus_year}, \code{fps})}{
-Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as plotting ionizers supplied via \code{ionizer_location_df}.
+\item{\code{map_dynamic} (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{focus_year}, \code{fps})}{
+Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as adding elevation contour lines if \code{elev_contour = TRUE}, and plotting ionizers supplied via \code{ionizer_location_df}.
 The animation frames are displayed in the order of \code{data[,day_column_name]}. Users should ensure that \code{data[,day_column_name]} contains values that can be meaningfully ordered (e.g., numeric or Date), rather than nominal/factor values, so the animation reflects the correct temporal progression.
-Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map.
+Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines when \code{elev_contour = TRUE}.
 }
 }
 }

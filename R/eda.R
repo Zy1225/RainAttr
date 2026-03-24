@@ -24,6 +24,8 @@
 #' The data frame must contain columns specified by \code{ionizer_id_column_name} and \code{ionizer_longlat_column_names}. It should also include additional columns whose names correspond to the years in \code{unique(data[[year_column_name]])}, with binary values indicating whether each ionizer has been deployed in each year.
 #' @param ionizer_id_column_name An optional character string that refers to the column name of ionizer identifiers in \code{ionizer_location_df}. This must be supplied if \code{ionizer_location_df} is supplied.
 #' @param ionizer_longlat_column_names An optional character vector of length 2 specifying the column names of longitude and latitude in \code{ionizer_location_df}, for plotting ionizers. This must be supplied if \code{ionizer_location_df} is supplied.
+#' @param elev_contour An optional logical. If \code{TRUE}, elevation contour lines are added to the spatial plots. If \code{FALSE} (default), elevation contour lines are not included.
+#' @param elev_resolution An optional integer between 1 and 14, specifying the resolution of the elevation data obtained from Amazon Web Services Terrain Tiles via \code{\link[elevatr]{get_elev_raster}}. Defaults to 2. Higher values indicate higher resolution; see the \code{z} argument in \code{\link[elevatr]{get_elev_raster}} for more details.
 #' @param focus_year An optional vector specifying years to filter for animated maps. If \code{focus_year} is not supplied, all years are included.
 #' @param fps An optional numeric specifying frames per second for animated maps. Default is \code{10}.
 #' @param upwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == "Upwind"}.
@@ -63,14 +65,14 @@
 #'     When plotting log-transformed rainfall (\code{use_raw = FALSE}), zero rainfall values result in \code{-Inf}.
 #'     Unlike \code{\link[ggplot2:ggplot]{ggplot2}}, \code{\link[plotly:plot_ly]{plotly}} will omit these points, breaking the lines. Therefore, users should be aware that lines may appear broken for days with zero rainfall when plotting log-transformed rainfall.
 #'   }
-#'   \item{`map_static` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw},  \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{positive_subset})}{
-#'     Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} and plotting ionizers supplied via \code{ionizer_location_df}, with faceting by year.
-#'     Averaging is performed only over days with positive rainfall for each gauge. Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied.
+#'   \item{`map_static` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw},  \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{positive_subset})}{
+#'     Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} and adding elevation contour lines if \code{elev_contour = TRUE} as well as plotting ionizers supplied via \code{ionizer_location_df}, with faceting by year.
+#'     Averaging is performed only over days with positive rainfall for each gauge. Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines when \code{elev_contour = TRUE}.
 #'   }
-#'   \item{`map_dynamic` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{focus_year}, \code{fps})}{
-#'     Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as plotting ionizers supplied via \code{ionizer_location_df}.
+#'   \item{`map_dynamic` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{focus_year}, \code{fps})}{
+#'     Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as adding elevation contour lines if \code{elev_contour = TRUE}, and plotting ionizers supplied via \code{ionizer_location_df}.
 #'     The animation frames are displayed in the order of \code{data[,day_column_name]}. Users should ensure that \code{data[,day_column_name]} contains values that can be meaningfully ordered (e.g., numeric or Date), rather than nominal/factor values, so the animation reflects the correct temporal progression.
-#'     Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map.
+#'     Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines when \code{elev_contour = TRUE}.
 #'   }
 #' }
 #'
@@ -90,6 +92,7 @@ eda = function(eda_type,
                gauge_id_column_name, ts_focus_gauge = NULL,
                longlat_column_names, long_lim, lat_lim, input_sf = NULL,
                ionizer_location_df = NULL, ionizer_id_column_name = NULL, ionizer_longlat_column_names = NULL,
+               elev_contour = TRUE, elev_resolution = 2,
                focus_year = NULL, fps = 10,
                upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset){
 
@@ -600,42 +603,6 @@ eda = function(eda_type,
 
 
 
-    bbox_sf <- sf::st_as_sf(
-      sf::st_sfc(
-        sf::st_polygon(list(rbind(
-          c(long_lim[1], lat_lim[1]),  # bottom-left
-          c(long_lim[1], lat_lim[2]),  # top-left
-          c(long_lim[2], lat_lim[2]),  # top-right
-          c(long_lim[2], lat_lim[1]),  # bottom-right
-          c(long_lim[1], lat_lim[1])   # close polygon
-        ))),
-        crs = 4326
-      )
-    )
-
-    # -------------------------
-    # 2. Download elevation raster (medium resolution)
-    # -------------------------
-    elev_raster <- elevatr::get_elev_raster(
-      locations = bbox_sf,
-      z = 2,          # adjust zoom/resolution
-      clip = "bbox",  # rectangular crop
-    )
-
-    # -------------------------
-    # 3. Convert raster to data.frame for geom_contour
-    # -------------------------
-    elev_points <- raster::rasterToPoints(elev_raster)
-    elev_df <- data.frame(
-      x = elev_points[, 1],
-      y = elev_points[, 2],
-      elev = elev_points[, 3]
-    )
-
-    # -------------------------
-    # 4. Filter out sea (negative elevations)
-    # -------------------------
-    elev_df_land <- elev_df[elev_df$elev >= 0, ]
 
 
 
@@ -676,17 +643,6 @@ eda = function(eda_type,
       if(!is.null(ionizer_location_df)){
         output_plot = ggplot2::ggplot() +
           ggplot2::geom_sf(data = input_sf, fill = "white", color = "black") +
-          ggplot2::geom_contour(
-            data = elev_df_land,
-            ggplot2::aes(
-              x = x,
-              y = y,
-              z = elev
-              ),
-            linewidth = 0.1,
-            color = "black",
-            linetype = "dashed"
-          )  +
           ggplot2::geom_sf(data = points_sf, ggplot2::aes(color = .data[[rain_col_name]])) +
           ggplot2::geom_sf(data = ionizer_long_sf, shape = 8) +
           ggplot2::geom_text(
@@ -764,6 +720,49 @@ eda = function(eda_type,
 
     }
 
+    if(elev_contour){
+      bbox_sf <- sf::st_as_sf(
+        sf::st_sfc(
+          sf::st_polygon(list(rbind(
+            c(long_lim[1], lat_lim[1]),  # bottom-left
+            c(long_lim[1], lat_lim[2]),  # top-left
+            c(long_lim[2], lat_lim[2]),  # top-right
+            c(long_lim[2], lat_lim[1]),  # bottom-right
+            c(long_lim[1], lat_lim[1])   # close polygon
+          ))),
+          crs = 4326
+        )
+      )
+
+      elev_raster <- elevatr::get_elev_raster(
+        locations = bbox_sf,
+        z = elev_resolution,          # adjust zoom/resolution
+        clip = "bbox",  # rectangular crop
+      )
+
+      elev_points <- raster::rasterToPoints(elev_raster)
+      elev_df <- data.frame(
+        x = elev_points[, 1],
+        y = elev_points[, 2],
+        elev = elev_points[, 3]
+      )
+
+      elev_df_land <- elev_df[elev_df$elev >= 0, ]
+
+
+      output_plot = output_plot + ggplot2::geom_contour(
+        data = elev_df_land,
+        ggplot2::aes(
+          x = x,
+          y = y,
+          z = elev
+        ),
+        linewidth = 0.1,
+        color = "black",
+        linetype = "dashed"
+      )
+    }
+
     print(output_plot)
     return(output_plot)
 
@@ -797,6 +796,37 @@ eda = function(eda_type,
     }
 
 
+    if(elev_contour){
+      bbox_sf <- sf::st_as_sf(
+        sf::st_sfc(
+          sf::st_polygon(list(rbind(
+            c(long_lim[1], lat_lim[1]),  # bottom-left
+            c(long_lim[1], lat_lim[2]),  # top-left
+            c(long_lim[2], lat_lim[2]),  # top-right
+            c(long_lim[2], lat_lim[1]),  # bottom-right
+            c(long_lim[1], lat_lim[1])   # close polygon
+          ))),
+          crs = 4326
+        )
+      )
+
+      elev_raster <- elevatr::get_elev_raster(
+        locations = bbox_sf,
+        z = elev_resolution,          # adjust zoom/resolution
+        clip = "bbox",  # rectangular crop
+      )
+
+      elev_points <- raster::rasterToPoints(elev_raster)
+      elev_df <- data.frame(
+        x = elev_points[, 1],
+        y = elev_points[, 2],
+        elev = elev_points[, 3]
+      )
+
+      elev_df_land <- elev_df[elev_df$elev >= 0, ]
+
+    }
+
     if(!is.null(input_sf)){
       points_sf <- sf::st_as_sf(
         data_df,
@@ -825,14 +855,13 @@ eda = function(eda_type,
         )
 
 
-
         output_plot = ggplot2::ggplot() +
           ggplot2::geom_sf(data = input_sf, fill = "white", color = "black", linewidth = 0.3) +
           ggplot2::geom_sf(
             data = points_sf_year,
             ggplot2::aes(color = .data[[rain_col_name]], alpha = .data[['alpha']]),
             size = 2
-          ) +
+          )   +
           ggplot2::geom_sf(data = ionizer_long_day_sf, shape = 8) +
           ggplot2::geom_text(
             data = ionizer_long_day,
@@ -841,7 +870,7 @@ eda = function(eda_type,
             vjust = -0.8,
             size = 3,
             fontface = "bold"
-          ) +
+          )  +
           ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
           ggplot2::labs(
             title = paste0(
@@ -861,7 +890,23 @@ eda = function(eda_type,
             transition_length = 1
           ) +
           gganimate::ease_aes("linear")
+
+        if(elev_contour){
+          output_plot = output_plot + ggplot2::geom_contour(
+            data = elev_df_land,
+            ggplot2::aes(
+              x = x,
+              y = y,
+              z = elev
+            ),
+            linewidth = 0.1,
+            color = "black",
+            linetype = "dashed"
+          )
+        }
+
         output_animate = gganimate::animate(output_plot, nframes = length(unique(points_sf_year[[day_column_name]])), fps = fps, end_pause = 20)
+
       }else{
         output_plot = ggplot2::ggplot() +
           ggplot2::geom_sf(data = input_sf, fill = "white", color = "black", linewidth = 0.3) +
@@ -869,7 +914,7 @@ eda = function(eda_type,
             data = points_sf_year,
             ggplot2::aes(color = .data[[rain_col_name]], alpha = .data[['alpha']]),
             size = 2
-          ) +
+          )  +
           ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
           ggplot2::labs(
             title = paste0(
@@ -889,6 +934,20 @@ eda = function(eda_type,
             transition_length = 1
           ) +
           gganimate::ease_aes("linear")
+
+        if(elev_contour){
+          output_plot = output_plot + ggplot2::geom_contour(
+            data = elev_df_land,
+            ggplot2::aes(
+              x = x,
+              y = y,
+              z = elev
+            ),
+            linewidth = 0.1,
+            color = "black",
+            linetype = "dashed"
+          )
+        }
         output_animate = gganimate::animate(output_plot, nframes = length(unique(points_sf_year[[day_column_name]])), fps = fps, end_pause = 20)
       }
     }else{
@@ -907,7 +966,6 @@ eda = function(eda_type,
       if(!is.null(ionizer_location_df)){
         output_plot = ggplot2::ggplot(data_df_year, ggplot2::aes(x = .data[[longlat_column_names[1]]],
                                                                  y = .data[[longlat_column_names[2]]])) +
-          ggplot2::borders()+
           ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
           ggplot2::geom_point(ggplot2::aes(color = .data[[rain_col_name]],
                                            alpha = .data[['alpha']])) +
@@ -936,15 +994,30 @@ eda = function(eda_type,
             state_length = 1,
             transition_length = 1
           ) +
-          gganimate::ease_aes("linear")
+          gganimate::ease_aes("linear") +
+          ggplot2::borders()
+
+        if(elev_contour){
+          output_plot = output_plot + ggplot2::geom_contour(
+            data = elev_df_land,
+            ggplot2::aes(
+              x = x,
+              y = y,
+              z = elev
+            ),
+            linewidth = 0.1,
+            color = "black",
+            linetype = "dashed"
+          )
+        }
+
         output_animate = gganimate::animate(output_plot, nframes = length(unique(data_df_year[[day_column_name]])), fps = fps, end_pause = 20)
       }else{
         output_plot = ggplot2::ggplot(data_df_year, ggplot2::aes(x = .data[[longlat_column_names[1]]],
                                                                  y = .data[[longlat_column_names[2]]])) +
-          ggplot2::borders()+
           ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
           ggplot2::geom_point(ggplot2::aes(color = .data[[rain_col_name]],
-                                           alpha = .data[['alpha']])) +
+                                           alpha = .data[['alpha']]))  +
           ggplot2::labs(
             title = paste0(rain_label, " for ", day_column_name, " : {closest_state}"),
             x = "Longitude",
@@ -959,7 +1032,23 @@ eda = function(eda_type,
             state_length = 1,
             transition_length = 1
           ) +
-          gganimate::ease_aes("linear")
+          gganimate::ease_aes("linear") +
+          ggplot2::borders()
+
+        if(elev_contour){
+          output_plot = output_plot + ggplot2::geom_contour(
+            data = elev_df_land,
+            ggplot2::aes(
+              x = x,
+              y = y,
+              z = elev
+            ),
+            linewidth = 0.1,
+            color = "black",
+            linetype = "dashed"
+          )
+        }
+
         output_animate = gganimate::animate(output_plot, nframes = length(unique(data_df_year[[day_column_name]])), fps = fps, end_pause = 20)
       }
 
