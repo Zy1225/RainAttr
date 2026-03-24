@@ -17,6 +17,9 @@ eda(
   long_lim,
   lat_lim,
   input_sf = NULL,
+  ionizer_location_df = NULL,
+  ionizer_id_column_name = NULL,
+  ionizer_longlat_column_names = NULL,
   focus_year = NULL,
   fps = 10,
   upwind_subset,
@@ -54,6 +57,14 @@ eda(
 
 \item{input_sf}{An optional \code{\link[sf:st_as_sf]{sf}} object for polygon layers (e.g., country borders) in spatial plots. For example, \code{rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf")}.
 If \code{input_sf} is not supplied, then a default map is drawn using \code{ggplot2::borders()}.}
+
+\item{ionizer_location_df}{An optional data frame containing the locations of ionizers, to be used in the plotting of static and animated maps.
+If \code{ionizer_location_df} is not supplied, no ionizers are plotted.
+The data frame must contain columns specified by \code{ionizer_id_column_name} and \code{ionizer_longlat_column_names}. It should also include additional columns whose names correspond to the years in \code{unique(data[[year_column_name]])}, with binary values indicating whether each ionizer has been deployed in each year.}
+
+\item{ionizer_id_column_name}{An optional character string that refers to the column name of ionizer identifiers in \code{ionizer_location_df}. This must be supplied if \code{ionizer_location_df} is supplied.}
+
+\item{ionizer_longlat_column_names}{An optional character vector of length 2 specifying the column names of longitude and latitude in \code{ionizer_location_df}, for plotting ionizers. This must be supplied if \code{ionizer_location_df} is supplied.}
 
 \item{focus_year}{An optional vector specifying years to filter for animated maps. If \code{focus_year} is not supplied, all years are included.}
 
@@ -115,11 +126,11 @@ When plotting log-transformed rainfall (\code{use_raw = FALSE}), zero rainfall v
 Unlike \code{\link[ggplot2:ggplot]{ggplot2}}, \code{\link[plotly:plot_ly]{plotly}} will omit these points, breaking the lines. Therefore, users should be aware that lines may appear broken for days with zero rainfall when plotting log-transformed rainfall.
 }
 \item{\code{map_static} (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw},  \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{positive_subset})}{
-Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf}, with faceting by year.
+Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} and plotting ionizers supplied via \code{ionizer_location_df}, with faceting by year.
 Averaging is performed only over days with positive rainfall for each gauge. Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied.
 }
 \item{\code{map_dynamic} (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{focus_year}, \code{fps})}{
-Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf}.
+Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as plotting ionizers supplied via \code{ionizer_location_df}.
 The animation frames are displayed in the order of \code{data[,day_column_name]}. Users should ensure that \code{data[,day_column_name]} contains values that can be meaningfully ordered (e.g., numeric or Date), rather than nominal/factor values, so the animation reflects the correct temporal progression.
 Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map.
 }

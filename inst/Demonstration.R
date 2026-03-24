@@ -5,6 +5,7 @@ rm(list=ls())
 load('data/oman.rda')
 load('data/ionizer_operation.rda')
 load('data/gaugeday_downwind.rda')
+load('data/ionizer_location.rda')
 devtools::load_all(".")
 
 #### To replicate point estimation results of "Weighting, informativeness and causal inference, with an application to rainfall enhancement" by Chambers et al. (2021) in JRSSA ####
@@ -410,8 +411,12 @@ test_eda =eda(eda_type = "map_static",
               ts_focus_gauge = c(1,2),
               longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
               long_lim = c(55,60),
-              lat_lim = c(20,25),
+              lat_lim = c(22,25),
               input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
+              # input_sf = NULL,
+              ionizer_location_df = ionizer_location,
+              ionizer_id_column_name = 'Ionizer',
+              ionizer_longlat_column_names = c("Longitude","Latitude"),
               focus_year = c(2013,2014),
               fps = 10,
               upwind_subset = Gauge.Day.Type == 'Upwind',
@@ -420,6 +425,35 @@ test_eda =eda(eda_type = "map_static",
               downwind_control_subset = Gauge.Day.Type == 'Control',
               positive_subset = Rain.Gauge.Measurement > 0
 )
+
+high_gauges = unique(oman$Gauge.ID[oman$Gauge.Elevation > median(oman$Gauge.Elevation)])
+
+test_focus =eda(eda_type = "ts_by_gauge",
+                data = oman,
+                rain_col_name = 'Rain.Gauge.Measurement',
+                day_column_name = 'TrialDay',
+                year_column_name = 'Year',
+                use_raw = F,
+                gauge_id_column_name = 'Gauge.ID',
+                ts_focus_gauge = high_gauges,
+                longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
+                long_lim = c(55,60),
+                lat_lim = c(22,25),
+                input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
+                # input_sf = NULL,
+                ionizer_location_df = ionizer_location,
+                ionizer_id_column_name = 'Ionizer',
+                ionizer_longlat_column_names = c("Longitude","Latitude"),
+                focus_year = c(2013,2014),
+                fps = 10,
+                upwind_subset = Gauge.Day.Type == 'Upwind',
+                downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+                downwind_target_subset = Gauge.Day.Type == 'Target',
+                downwind_control_subset = Gauge.Day.Type == 'Control',
+                positive_subset = Rain.Gauge.Measurement > 0
+) + ggplot2::guides(color = 'none')
+
+test_focus
 
 
 animation_out = eda(eda_type = "map_dynamic",
@@ -434,7 +468,11 @@ animation_out = eda(eda_type = "map_dynamic",
                     long_lim = c(55,60),
                     lat_lim = c(22,25),
                     input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
-                    #focus_year = c(2013),
+                    # input_sf = NULL,
+                    ionizer_location_df = ionizer_location,
+                    ionizer_id_column_name = 'Ionizer',
+                    ionizer_longlat_column_names = c("Longitude","Latitude"),
+                    focus_year = c(2013,2014,2015),
                     fps = 30,
                     upwind_subset = Gauge.Day.Type == 'Upwind',
                     downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
