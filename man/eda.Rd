@@ -70,7 +70,7 @@ The data frame must contain columns specified by \code{ionizer_id_column_name} a
 
 \item{elev_contour}{An optional logical. If \code{TRUE}, elevation contour lines are added to the spatial plots. If \code{FALSE} (default), elevation contour lines are not included.}
 
-\item{elev_resolution}{An optional integer between 1 and 14, specifying the resolution of the elevation data obtained from Amazon Web Services Terrain Tiles via \code{\link[elevatr]{get_elev_raster}}. Defaults to 2. Higher values indicate higher resolution; see \code{\link[elevatr]{get_elev_raster}} for more details.}
+\item{elev_resolution}{An optional integer between 1 and 14, specifying the resolution of the elevation data obtained from Amazon Web Services Terrain Tiles via \code{\link[elevatr]{get_elev_raster}}. Defaults to 2. Higher values indicate higher resolution; see the \code{z} argument in \code{\link[elevatr]{get_elev_raster}} for more details.}
 
 \item{focus_year}{An optional vector specifying years to filter for animated maps. If \code{focus_year} is not supplied, all years are included.}
 
