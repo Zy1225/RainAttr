@@ -149,10 +149,10 @@
 #' This function can also be used to perform bootstrap inference on the attribution and SATE, by setting \code{bootstrap = TRUE} and supplying the relevant bootstrap options using \code{\link{bootstrap_option}()}.
 #' For full details of the bootstrap procedure, please see \code{\link{bootstrap_downwind}}. Briefly, the bootstrap is carried out in two levels by conditioning on the upwind (first stage) LMM and its fitted values:
 #' \itemize{
-#' \item{First level is an optional level that is only carried out when \code{bootstrap_option(bootstrap_zero = TRUE)}. This level considers generating bootstrap samples of rainfall event indicator for the subset of observations satisfying \code{downwind_subset} using the predicted probabilities from the downwind logistic model. This model is fitted using \code{glm(downwind_logistic_formula, family = "binomial")} to the subset of observations from \code{data} satisfying \code{downwind_subset}, with the response being an indicator for whether the observed rainfall is greater than zero, i.e., the indicator is defined by the logical expression \code{positive_subset}.
+#' \item{First level is an optional level that is only carried out when \code{bootstrap_opt(bootstrap_zero = TRUE)}. This level considers generating bootstrap samples of rainfall event indicator for the subset of observations satisfying \code{downwind_subset} using the predicted probabilities from the downwind logistic model. This model is fitted using \code{glm(downwind_logistic_formula, family = "binomial")} to the subset of observations from \code{data} satisfying \code{downwind_subset}, with the response being an indicator for whether the observed rainfall is greater than zero, i.e., the indicator is defined by the logical expression \code{positive_subset}.
 #'   }
 #'
-#' \item{Second level generates bootstrap samples of positive rainfall for the subset of observations not only satisfying \code{downwind_subset} but also with the first-level bootstrapped rainfall event indicator being equal to one. When \code{bootstrap_option(bootstrap_zero = FALSE)}, then this level generates bootstrap samples of positive rainfall for the subset of observations satisfying \code{downwind_subset & positive_subset}.
+#' \item{Second level generates bootstrap samples of positive rainfall for the subset of observations not only satisfying \code{downwind_subset} but also with the first-level bootstrapped rainfall event indicator being equal to one. When \code{bootstrap_opt(bootstrap_zero = FALSE)}, then this level generates bootstrap samples of positive rainfall for the subset of observations satisfying \code{downwind_subset & positive_subset}.
 #'   This is done using one of the semiparametric bootstrap methods of Chambers & Chandra (2013) and Tho et al. (2025), which involves the use of marginal residuals from the fitted downwind (second stage) LMM.   }
 #' }
 #' The above attribution and SATE estimates are then computed based on each bootstrap sample of the positive rainfall, forming their respective bootstrap distributions. This function also provides bootstrap distributions of parameters associated with the downwind LMM (\code{downwind_lmm_formula}), downwind logistic model (\code{downwind_logistic_formula}), downwind propensity score model (\code{downwind_propensity_formula}), downwind treatment-only LMM, and downwind control-only LMM.
@@ -178,9 +178,9 @@
 #' @param downwind_target_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Target"}.
 #' @param downwind_control_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Control"}.
 #' @param positive_subset A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall - these are the observations that are used in the fitting of upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, and the downwind (second stage) propensity score model.
-#' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See "Details" for more information.
+#' @param attr_type An optional character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"} (default), or \code{"No"}. See "Details" for more information.
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
-#' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
+#' @param target_only An optional logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #' @param bootstrap An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.
 #' @param bootstrap_option An optional list containing all bootstrap settings, used only when \code{bootstrap = TRUE}. See \code{\link{bootstrap_option}} for the default list elements and their usage.
 #' @param permutation An optional logical, If \code{TRUE} randomized permutation is carried out on the ionizer operation (treatment) schedule to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no randomized permutation is carried out.
@@ -239,9 +239,9 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                      downwind_lmm_formula, downwind_logistic_formula = NULL, downwind_propensity_formula,
                      rain_col_name,
                      upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset,
-                     attr_type, x_downwind_name, target_only,
-                     bootstrap = FALSE, bootstrap_option = bootstrap_option(),
-                     permutation = FALSE, permutation_option = permutation_option()
+                     attr_type = 'ThoEtAl', x_downwind_name, target_only = FALSE,
+                     bootstrap = FALSE, bootstrap_option = bootstrap_opt(),
+                     permutation = FALSE, permutation_option = permutation_opt()
                      ){
 
   if(!instr_pred_name %in% all.vars(downwind_lmm_formula)){
@@ -1117,7 +1117,7 @@ summary.rain_attr <- function(object, ...) {
   )
 
   if(!is.null(object$bootstrap_result)) {
-    ci_mat = bootstrap_CI(object$bootstrap_result$hatattr[, attr_rows],level = ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level) )
+    ci_mat = bootstrap_CI(object$bootstrap_result$hatattr[, attr_rows],level = ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_opt()$CI_level, object$args$bootstrap_option$CI_level) )
     attr_table$Bootstrap_CI = apply(ci_mat, 1, function(r) paste0("(", round(r[1] * 100, 4), "%", ", ", round(r[2] * 100, 2), "%", ")"))
     attr_table$Bootstrap_p = round(bootstrap_p_value(object$bootstrap_result$hatattr[, attr_rows]),2)
   }else{
@@ -1136,7 +1136,7 @@ summary.rain_attr <- function(object, ...) {
   }
 
   colnames(attr_table) = c('Estimate',
-                           paste0(ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level)*100, "% Bootstrap CI"),
+                           paste0(ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_opt()$CI_level, object$args$bootstrap_option$CI_level)*100, "% Bootstrap CI"),
                            'Bootstrap P-Val','Permutation P-Val')
 
 
@@ -1151,7 +1151,7 @@ summary.rain_attr <- function(object, ...) {
   if(!is.null(object$bootstrap_result)) {
     ci_mat_sate <- bootstrap_CI(object$bootstrap_result$hatsate[, sate_rows],
                                 level = ifelse(is.null(object$args$bootstrap_option$CI_level),
-                                               bootstrap_option()$CI_level,
+                                               bootstrap_opt()$CI_level,
                                                object$args$bootstrap_option$CI_level))
     sate_table$Bootstrap_CI <- apply(ci_mat_sate, 1, function(r) paste0("(", round(r[1],4), ", ", round(r[2],4), ")"))
     sate_table$Bootstrap_p <- round(bootstrap_p_value(object$bootstrap_result$hatsate[, sate_rows]),2)
@@ -1169,7 +1169,7 @@ summary.rain_attr <- function(object, ...) {
   }
 
   colnames(sate_table) = c('Estimate',
-                           paste0(ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_option()$CI_level, object$args$bootstrap_option$CI_level)*100, "% Bootstrap CI"),
+                           paste0(ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_opt()$CI_level, object$args$bootstrap_option$CI_level)*100, "% Bootstrap CI"),
                            'Bootstrap P-Val','Permutation P-Val')
 
 
@@ -2471,30 +2471,30 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #' @examples
 #' #Create default bootstrap options to account for highly unbalanced clustered data
 #' # Specifically: bootstrap_type = 'PREB1'
-#' boot_options = bootstrap_option()
+#' boot_options = bootstrap_opt()
 #' str(boot_options)
 #'
 #' #Bootstrap option with parallelization over (parallel::detectCores() - 1) number of workers and seed = 1 for reproducibility
-#' boot_options_parallel = bootstrap_option(
+#' boot_options_parallel = bootstrap_opt(
 #'   bootstrap_seed = 1,
 #'   bootstrap_parallel = TRUE,
 #'   bootstrap_parallel_num_worker = parallel::detectCores() - 1
 #' )
 #' str(boot_options_parallel)
 
-bootstrap_option = function(B_bootstrap = 10000,
-                            bootstrap_type = 'PREB1',
-                            bootstrap_zero = T,
-                            positive_prob_threshold = NULL,
-                            discretize_rain = T,
-                            winsorize_individual_rain = T,
-                            individual_rain_interval = c(100,175),
-                            winsorize_total_rain = T,
-                            total_rain_interval = c(6000,60000),
-                            bootstrap_seed = NULL,
-                            bootstrap_parallel = F,
-                            bootstrap_parallel_num_worker = parallel::detectCores() - 1,
-                            CI_level = 0.95){
+bootstrap_opt = function(B_bootstrap = 10000,
+                         bootstrap_type = 'PREB1',
+                         bootstrap_zero = T,
+                         positive_prob_threshold = NULL,
+                         discretize_rain = T,
+                         winsorize_individual_rain = T,
+                         individual_rain_interval = c(100,175),
+                         winsorize_total_rain = T,
+                         total_rain_interval = c(6000,60000),
+                         bootstrap_seed = NULL,
+                         bootstrap_parallel = F,
+                         bootstrap_parallel_num_worker = parallel::detectCores() - 1,
+                         CI_level = 0.95){
   return(list(
     B_bootstrap = B_bootstrap,
     bootstrap_type = bootstrap_type,
@@ -3001,11 +3001,11 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 #' # These are the same permutation settings used in Chambers et al. (2022)
 #' # "Nudging a Pseudo-Science Towards a Science—The Role of Statistics in a Rainfall Enhancement Trial in Oman"
 #' # Specifically: permute_between_ionizer = TRUE, permute_all_ionizers_between_day = FALSE, and permute_between_gaugeday = TRUE
-#' perm_options = permutation_option()
+#' perm_options = permutation_opt()
 #' str(perm_options)
 #'
 #' #Permutation option with parallelization over (parallel::detectCores() - 1) number of workers and seed = 1 for reproducibility
-#' perm_options_parallel = permutation_option(
+#' perm_options_parallel = permutation_opt(
 #'   permutation_seed = 1,
 #'   permutation_parallel = TRUE,
 #'   permutation_parallel_num_worker = parallel::detectCores() - 1
@@ -3257,7 +3257,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                   x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                   target_only = FALSE,
 #                   bootstrap =T,
-#                   bootstrap_option = bootstrap_option(B_bootstrap = 3,
+#                   bootstrap_option = bootstrap_opt(B_bootstrap = 3,
 #                                                       bootstrap_type = 'REB1',
 #                                                       bootstrap_zero = T,
 #                                                       positive_prob_threshold = NULL,
@@ -3300,7 +3300,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                         x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                         target_only = FALSE,
 #                         bootstrap =T,
-#                         bootstrap_option = bootstrap_option(B_bootstrap = 3,
+#                         bootstrap_option = bootstrap_opt(B_bootstrap = 3,
 #                                                             bootstrap_type = 'PREB1',
 #                                                             bootstrap_zero = F,
 #                                                             positive_prob_threshold = NULL,
@@ -3341,7 +3341,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                         x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                         target_only = FALSE,
 #                         bootstrap =T,
-#                         bootstrap_option = bootstrap_option(B_bootstrap = 10,
+#                         bootstrap_option = bootstrap_opt(B_bootstrap = 10,
 #                                                             bootstrap_type = 'PREB2',
 #                                                             bootstrap_zero = F,
 #                                                             positive_prob_threshold = NULL,
@@ -3373,7 +3373,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                        x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                        target_only = FALSE,
 #                        bootstrap =T,
-#                        bootstrap_option = bootstrap_option(B_bootstrap = 10,
+#                        bootstrap_option = bootstrap_opt(B_bootstrap = 10,
 #                                                            bootstrap_type = 'REB2',
 #                                                            bootstrap_zero = F,
 #                                                            positive_prob_threshold = NULL,
@@ -3404,7 +3404,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                       x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                                       target_only = FALSE,
 #                                       bootstrap =T,
-#                                       bootstrap_option = bootstrap_option(B_bootstrap = 10,
+#                                       bootstrap_option = bootstrap_opt(B_bootstrap = 10,
 #                                                                           bootstrap_type = 'REB2',
 #                                                                           bootstrap_zero = T,
 #                                                                           positive_prob_threshold = NULL,
@@ -3439,7 +3439,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                                x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
 #                                                target_only = FALSE,
 #                                                bootstrap =T,
-#                                                bootstrap_option = bootstrap_option(B_bootstrap = 10,
+#                                                bootstrap_option = bootstrap_opt(B_bootstrap = 10,
 #                                                                                    bootstrap_type = 'REB2',
 #                                                                                    bootstrap_zero = T,
 #                                                                                    positive_prob_threshold = NULL,
@@ -3485,7 +3485,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                     bootstrap =F,
 #                     bootstrap_option = NULL,
 #                     permutation = T,
-#                     permutation_option = permutation_option(
+#                     permutation_option = permutation_opt(
 #                       B_permutation = 5,
 #                       permute_between_ionizer = T,
 #                       permute_all_ionizers_between_day = T,
@@ -3534,7 +3534,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                            bootstrap =F,
 #                                            bootstrap_option = NULL,
 #                                            permutation = T,
-#                                            permutation_option = permutation_option(
+#                                            permutation_option = permutation_opt(
 #                                              B_permutation = 6,
 #                                              permute_between_ionizer = T,
 #                                              permute_all_ionizers_between_day = T,
@@ -3580,7 +3580,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                            bootstrap =F,
 #                                            bootstrap_option = NULL,
 #                                            permutation = T,
-#                                            permutation_option = permutation_option(
+#                                            permutation_option = permutation_opt(
 #                                              B_permutation = 6,
 #                                              permute_between_ionizer = T,
 #                                              permute_all_ionizers_between_day = T,
@@ -3625,7 +3625,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                            bootstrap =F,
 #                                            bootstrap_option = NULL,
 #                                            permutation = T,
-#                                            permutation_option = permutation_option(
+#                                            permutation_option = permutation_opt(
 #                                              B_permutation = 6,
 #                                              permute_between_ionizer = T,
 #                                              permute_all_ionizers_between_day = T,
@@ -3670,7 +3670,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
 #                                        bootstrap =F,
 #                                        bootstrap_option = NULL,
 #                                        permutation = T,
-#                                        permutation_option = permutation_option(
+#                                        permutation_option = permutation_opt(
 #                                          B_permutation = 6,
 #                                          permute_between_ionizer = T,
 #                                          permute_all_ionizers_between_day = T,
