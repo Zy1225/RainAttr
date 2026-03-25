@@ -62,14 +62,14 @@ replicate_result = rain_attr(
   #Indicator for whether to perform bootstrap inference on attribution and SATE
   bootstrap = FALSE,
 
-  #Specification of various option for bootstrap, e.g., bootstrap_option(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
-  bootstrap_option = bootstrap_option(),
+  #Specification of various option for bootstrap, e.g., bootstrap_opt(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
+  bootstrap_option = bootstrap_opt(),
 
   #Indicator for whether to perform permutation inference on attribution and SATE
   permutation = FALSE,
 
   #Specification of various option for permutation,  e.g., whether to permute the operating states between ionizers, between days, between gaugedays
-  permutation_option = permutation_option()
+  permutation_option = permutation_opt()
   )
 
 #Table 1:
@@ -135,9 +135,9 @@ rain_attr(
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
   target_only = FALSE,
   bootstrap = FALSE,
-  bootstrap_option = bootstrap_option(),
+  bootstrap_option = bootstrap_opt(),
   permutation = FALSE,
-  permutation_option = permutation_option()
+  permutation_option = permutation_opt()
 )
 
 # Invalid attribution type requested by user
@@ -160,9 +160,9 @@ rain_attr(
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
   target_only = FALSE,
   bootstrap = FALSE,
-  bootstrap_option = bootstrap_option(),
+  bootstrap_option = bootstrap_opt(),
   permutation = FALSE,
-  permutation_option = permutation_option()
+  permutation_option = permutation_opt()
 )
 
 #### Bootstrap Inference with optional parallelization ####
@@ -185,7 +185,7 @@ testing_PREB1  = rain_attr(
   target_only = FALSE,
   #TRUE = perform bootstrap inference on attribution and SATE
   bootstrap =T,
-  bootstrap_option = bootstrap_option(
+  bootstrap_option = bootstrap_opt(
     #Number of bootstrap runs
     B_bootstrap = 500,
     #Type of bootstrap: 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
@@ -214,7 +214,7 @@ testing_PREB1  = rain_attr(
     CI_level = 0.95
   ),
   permutation = FALSE,
-  permutation_option = permutation_option()
+  permutation_option = permutation_opt()
 )
 end_time = Sys.time()
 end_time - start_time
@@ -256,7 +256,7 @@ testing_perm = rain_attr(
   bootstrap =F,
   bootstrap_option = NULL,
   permutation = T,
-  permutation_option = permutation_option(
+  permutation_option = permutation_opt(
     # Number of permutation run
     B_permutation = 500,
     # Whether to permute the elements within each row of ionizer_operation_input
@@ -316,7 +316,7 @@ test  = rain_attr(
   target_only = FALSE,
   #TRUE = perform bootstrap inference on attribution and SATE
   bootstrap =T,
-  bootstrap_option = bootstrap_option(
+  bootstrap_option = bootstrap_opt(
     #Number of bootstrap runs
     B_bootstrap = 500,
     #Type of bootstrap: 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
@@ -345,7 +345,7 @@ test  = rain_attr(
     CI_level = 0.95
   ),
   permutation = T,
-  permutation_option = permutation_option(
+  permutation_option = permutation_opt(
     # Number of permutation run
     B_permutation = 500,
     # Whether to permute the elements within each row of ionizer_operation_input

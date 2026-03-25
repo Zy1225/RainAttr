@@ -116,6 +116,9 @@ The `apo` and `apl` attribution estimates indicate that `r round(result$hatattr$
 The above results also show that all SATE estimates are positive, suggesting a causal effect of ionization technology in increasing downwind rainfall. For exact formulas of the five types of SATE estimates, see `help(rain_attr)`. A detailed comparison is also provided in Chambers et al. (2022b).
 
 
+```{r}
+summary(result)
+```
 
 
 ### Bootstrap and Permutation Inference

@@ -3012,7 +3012,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 #' )
 #' str(perm_options_parallel)
 #'
-permutation_option = function(B_permutation = 10000,
+permutation_opt = function(B_permutation = 10000,
                               permute_between_ionizer = T,
                               permute_all_ionizers_between_day = F,
                               permute_between_gaugeday = T,
