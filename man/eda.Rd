@@ -24,6 +24,7 @@ eda(
   elev_resolution = 2,
   focus_year = NULL,
   fps = 10,
+  animate_filename = NULL,
   upwind_subset,
   downwind_subset,
   downwind_target_subset,
@@ -76,6 +77,8 @@ The data frame must contain columns specified by \code{ionizer_id_column_name} a
 
 \item{fps}{An optional numeric specifying frames per second for animated maps. Default is \code{10}.}
 
+\item{animate_filename}{An optional character string specifying the file name used to save the animated map as a GIF. The file name should end with \code{".gif"}. If \code{animate_filename} is not supplied, no GIF is saved on disk.}
+
 \item{upwind_subset}{A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == "Upwind"}.}
 
 \item{downwind_subset}{A logical expression used to extract the relevant subset of observations from \code{data} to be used in the downwind (second stage) LMM fitting. For example, \code{Gauge.Day.Type \%in\% c("Target","Control")}.}
@@ -93,7 +96,7 @@ Depending on \code{eda_type}:
 \item \code{\link[ggplot2]{ggplot}} objects (\code{"hist_day_group_sizes"}, \code{"qq_rain"}, \code{"ts_by_type"},
 \code{"ts_by_gauge"}, \code{"map_static"})
 \item Interactive \code{\link[plotly:plot_ly]{plotly}} object (\code{"ts_by_gauge_interactive"})
-\item Animated \code{\link[gganimate:gganimate-package]{gganim}} object (\code{"map_dynamic"})
+\item A list consisting of an animated \code{\link[gganimate:gganimate-package]{gganim}} object and its associated gif_image (\code{"map_dynamic"})
 }
 }
 \description{
@@ -135,10 +138,10 @@ Unlike \code{\link[ggplot2:ggplot]{ggplot2}}, \code{\link[plotly:plot_ly]{plotly
 Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} and adding elevation contour lines if \code{elev_contour = TRUE} as well as plotting ionizers supplied via \code{ionizer_location_df}, with faceting by year.
 Averaging is performed only over days with positive rainfall for each gauge. Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines when \code{elev_contour = TRUE}.
 }
-\item{\code{map_dynamic} (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{focus_year}, \code{fps})}{
+\item{\code{map_dynamic} (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{focus_year}, \code{fps}, \code{animate_filename})}{
 Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as adding elevation contour lines if \code{elev_contour = TRUE}, and plotting ionizers supplied via \code{ionizer_location_df}.
 The animation frames are displayed in the order of \code{data[,day_column_name]}. Users should ensure that \code{data[,day_column_name]} contains values that can be meaningfully ordered (e.g., numeric or Date), rather than nominal/factor values, so the animation reflects the correct temporal progression.
-Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines when \code{elev_contour = TRUE}.
+Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines when \code{elev_contour = TRUE}. When \code{animate_filename} is supplied, the resulting gif_image of the animated map will be saved to the location specified by \code{animate_filename}.
 }
 }
 }

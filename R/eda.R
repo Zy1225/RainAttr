@@ -28,6 +28,7 @@
 #' @param elev_resolution An optional integer between 1 and 14, specifying the resolution of the elevation data obtained from Amazon Web Services Terrain Tiles via \code{\link[elevatr]{get_elev_raster}}. Defaults to 2. Higher values indicate higher resolution; see the \code{z} argument in \code{\link[elevatr]{get_elev_raster}} for more details.
 #' @param focus_year An optional vector specifying years to filter for animated maps. If \code{focus_year} is not supplied, all years are included.
 #' @param fps An optional numeric specifying frames per second for animated maps. Default is \code{10}.
+#' @param animate_filename An optional character string specifying the file name used to save the animated map as a GIF. The file name should end with \code{".gif"}. If \code{animate_filename} is not supplied, no GIF is saved on disk.
 #' @param upwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == "Upwind"}.
 #' @param downwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the downwind (second stage) LMM fitting. For example, \code{Gauge.Day.Type \%in\% c("Target","Control")}.
 #' @param downwind_target_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Target"}.
@@ -69,10 +70,10 @@
 #'     Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} and adding elevation contour lines if \code{elev_contour = TRUE} as well as plotting ionizers supplied via \code{ionizer_location_df}, with faceting by year.
 #'     Averaging is performed only over days with positive rainfall for each gauge. Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines when \code{elev_contour = TRUE}.
 #'   }
-#'   \item{`map_dynamic` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{focus_year}, \code{fps})}{
+#'   \item{`map_dynamic` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{focus_year}, \code{fps}, \code{animate_filename})}{
 #'     Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as adding elevation contour lines if \code{elev_contour = TRUE}, and plotting ionizers supplied via \code{ionizer_location_df}.
 #'     The animation frames are displayed in the order of \code{data[,day_column_name]}. Users should ensure that \code{data[,day_column_name]} contains values that can be meaningfully ordered (e.g., numeric or Date), rather than nominal/factor values, so the animation reflects the correct temporal progression.
-#'     Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines when \code{elev_contour = TRUE}.
+#'     Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines when \code{elev_contour = TRUE}. When \code{animate_filename} is supplied, the resulting gif_image of the animated map will be saved to the location specified by \code{animate_filename}.
 #'   }
 #' }
 #'
@@ -81,7 +82,7 @@
 #'   - \code{\link[ggplot2]{ggplot}} objects (\code{"hist_day_group_sizes"}, \code{"qq_rain"}, \code{"ts_by_type"},
 #'     \code{"ts_by_gauge"}, \code{"map_static"})
 #'   - Interactive \code{\link[plotly:plot_ly]{plotly}} object (\code{"ts_by_gauge_interactive"})
-#'   - Animated \code{\link[gganimate:gganimate-package]{gganim}} object (\code{"map_dynamic"})
+#'   - A list consisting of an animated \code{\link[gganimate:gganimate-package]{gganim}} object and its associated gif_image (\code{"map_dynamic"})
 #'
 
 
@@ -93,7 +94,7 @@ eda = function(eda_type,
                longlat_column_names, long_lim, lat_lim, input_sf = NULL,
                ionizer_location_df = NULL, ionizer_id_column_name = NULL, ionizer_longlat_column_names = NULL,
                elev_contour = TRUE, elev_resolution = 2,
-               focus_year = NULL, fps = 10,
+               focus_year = NULL, fps = 10, animate_filename = NULL,
                upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset){
 
   original_args = as.list(match.call())[-1]
@@ -313,7 +314,6 @@ eda = function(eda_type,
       ggplot2::labs(title = downwind_title, x = "Group Size", y = "Frequency") +
       ggplot2::theme_bw()
 
-    print(ggpubr::ggarrange(plotlist = list(p1,p2)))
 
     return(list(
       upwind_positive_hist = p1,
@@ -391,7 +391,6 @@ eda = function(eda_type,
       ggplot2::scale_color_manual(values = c("Target" = "#1f77b4", "Control" = "#ff7f0e")) +
       ggplot2::scale_shape_manual(values = c("Target" = 16, "Control" = 17))
 
-    print(ggpubr::ggarrange(plotlist = list(p1,p2)))
 
     return(list(
       upwind_positive_qq = p1,
@@ -462,7 +461,6 @@ eda = function(eda_type,
       ggplot2::theme(legend.position = "bottom")
 
 
-    print(output_plot)
 
     return(output_plot)
 
@@ -511,7 +509,6 @@ eda = function(eda_type,
     }
 
 
-    print(output_plot)
 
     return(output_plot)
 
@@ -579,7 +576,6 @@ eda = function(eda_type,
 
 
 
-    print(plotly_output)
     return(plotly_output)
   }
 
@@ -763,7 +759,6 @@ eda = function(eda_type,
       )
     }
 
-    print(output_plot)
     return(output_plot)
 
 
@@ -1055,9 +1050,12 @@ eda = function(eda_type,
 
     }
 
+    if(!is.null(animate_filename)){
+      gganimate::anim_save(filename = animate_filename, animation = output_animate)
+    }
 
-    print(output_animate)
-    return(output_plot)
+    return(list(gganim_object = output_plot,
+                gif_image = output_animate))
   }
 
 }

@@ -17,7 +17,6 @@ knitr::opts_chunk$set(
 ```{r setup}
 #library(RainAttr)
 devtools::load_all(".")
-set.seed(123)
 ```
 
 
@@ -43,7 +42,7 @@ The `Gauge.Day.Type` column classifies each observation into one of the followin
 
 We examine the effectiveness of the ionization technology used in the Oman 2013-2018 trial, based on the two-stage linear mixed model (LMM) approach employed in Chambers et al. (2022a). This is achieved by using the main function `rain_attr` from the package:
 
-```{r, width.cutoff=60}
+```{r}
 result = rain_attr(
   #gauge-day level trial data
   data = oman,
@@ -106,7 +105,7 @@ Moreover, a logistic propensity score model is also fitted using `glm(downwind_p
 
 #### Returned object from the main function
 
-The `rain_attr` function returns an object of class `rain_attr`, which can be called to print the main results associated with the attribution and SATEs. Some basic information related to the estimated upwind (first-stage) and downwind (second-stage) models are also printed, such as the number of observations and the estimated fixed effects.
+The `rain_attr` function returns an S3 object of class `rain_attr`, which can be called to print the main results associated with the attribution and SATEs. Some basic information related to the estimated upwind (first-stage) and downwind (second-stage) models are also printed, such as the number of observations and the estimated fixed effects.
 ```{r}
 result
 ```
@@ -116,17 +115,228 @@ The `apo` and `apl` attribution estimates indicate that `r round(result$hatattr$
 The above results also show that all SATE estimates are positive, suggesting a causal effect of ionization technology in increasing downwind rainfall. For exact formulas of the five types of SATE estimates, see `help(rain_attr)`. A detailed comparison is also provided in Chambers et al. (2022b).
 
 
-```{r}
-summary(result)
+
+#### Bootstrap and Permutation Inference
+The `rain_attr` function also allows for bootstrap and permutation inference on the attribution and SATEs, by setting the arguments `bootstrap = TRUE` and `permutation = TRUE`. Additional options for bootstrap and permutation can be set by inputting named lists to the arguments `bootstrap_option` and `permutation_option`, with the default options returned by `bootstrap_opt()` and `permutation_opt()`. For example, `bootstrap_option = bootstrap_opt(B_bootstrap = 500)` and `permutation_option = permutation_opt(B_permutation = 500)` set the number of bootstrap replicates and permutation replicates to be 500.
+
+Here is an example of performing bootstrap and permutation inference, each with 500 replicates:
+```{r, eval=FALSE}
+boot_perm_result = rain_attr(
+  data = oman,
+  upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+  instr_pred_name = 'natural_pred',
+  instr_pred_type = 'Conditional',
+  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  
+  #Formula for fitting a logistic regression model to the indicator of rainfall event (used for bootstrapping of rainfall events when bootstrap_opt(bootstrap_zero) = TRUE)
+  downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
+  
+  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+  rain_col_name = 'Rain.Gauge.Measurement',
+  upwind_subset = Gauge.Day.Type == 'Upwind',
+  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+  downwind_target_subset = Gauge.Day.Type == 'Target',
+  downwind_control_subset = Gauge.Day.Type == 'Control',
+  positive_subset = Rain.Gauge.Measurement > 0,
+  attr_type = 'ThoEtAl',
+  x_downwind_name = c('Gauge.Elevation'),
+  
+  #Indicator for whether to perform bootstrap inference on attribution and SATE
+  bootstrap = TRUE,
+
+  #Specification of various option for bootstrap, e.g., bootstrap_opt(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500, 
+                                   bootstrap_seed = 123, 
+                                   bootstrap_parallel = TRUE,
+                                   bootstrap_parallel_num_worker = 6),
+
+  #Indicator for whether to perform permutation inference on attribution and SATE
+  permutation = TRUE,
+
+  #Specification of various option for permutation,  e.g., whether to permute the operating states between ionizers, between days, between gaugedays
+  permutation_option = permutation_opt(B_permutation = 500,
+                                       permutation_seed = 999,
+                                       permutation_parallel = TRUE,
+                                       permutation_parallel_num_worker = 6)
+  )
 ```
 
 
-### Bootstrap and Permutation Inference
+The S3 object from `rain_attr` contains detailed results for the bootstrap and permutation analyses, which can be extracted nicely using the `summary` method. In particular, if bootstrap and permutation was performed, the `summary` method would return the bootstrap percentile confidence interval, the bootstrap p-value for positive attribution or SATE (proportion of bootstrapped attribution or SATEs that are less than or equal to zero), and permutation p-value (proportion of permuted attribution or SATEs that are greater than or equal to the estimates obtained from the original data):
+```{r, eval=FALSE}
+summary(boot_perm_result)
+```
+
+The bootstrap and permutation results for the attribution suggest that the increase in the raw-scale rainfall attributable to the ionization technology is positive and significant at the 5% significance level. Similarly, the results for the SATE indicate that the causal effect of ionization technology on downwind rainfall is positive and significant at the 5% level. 
+
+We can plot the bootstrap and permutation distributions of the attribution and SATE using the `plot` method, where solid vertical lines represent estimates based on the original data and dotted vertical lines represent zeros:
+```{r, out.width="100%", fig.height= 12, eval=FALSE}
+plot(boot_perm_result)
+```
 
 ## S3 Methods for Objects Returned by rain_attr
+The S3 object returned by the main function `rain_attr` is of class `rain_attr`, which supports a wide range of common S3 methods:
+
+* `coef`: computes the fixed effect coefficients and the EBLUPs of random intercepts if the selected model is a LMM, or the regression coefficients if the selected model is a GLM.
+
+* `print`: Print point estimates of attributions and SATEs, along with additional information for the fitted upwind (first-stage) and downwind (second-stage) LMMs.
+
+* `residuals`: Compute residuals of various types for the selected model.
+
+* `fitted` Compute fitted values of the selected model.
+
+* `varcomp`: Compute the random intercept variance and error variance for the different fitted LMMs.
+
+* `predict`: Computed predictions using the selected model.
+
+* `plot`: Plot the bootstrap and permutation distributions of attribution and SATE estimates. Alternatively, can also be used to obtain model diagnostic plots for the selected model.
+
+* `summary`: Returns a list of summary statistics of the two-stage LMM approach, which is an object of class `summary.rain_attr`. This object can be called to print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values if bootstrap and permutation has been performed.
+
+We provide some example usage of these S3 methods below, noting that most of these S3 methods require the selection of a model through the argument `model`, which must be one of "`upwind_lmm`", "`downwind_lmm`" (default), "`downwind_target_lmm`", "`downwind_control_lmm`", "`downwind_logistic`", or "`downwind_propensity`"
+
+Coefficients of the downwind (second-stage) LMM:
+```{r, eval=FALSE}
+coef(boot_perm_result, model = 'downwind_lmm')$fixef_coef
+head(coef(boot_perm_result, model = 'downwind_lmm')$ranef_coef)
+```
+
+Residuals of the upwind (first-stage) LMM:
+```{r, eval=FALSE}
+head(residuals(boot_perm_result, model = 'upwind_lmm', residual_type = 'response', residual_scaled = T))
+```
+
+Prediction using the downwind (second-stage) LMM, which consists of both the estimated fixed effects and the EBLUP of the random intercept:
+```{r, eval=FALSE}
+#Predicting for these two observations:
+oman[1:2,]
+
+predict(boot_perm_result, newdata = oman[1:2,], model = 'downwind_lmm', re_include = TRUE, fixef_include = TRUE)
+```
+
+Diagnostic plots for downwind (second-stage) LMM:
+```{r, out.width="100%", fig.height= 3, eval=FALSE}
+plot(boot_perm_result, plot_type = 'model', model = 'downwind_lmm')
+
+```
+
+For more details on these S3 methods applicable to the `rain_attr` class object as well as the returned value from the `summary` method, we refer to `help("rain_attr-class")`.
+
+## Exploratory Data Analysis Plotting Function
+The package also provide another function `eda` that performs various exploratory data analyses (EDA) on gauge-day level rainfall enhancement trial data, with the argument `eda_type` controlling the type of EDA:
+
+* `eda_type = num_obs_days`: Compute contigency tables of the number of observations and number of unique days, with rows corresponding to different types of gauge-day observations, and columns corresponding to positive vs. zero rainfall events.
+
+* `eda_type = num_obs_days_by_year`: Same as `eda_type = num_obs_days`, but computed separately for each year.
+
+* `eda_type = hist_day_group_sizes`: Plot histograms of groups sizes for days with positive rainfall using different types of gauge-day observations.
+
+* `eda_type = qq_rain`: Produce Normal Q-Q plots for positive rainfall values (raw or log-transformed) of different types of gauge-day observations.
+
+* `eda_type = ts_by_type`: Plots daily average positive rainfall (raw or log-transformed) by types of gauge-day observations, facetted by year.
+
+* `eda_type = ts_by_gauge`: Plots daily rainfall (raw or log-transformed) time series for each gauge, optionally highlighting a subset of gauges, with faceting by year.
+
+* `eda_type = ts_by_gauge_interactive`: Interactive version of `eda_type = ts_by_gauge` using `plotly`, with points showing gauge identifiers on hover.
+
+* `eda_type = map_static`: Produce a spatial map of annual average positive rainfall (raw or log-transformed). Optional features include overlaying a polygon layer, adding elevation contour lines, and displaying ionizer locations.
+
+* `eda_type = map_dynamic`: Produce an animated map of daily rainfall (raw or log-transformed). The animation can optionally be restricted to a specific year and may include a polygon overlay, elevation contour lines, and ionizer locations.
+
+We provide some example usage of this `eda` function below.
+
+
+Contingency tables of rainfall events against type of gauge-day observations:
+```{r}
+contigency_table = eda(eda_type = "num_obs_days",
+              data = oman,
+              day_column_name = 'TrialDay',
+              upwind_subset = Gauge.Day.Type == 'Upwind',
+              downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+              downwind_target_subset = Gauge.Day.Type == 'Target',
+              downwind_control_subset = Gauge.Day.Type == 'Control',
+              positive_subset = Rain.Gauge.Measurement > 0
+)
+contigency_table
+```
+
+Histogram of group sizes for each trial day with positive rainfall, i.e., the group size of one trial day is defined as the number of gauge-day observations within that day that recorded positive rainfall and satisfied the specific type of gauge-day observation (such as upwind or downwind):
+```{r, out.width="100%"}
+hist_example = eda(eda_type = "hist_day_group_sizes",
+              data = oman,
+              day_column_name = 'TrialDay',
+              upwind_subset = Gauge.Day.Type == 'Upwind',
+              downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+              positive_subset = Rain.Gauge.Measurement > 0
+)
+hist_example
+```
+
+
+Daily rainfall (on log-scale) time series for each gauge, with the gauge at the highest elevation highlighted:
+```{r, out.width="100%"}
+daily_lograin_by_gauge = eda(eda_type = "ts_by_gauge",
+              data = oman,
+              rain_col_name = 'Rain.Gauge.Measurement',
+              day_column_name = 'TrialDay',
+              year_column_name = 'Year',
+              use_raw = FALSE,
+              gauge_id_column_name = 'Gauge.ID',
+              ts_focus_gauge = unique(oman$Gauge.ID[oman$Gauge.Elevation == min(oman$Gauge.Elevation)]))
+daily_lograin_by_gauge
+```
+
+Spatial maps of annual average rainfall (on log scale) facetted by year, with map polygon layer for Oman added using `input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf")`, ionizer locations plotted using `ionizer_location_df = ionizer_location`, and elevation contour lines added using `elev_contour = TRUE`:
+```{r, out.width="100%", fig.height= 6}
+annual_map = eda(eda_type = "map_static",
+              data = oman,
+              rain_col_name = 'Rain.Gauge.Measurement',
+              day_column_name = 'TrialDay',
+              year_column_name = 'Year',
+              use_raw = F,
+              longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
+              long_lim = c(55,60),
+              lat_lim = c(22,25),
+              input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
+              ionizer_location_df = ionizer_location,
+              ionizer_id_column_name = 'Ionizer',
+              ionizer_longlat_column_names = c("Longitude","Latitude"),
+              elev_contour = TRUE,
+              elev_resolution = 2,
+              positive_subset = Rain.Gauge.Measurement > 0
+)
+annual_map
+```
+
+
+```{r, out.width="100%"}
+animated_map = eda(eda_type = "map_dynamic",
+              data = oman,
+              rain_col_name = 'Rain.Gauge.Measurement',
+              day_column_name = 'TrialDay',
+              year_column_name = 'Year',
+              use_raw = F,
+              longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
+              long_lim = c(55,60),
+              lat_lim = c(22,25),
+              input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
+              ionizer_location_df = ionizer_location,
+              ionizer_id_column_name = 'Ionizer',
+              ionizer_longlat_column_names = c("Longitude","Latitude"),
+              elev_contour = TRUE,
+              elev_resolution = 2,
+              focus_year = c(2013),
+              fps = 30
+)
+
+animated_map$gif_image
+```
+
+
+For more details on the `eda` function, we refer to `help(eda)`.
 
 ## Replicating the Analysis of Chambers et al. (2022a)
 
 ## Replicating the Analysis of Chambers et al. (2022b)
 
-## Additional Exploratory Data Analysis Plotting Functions
+

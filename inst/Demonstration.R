@@ -401,7 +401,7 @@ ggpubr::ggarrange(plotlist = testing_perm$permutation_plot_result$hatsate)
 
 #"num_obs_days", "num_obs_days_by_year", "hist_day_group_sizes", "qq_rain", "ts_by_type", "ts_by_gauge", "ts_by_gauge_interactive", "map_static", "map_dynamic"
 
-test_eda =eda(eda_type = "map_static",
+test_eda = eda(eda_type = "ts_by_gauge_interactive",
               data = oman,
               rain_col_name = 'Rain.Gauge.Measurement',
               day_column_name = 'TrialDay',
@@ -427,6 +427,7 @@ test_eda =eda(eda_type = "map_static",
               downwind_control_subset = Gauge.Day.Type == 'Control',
               positive_subset = Rain.Gauge.Measurement > 0
 )
+test_eda
 
 high_gauges = unique(oman$Gauge.ID[oman$Gauge.Elevation > median(oman$Gauge.Elevation)])
 
