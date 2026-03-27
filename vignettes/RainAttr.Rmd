@@ -337,6 +337,440 @@ For more details on the `eda` function, we refer to `help(eda)`.
 
 ## Replicating the Analysis of Chambers et al. (2022a)
 
+The package can be used to replicate the `apl` attribution analysis of Chambers et al. (2022a). published in International Statistical Review, "Nudging a Pseudo-Science Towards a Science - The Role of Statistics in a Rainfall Enhancement Trial in Oman", noting that this paper focused on the `apl` attribution.
+
+
+### Headline Statistical Analysis in Section 5.1
+
+The headline analysis presented in Section 5.1 can be reproduced using the code below. Note that Chambers et al. (2022a) used the unconditional fitted value from upwind (first-stage) model (`instr_pred_type = 'Unconditional'`), estimated the attribution `apl` using their proposed method (`attr_type = 'ChambersEtAl'`), and made use of the REB2 type bootstrap (`bootstrap_opt(bootstrap_type = 'REB2')`). See `help(rain_attr)` and `help(bootstrap_downwind)`  for further details on the `attr_type = 'ChambersEtAl'` attribution estimator and the REB2 type bootstrap, respectively. Moreover, the unconditional fitted value from upwind (first-stage) model is included as a covariate in the RHS of the `downwind_lmm_formula`, instead of an offset term in the LHS of the `downwind_lmm_formula`.
+
+```{r}
+headline = rain_attr(
+  data = oman,
+  upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+  instr_pred_name = 'natural_pred',
+  instr_pred_type = 'Unconditional',
+  downwind_lmm_formula = LogRain  ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
+  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+  rain_col_name = 'Rain.Gauge.Measurement',
+  upwind_subset = Gauge.Day.Type == 'Upwind',
+  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+  downwind_target_subset = Gauge.Day.Type == 'Target',
+  downwind_control_subset = Gauge.Day.Type == 'Control',
+  positive_subset = Rain.Gauge.Measurement > 0,
+  attr_type = 'ChambersEtAl',
+  x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
+  bootstrap = TRUE,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+                                   bootstrap_type = 'REB2',
+                                   bootstrap_seed = 1, 
+                                   bootstrap_parallel = TRUE,
+                                   bootstrap_parallel_num_worker = 6),
+  permutation = TRUE,
+  permutation_option = permutation_opt(B_permutation = 500,
+                                       permutation_seed = 321,
+                                       permutation_parallel = TRUE,
+                                       permutation_parallel_num_worker = 6)
+  )
+```
+
+Table 3 and 4, which are identical to the following summary tables of upwind (first-stage) and downwind (second-stage) LMM, respectively:
+```{r}
+summary(headline)
+```
+Chambers et al (2022a) reported a 95% bootstrap CI for `apl` in Section 5.1 as (10.10%,23.09%), based on 10000 bootstrap replicates, with a bootstrap p-value of less than 0.0001. In addition, they also reported a permutation p-value of 0.0007. Our bootstrap and permutation results for `apl` presented below differ for several reasons:
+
+* The inherent of the bootstrap and permutation procedure, as well as the smaller number of bootstrap and permutation replicates used here (`bootstrap_opt(B_bootstrap = 500)` and `permutation_opt(B_permutation = 500)`) to reduce computational cost
+
+* More importantly, the original implementation of the `apl` estimator in Chambers et al (2022a) contained a coding error, which has been corrected in the present implementation.
+
+```{r}
+summary(headline)$attr_table[2,]
+```
+
+The following plots aim to replicate Figure 7, noting that some differences remain due to the same reasons outlined above.
+```{r, out.width="100%"}
+headline$bootstrap_plot_result$hatattr$apl
+headline$permutation_plot_result$hatattr$apl
+```
+
+### After the Event Statistical Analyses in Section 5.2
+
+The after the event statistical analyses presented in Section 5.2 can also be replicated using the package. In particular, these analyses correspond to the three columns in Table 6: 2013-2018, 2013-2015, 2016-2018. 
+
+In the following, we replicate the parameter estimates and associated t-values for the downwind (second-stage) LMM presented in each column of Table 6, noting that the `apl` attribution estimates (except for the 2016-2018 column) differ due to the aforementioned coding error in the original implementation.
+
+```{r}
+#2013-2018 column
+table6_2013_2018 = rain_attr(
+  data = oman,
+  upwind_lmm_formula = LogRain ~  Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+  instr_pred_name = 'natural_pred',
+  instr_pred_type = 'Unconditional',
+  downwind_lmm_formula = LogRain  ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+  downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02,
+  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+  rain_col_name = 'Rain.Gauge.Measurement',
+  upwind_subset = Gauge.Day.Type == 'Upwind' & Year != 2013,
+  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+  downwind_target_subset = Gauge.Day.Type == 'Target',
+  downwind_control_subset = Gauge.Day.Type == 'Control',
+  positive_subset = Rain.Gauge.Measurement > 0,
+  attr_type = 'ChambersEtAl',
+  x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018' , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
+  bootstrap = TRUE,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+                                   bootstrap_type = 'REB2',
+                                   bootstrap_seed = 11, 
+                                   bootstrap_parallel = TRUE,
+                                   bootstrap_parallel_num_worker = 6),
+  permutation = TRUE,
+  permutation_option = permutation_opt(B_permutation = 500,
+                                       permutation_seed = 3211,
+                                       permutation_parallel = TRUE,
+                                       permutation_parallel_num_worker = 6)
+)
+
+summary(table6_2013_2018)
+```
+
+```{r}
+#2013-2015 column
+table6_2013_2015 = rain_attr(
+  data = oman,
+  upwind_lmm_formula = LogRain ~  Year...2014  + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+  instr_pred_name = 'natural_pred',
+  instr_pred_type = 'Unconditional',
+  downwind_lmm_formula = LogRain  ~ Year...2013 + Year...2014 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06  + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+  downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Year...2013 + Year...2014 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06  + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02,
+  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Year...2013 + Year...2014  + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+  rain_col_name = 'Rain.Gauge.Measurement',
+  upwind_subset = Gauge.Day.Type == 'Upwind' & Year %in% 2014:2015,
+  downwind_subset = Gauge.Day.Type  %in% c('Target','Control') & Year %in% 2013:2015,
+  downwind_target_subset = Gauge.Day.Type == 'Target',
+  downwind_control_subset = Gauge.Day.Type == 'Control',
+  positive_subset = Rain.Gauge.Measurement > 0,
+  attr_type = 'ChambersEtAl',
+  x_downwind_name = c('Year...2013' , 'Year...2014'  , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
+  bootstrap = TRUE,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+                                   bootstrap_type = 'REB2',
+                                   bootstrap_seed = 199, 
+                                   bootstrap_parallel = TRUE,
+                                   bootstrap_parallel_num_worker = 6),
+  permutation = TRUE,
+  permutation_option = permutation_opt(B_permutation = 500,
+                                       permutation_seed = 3210,
+                                       permutation_parallel = TRUE,
+                                       permutation_parallel_num_worker = 6)
+)
+
+summary(table6_2013_2015)
+```
+
+```{r}
+#2016-2018 column
+table6_2016_2018 = rain_attr(
+  data = oman,
+  upwind_lmm_formula = LogRain ~  Year...2016 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+  instr_pred_name = 'natural_pred',
+  instr_pred_type = 'Unconditional',
+  downwind_lmm_formula = LogRain  ~ Year...2016 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06  + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10  + (1|TrialDay),
+  downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Year...2016 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06  + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10,
+  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Year...2016 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+  rain_col_name = 'Rain.Gauge.Measurement',
+  upwind_subset = Gauge.Day.Type == 'Upwind' & Year %in% 2016:2018,
+  downwind_subset = Gauge.Day.Type  %in% c('Target','Control') & Year %in% 2016:2018,
+  downwind_target_subset = Gauge.Day.Type == 'Target',
+  downwind_control_subset = Gauge.Day.Type == 'Control',
+  positive_subset = Rain.Gauge.Measurement > 0,
+  attr_type = 'ChambersEtAl',
+  x_downwind_name = c('Year...2016' , 'Year...2018'  , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
+  bootstrap = TRUE,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+                                   bootstrap_type = 'REB2',
+                                   bootstrap_seed = 91, 
+                                   bootstrap_parallel = TRUE,
+                                   bootstrap_parallel_num_worker = 6),
+  permutation = TRUE,
+  permutation_option = permutation_opt(B_permutation = 500,
+                                       permutation_seed = 9321,
+                                       permutation_parallel = TRUE,
+                                       permutation_parallel_num_worker = 6)
+)
+
+summary(table6_2016_2018)
+```
+
+The following attempts to replicate the "Attribution (%)" row of Table 7, which differs due to the same reasons: inherent randomness of bootstrap, smaller number of bootstrap replicates, and the coding error in the original implementation:
+
+```{r}
+
+rbind(
+  '2013-2018' = 
+    c('Bootstrap Average' = round(mean(table6_2013_2018$bootstrap_result$hatattr[,'apl']) * 100,2),
+  'Bootstrap Std Dev' = round(sd(table6_2013_2018$bootstrap_result$hatattr[,'apl'] * 100),2),
+  'Bootstrap 95% CI' = summary(table6_2013_2018)$attr_table[2,2]),
+  
+  '2013-2015' = c('Bootstrap Average' = round(mean(table6_2013_2015$bootstrap_result$hatattr[,'apl']) * 100,2),
+  'Bootstrap Std Dev' = round(sd(table6_2013_2015$bootstrap_result$hatattr[,'apl'] * 100),2),
+  'Bootstrap 95% CI' = summary(table6_2013_2015)$attr_table[2,2]),
+  
+  '2016-2018' = c('Bootstrap Average' = round(mean(table6_2016_2018$bootstrap_result$hatattr[,'apl']) * 100,2),
+  'Bootstrap Std Dev' = round(sd(table6_2016_2018$bootstrap_result$hatattr[,'apl'] * 100),2),
+  'Bootstrap 95% CI' = summary(table6_2016_2018)$attr_table[2,2])
+)
+```
+
+Finally, the following attempts to replicate Figure 11, containing the bootstrap and permutation distributions of `apl` in both the 2013-2015 and 2013-2018 analyses:
+```{r, out.width="100%"}
+bootstrap_df = rbind(
+  data.frame(
+    apl = table6_2013_2015$bootstrap_result$hatattr[,'apl'],
+    type = '2013-15'
+  ),
+  data.frame(
+    apl = table6_2016_2018$bootstrap_result$hatattr[,'apl'],
+    type = '2016-18'
+  )
+)
+
+permutation_df = rbind(
+  data.frame(
+    apl = table6_2013_2015$permutation_result$hatattr[,'apl'],
+    type = '2013-15'
+  ),
+  data.frame(
+    apl = table6_2016_2018$permutation_result$hatattr[,'apl'],
+    type = '2016-18'
+  )
+)
+
+ori_df = rbind(
+  data.frame(
+    apl = table6_2013_2015$hatattr$apl,
+    type = '2013-15'
+  ),
+  data.frame(
+    apl = table6_2016_2018$hatattr$apl,
+    type = '2016-18'
+  )
+)
+
+fig11_bootstrap = ggplot2::ggplot() +
+      ggplot2::geom_density(data = bootstrap_df, ggplot2::aes(x = apl, linetype = type)) +
+      ggplot2::geom_vline(data = ori_df, ggplot2::aes(xintercept = apl, linetype = type)) +
+      ggplot2::ggtitle('Bootstrap Distribution of Attribution (% Natural Rainfall)') +
+      ggplot2::xlab('Bootstrapped Values') +
+      ggplot2::ylab('Bootstrap Density') +
+      ggplot2::theme_bw() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+
+fig11_permutation = ggplot2::ggplot() +
+      ggplot2::geom_density(data = permutation_df, ggplot2::aes(x = apl, linetype = type)) +
+      ggplot2::geom_vline(data = ori_df, ggplot2::aes(xintercept = apl, linetype = type)) +
+      ggplot2::ggtitle('Permutation Distribution of Attribution (% Natural Rainfall)') +
+      ggplot2::xlab('Permuted Values') +
+      ggplot2::ylab('Permutation Density') +
+      ggplot2::theme_bw() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+
+ggpubr::ggarrange(fig11_bootstrap, fig11_permutation, nrow = 1, common.legend = T, legend = 'bottom')
+
+```
+
 ## Replicating the Analysis of Chambers et al. (2022b)
 
+The package can also be used to replicate the SATE analysis of Chambers et al. (2022b). published in Journal of the Royal Statistical Society Series A (Statistics in Society), "Weighting, informativeness and causal
+inference, with an application to rainfall enhancement".
+
+In particular, the real data analysis presented in Section 5 can be reproduced using the code below.
+```{r}
+jrssa = rain_attr(
+  data = oman,
+  upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+  instr_pred_name = 'natural_pred',
+  instr_pred_type = 'Unconditional',
+  downwind_lmm_formula = LogRain ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+  downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02,
+  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+  rain_col_name = 'Rain.Gauge.Measurement',
+  upwind_subset = Gauge.Day.Type == 'Upwind' & Year!= 2013,
+  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+  downwind_target_subset = Gauge.Day.Type == 'Target',
+  downwind_control_subset = Gauge.Day.Type == 'Control',
+  positive_subset = Rain.Gauge.Measurement > 0,
+  attr_type = 'ThoEtAl',
+  x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
+  target_only = FALSE,
+  bootstrap = TRUE,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+                                   bootstrap_type = 'REB2',
+                                   bootstrap_seed = 191,
+                                   bootstrap_parallel = TRUE,
+                                   bootstrap_parallel_num_worker = 6),
+  permutation = TRUE,
+  permutation_option = permutation_opt(B_permutation = 500,
+                                       permutation_seed = 19321,
+                                       permutation_parallel = TRUE,
+                                       permutation_parallel_num_worker = 6)
+  )
+```
+
+Table 1 is identical to:
+```{r}
+summary(jrssa$all_fitted_models$downwind_propensity_fit)
+```
+
+Table 2 is identical to the summary table of the downwind (second-stage) LMM:
+```{r}
+summary(jrssa)
+```
+
+Table 3 is identical to the 
+```{r}
+downwind_varcomp = varcomp(jrssa)['downwind_lmm',]
+
+cbind(
+  'Var comp' = downwind_varcomp, 
+  'Pct of total' = downwind_varcomp/sum(downwind_varcomp) * 100
+)
+
+```
+Table 4 is identical to
+```{r}
+#Target model
+summary(jrssa$all_fitted_models$downwind_positive_target_lmm_fit)$coef
+
+#Control model
+summary(jrssa$all_fitted_models$downwind_positive_control_lmm_fit)$coef
+```
+
+
+Table 5 is identical to:
+```{r}
+downwind_target_varcomp = varcomp(jrssa)['downwind_target_lmm',]
+downwind_control_varcomp = varcomp(jrssa)['downwind_control_lmm',]
+
+#Target model
+cbind(
+  'Var comp' = downwind_target_varcomp, 
+  'Pct of total' = downwind_target_varcomp/sum(downwind_target_varcomp) * 100
+)
+
+#Control model
+cbind(
+  'Var comp' = downwind_control_varcomp, 
+  'Pct of total' = downwind_control_varcomp/sum(downwind_control_varcomp) * 100
+)
+```
+The following attempts to replicate the lower panel of Table 6 corresponding to `LogRain`. Firstly, the point estimate of SATEs in the first row are exactly the same as those in Table 6, except for AIPW due to the presence of a coding error in the original implemention which has now been corrected in this package. The remaining rows are close to, but not exactly the same as, those in Table 6 due to the inherent randomness of the bootstrap procedure and a smaller number of bootstrap replicates used here (`bootstrap_opt(B_bootstrap = 500)`) to reduce computational time.
+
+```{r}
+table6_jrssa_lograin = rbind(
+  c(jrssa$hatsate$sate.ipw, jrssa$hatsate$sate.ipw.ma, jrssa$hatsate$sate.aipw, jrssa$hatsate$sate.ipw.l, jrssa$hatsate$sate.mb),
+  apply(jrssa$bootstrap_result$hatsate[,c('sate.ipw','sate.ipw.ma','sate.aipw','sate.ipw.l','sate.mb')], 2, function(x){
+  c(sd(x), mean(x < 0), quantile(x, probs = c(0.001, 0.005, 0.025, 0.5, 0.975, 0.995, 0.999)) )
+})
+)
+
+rownames(table6_jrssa_lograin) = c('Estimate', 'Std Dev' , 'Pr < 0', '0.1%', '0.5%', '2.5%', '50%', '97.5%', '99.5%', '99.9%')
+colnames(table6_jrssa_lograin) = c('IPW', 'IPW-MA', 'AIPW', 'IPW-L', 'MB')
+
+table6_jrssa_lograin
+```
+
+
+
+The following attempts to replicate the plot associated with `LogRain` in Figure 5:
+```{r, out.width="100%"}
+bootstrap_df_jrssa = rbind(
+  data.frame(
+    sate = jrssa$bootstrap_result$hatsate[,'sate.ipw'],
+    type = 'IPW'
+  ),
+  data.frame(
+    sate = jrssa$bootstrap_result$hatsate[,'sate.ipw.ma'],
+    type = 'IPW-MA'
+  ),
+  data.frame(
+    sate = jrssa$bootstrap_result$hatsate[,'sate.ipw.l'],
+    type = 'IPW-L'
+  )
+)
+
+ori_df_jrssa = rbind(
+  data.frame(
+    sate = jrssa$hatsate$sate.ipw,
+    type = 'IPW'
+  ),
+  data.frame(
+    sate = jrssa$hatsate$sate.ipw.ma,
+    type = 'IPW-MA'
+  ),
+  data.frame(
+    sate = jrssa$hatsate$sate.ipw.l,
+    type = 'IPW-L'
+  )
+)
+
+fig5_jrssa_lograin = ggplot2::ggplot() +
+      ggplot2::geom_density(data = bootstrap_df_jrssa, ggplot2::aes(x = sate, linetype = type)) +
+      ggplot2::geom_vline(data = ori_df_jrssa, ggplot2::aes(xintercept = sate, linetype = type)) +
+      ggplot2::ggtitle('Bootstrap Distribution of SATE') +
+      ggplot2::xlab('Bootstrapped Values') +
+      ggplot2::ylab('Bootstrap Density') +
+      ggplot2::theme_bw() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5), legend.position = 'bottom')
+
+fig5_jrssa_lograin
+```
+
+The following attempts to replicate Table 7, with some differences due to the inherent randomness of permutation procedure and the smaller number of permutation replicates (`permutation_opt(B_permutation = 500)`), as well as a coding error in the original implementation of the AIPW estimator which has been corrected in this package:
+```{r}
+table7_jrssa_lograin = jrssa$permutation_p_value_result$hatsate[c('sate.ipw','sate.ipw.ma','sate.aipw','sate.ipw.l','sate.mb')]
+names(table7_jrssa_lograin) = c('IPW', 'IPW-MA', 'AIPW', 'IPW-L', 'MB')
+table7_jrssa_lograin
+
+```
+The following attempts to replicate the plot associated with `LogRain` in Figure 6:
+```{r, out.width="100%"}
+permutation_df_jrssa = rbind(
+  data.frame(
+    sate = jrssa$permutation_result$hatsate[,'sate.ipw'],
+    type = 'IPW'
+  ),
+  data.frame(
+    sate = jrssa$permutation_result$hatsate[,'sate.ipw.ma'],
+    type = 'IPW-MA'
+  ),
+  data.frame(
+    sate = jrssa$permutation_result$hatsate[,'sate.ipw.l'],
+    type = 'IPW-L'
+  )
+)
+
+ori_df_jrssa = rbind(
+  data.frame(
+    sate = jrssa$hatsate$sate.ipw,
+    type = 'IPW'
+  ),
+  data.frame(
+    sate = jrssa$hatsate$sate.ipw.ma,
+    type = 'IPW-MA'
+  ),
+  data.frame(
+    sate = jrssa$hatsate$sate.ipw.l,
+    type = 'IPW-L'
+  )
+)
+
+fig6_jrssa_lograin = ggplot2::ggplot() +
+      ggplot2::geom_density(data = permutation_df_jrssa, ggplot2::aes(x = sate, linetype = type)) +
+      ggplot2::geom_vline(data = ori_df_jrssa, ggplot2::aes(xintercept = sate, linetype = type)) +
+      ggplot2::ggtitle('Permutation Distribution of SATE') +
+      ggplot2::xlab('Permuted Values') +
+      ggplot2::ylab('Permutation Density') +
+      ggplot2::theme_bw() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5), legend.position = 'bottom')
+
+fig6_jrssa_lograin
+```
 
