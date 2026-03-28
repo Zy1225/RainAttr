@@ -9,9 +9,8 @@ permutation_ionizer(
   permute_between_ionizer,
   permute_all_ionizers_between_day,
   permute_between_gaugeday,
-  ionizer_operation,
-  gaugeday_downwind,
-  year_ionizer_list,
+  ionizer_operation_input,
+  gaugeday_downwind_input,
   data_target_column_names,
   ionizer_operation_year_column_name,
   ionizer_operation_day_column_name,
@@ -40,27 +39,24 @@ permutation_ionizer(
 \item{permute_between_gaugeday}{Logical. If \code{TRUE}, for each year, a random permutation is performed among the gauge-day level operation schedule of all gauge-days within that year.
 (User-configurable permutation option using \code{\link{permutation_option}})}
 
-\item{ionizer_operation}{A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on and 0 indicates that it is off or not deployed yet.
+\item{ionizer_operation_input}{A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on, 0 indicates that it is off and NA indicates that it is not deployed yet.
 Additionally, this data frame must include two columns with names specified by \code{ionizer_operation_day_column_name} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
 Each day must appear only once in this data frame (no duplicated day entries).
-The ionizer columns must appear in the same order as specified by \code{data_target_column_names} and must be consistent with the column order in \code{gaugeday_downwind}.
+The ionizer columns must appear in the same order as specified by \code{data_target_column_names} and must be consistent with the column order in \code{gaugeday_downwind_input}.
 (User-supplied using \code{\link{permutation_option}})}
 
-\item{gaugeday_downwind}{A binary matrix indicating which gauge-day observations (row) are downwind of which ionizers (column), where 1 indicates that the gauge is downwind of the ionizer on that day, and 0 indicates that the gauge is not downwind of the ionizer or the ionizer has not been deployed yet.
-The row order of this matrix must match that of \code{data}. The column order must correspond to the ionizer columns in \code{ionizer_operation} (excluding the day and year columns) and be in the same order as specified by \code{data_target_column_names}.
-(User-supplied using \code{\link{permutation_option}})}
-
-\item{year_ionizer_list}{A named list, where each element corresponds to a year and contains the names of deployed ionizers in that year.
+\item{gaugeday_downwind_input}{A binary matrix indicating which gauge-day observations (row) are downwind of which ionizers (column), where 1 indicates that the gauge is downwind of the ionizer on that day, 0 indicates that the gauge is not downwind of the ionizer, and NA indicates that the ionizer has not been deployed yet.
+The row order of this matrix must match that of \code{data}. The column order must correspond to the ionizer columns in \code{ionizer_operation_input} (excluding the day and year columns) and be in the same order as specified by \code{data_target_column_names}.
 (User-supplied using \code{\link{permutation_option}})}
 
 \item{data_target_column_names}{A character vector specifying the column names of \code{data} corresponding to the binary target indicators used in the downwind (second stage) LMM fitting.
-The order of names in this vector must match the column order of the corresponding ionizers in \code{ionizer_operation} (excluding the day and year columns) and in \code{gaugeday_downwind}.
+The order of names in this vector must match the column order of the corresponding ionizers in \code{ionizer_operation_input} (excluding the day and year columns) and in \code{gaugeday_downwind_input}.
 (User-configurable permutation option using \code{\link{permutation_option}})}
 
-\item{ionizer_operation_year_column_name}{A character string specifying the column name of \code{ionizer_operation} containing the year of each day.
+\item{ionizer_operation_year_column_name}{A character string specifying the column name of \code{ionizer_operation_input} containing the year of each day.
 (User-configurable permutation option using \code{\link{permutation_option}})}
 
-\item{ionizer_operation_day_column_name}{A character string specifying the column name of \code{ionizer_operation} containing the day of each observation. The same column name should also be found in \code{data}.
+\item{ionizer_operation_day_column_name}{A character string specifying the column name of \code{ionizer_operation_input} containing the day of each observation. The same column name should also be found in \code{data}.
 (User-configurable permutation option using \code{\link{permutation_option}})}
 
 \item{permutation_seed}{An integer specifying the random seed for the permutation-based procedure. Reproducibility is guaranteed only if \code{permutation_parallel} is the same, since parallel execution changes the order of random number generation.
@@ -74,7 +70,7 @@ The order of names in this vector must match the column order of the correspondi
 
 \item{data}{A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 Its column names should contain \code{data_target_column_names} (binary target indicators) and \code{ionizer_operation_day_column_name} (day).
-The row order of this data frame must match that of \code{gaugeday_downwind}.
+The row order of this data frame must match that of \code{gaugeday_downwind_input}.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{downwind_lmm_formula}{A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
@@ -112,29 +108,28 @@ Instead, permutation-based inference should be performed by calling \code{\link{
 
 To perform permutation-based procedure, additional information need to be supplied through the following arguments of \code{\link{permutation_option}}:
 \describe{
-\item{\code{year_ionizer_list}}{Timing of deployment of ionizers over the years.}
-\item{\code{ionizer_operation}}{Day(group)-level ionizers operation schedule during the rainfall enhancement trial.}
-\item{{gaugeday_downwind}}{Gauge-day(unit within group)-level information on relative orientation of gauges from ionizers each day.}
+\item{\code{ionizer_operation_input}}{Day(group)-level ionizers operation schedule during the rainfall enhancement trial.}
+\item{{gaugeday_downwind_input}}{Gauge-day(unit within group)-level information on relative orientation of gauges from ionizers each day.}
 }
 
 \strong{Permutation Steps} \cr
 The permutation-based procedure considers to randomly permute ionizers' operation statuses via:
 \enumerate{
-\item{If \code{permute_between_ionizer = TRUE}, for each row of the day-level \code{ionizer_operation} matrix, a random permutation is performed among the binary indicators in the row that correspond to ionizers that have already been deployed during the year of the row.
+\item{If \code{permute_between_ionizer = TRUE}, for each row of the day-level \code{ionizer_operation_input} matrix, a random permutation is performed among the binary indicators in the row that correspond to ionizers that have already been deployed during the year of the row.
 This is equivalent to randomly permuting the operation statuses of deployed ionizers for each day. }
-\item{If \code{permute_all_ionizers_between_day = TRUE}, for each year, a random permutation is performed among all rows belonging to the year in the day-level \code{ionizer_operation} matrix.
+\item{If \code{permute_all_ionizers_between_day = TRUE}, for each year, a random permutation is performed among all rows belonging to the year in the day-level \code{ionizer_operation_input} matrix.
 This is equivalent to randomly permuting the daily operation schedules of all trial days belonging to each year.  }
-\item{The permuted day-level \code{ionizer_operation} are then expanded into a gauge-day level binary ionizers' operation indicator matrix, to match the gauge-day level \code{data}. }
+\item{The permuted day-level \code{ionizer_operation_input} are then expanded into a gauge-day level binary ionizers' operation indicator matrix, to match the gauge-day level \code{data}. }
 \item{If \code{permute_between_gaugeday = TRUE}, for each year, a random permutation is performed among all rows belonging to the year in the gauge-day level binary ionizers' operation indicator matrix.
 This is equivalent to randomly permuting the gauge-day level operation schedules of all gauge-days belonging to each year. }
 }
 
 The above three optional permutation steps are performed in sequence, resulting in a final permuted gauge-day level binary ionizers' operation indicator matrix.
-An elementwise multiplication is carried out between this matrix and \code{gaugeday_downwind}, and the results are used to replace the original columns (\code{data_target_column_names}) in \code{data} that contain the binary target indicators used in the downwind (second stage) LMM fitting.
+An elementwise multiplication is carried out between this matrix and \code{gaugeday_downwind_input}, and the results are used to replace the original columns (\code{data_target_column_names}) in \code{data} that contain the binary target indicators used in the downwind (second stage) LMM fitting, where NAs (for cases where the ionizer has not been deployed yet) are replaced by zeros.
 Therefore, it is important to ensure that
 \itemize{
-\item{The row order of \code{gaugeday_downwind} and \code{data} is consistent.}
-\item{The column orders of \code{gaugeday_downwind} and \code{ionizer_operation} is consistent, and matches the order specified by \code{data_target_column_names}.}
+\item{The row order of \code{gaugeday_downwind_input} and \code{data} is consistent.}
+\item{The column orders of \code{gaugeday_downwind_input} and \code{ionizer_operation_input} is consistent, and matches the order specified by \code{data_target_column_names}.}
 }
 Based on these permuted binary target indicators, the original binary indicators \eqn{I_{ij}} for exposure to ionizers (treatment) are also updated to be their permuted counterparts \eqn{I_{ij}^*}, where \eqn{I_{ij}^*} only equals zero if all permuted binary target indicators in its corresponding row equal zero.
 

@@ -119,8 +119,11 @@ The above results also show that all SATE estimates are positive, suggesting a c
 #### Bootstrap and Permutation Inference
 The `rain_attr` function also allows for bootstrap and permutation inference on the attribution and SATEs, by setting the arguments `bootstrap = TRUE` and `permutation = TRUE`. Additional options for bootstrap and permutation can be set by inputting named lists to the arguments `bootstrap_option` and `permutation_option`, with the default options returned by `bootstrap_opt()` and `permutation_opt()`. For example, `bootstrap_option = bootstrap_opt(B_bootstrap = 500)` and `permutation_option = permutation_opt(B_permutation = 500)` set the number of bootstrap replicates and permutation replicates to be 500.
 
-Here is an example of performing bootstrap and permutation inference, each with 500 replicates:
-```{r, eval=FALSE}
+A useful feature of the package for implementing bootstrap and permutation analyses is the option for **parallelization**, which allows users to reduce computation time by running replicates in parallel using the `parallel` package. This can be enabled by setting `bootstrap_opt(bootstrap_parallel = TRUE, bootstrap_parallel_num_worker = 4)` and `permutation_opt(permutation_parallel = TRUE, permutation_parallel_num_worker = 4)`, which will distributee the bootstrap and permutation runs across four workers. 
+
+Here is an example of performing bootstrap and permutation inference, each with 500 replicates parallelized over six workers:
+```{r}
+start_time = Sys.time()
 boot_perm_result = rain_attr(
   data = oman,
   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
@@ -159,18 +162,22 @@ boot_perm_result = rain_attr(
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
   )
+end_time = Sys.time()
+
+#Total computation time
+end_time - start_time
 ```
 
 
 The S3 object from `rain_attr` contains detailed results for the bootstrap and permutation analyses, which can be extracted nicely using the `summary` method. In particular, if bootstrap and permutation was performed, the `summary` method would return the bootstrap percentile confidence interval, the bootstrap p-value for positive attribution or SATE (proportion of bootstrapped attribution or SATEs that are less than or equal to zero), and permutation p-value (proportion of permuted attribution or SATEs that are greater than or equal to the estimates obtained from the original data):
-```{r, eval=FALSE}
+```{r}
 summary(boot_perm_result)
 ```
 
 The bootstrap and permutation results for the attribution suggest that the increase in the raw-scale rainfall attributable to the ionization technology is positive and significant at the 5% significance level. Similarly, the results for the SATE indicate that the causal effect of ionization technology on downwind rainfall is positive and significant at the 5% level. 
 
 We can plot the bootstrap and permutation distributions of the attribution and SATE using the `plot` method, where solid vertical lines represent estimates based on the original data and dotted vertical lines represent zeros:
-```{r, out.width="100%", fig.height= 12, eval=FALSE}
+```{r, out.width="100%", fig.height= 12}
 plot(boot_perm_result)
 ```
 
@@ -196,18 +203,18 @@ The S3 object returned by the main function `rain_attr` is of class `rain_attr`,
 We provide some example usage of these S3 methods below, noting that most of these S3 methods require the selection of a model through the argument `model`, which must be one of "`upwind_lmm`", "`downwind_lmm`" (default), "`downwind_target_lmm`", "`downwind_control_lmm`", "`downwind_logistic`", or "`downwind_propensity`"
 
 Coefficients of the downwind (second-stage) LMM:
-```{r, eval=FALSE}
+```{r}
 coef(boot_perm_result, model = 'downwind_lmm')$fixef_coef
 head(coef(boot_perm_result, model = 'downwind_lmm')$ranef_coef)
 ```
 
 Residuals of the upwind (first-stage) LMM:
-```{r, eval=FALSE}
+```{r}
 head(residuals(boot_perm_result, model = 'upwind_lmm', residual_type = 'response', residual_scaled = T))
 ```
 
 Prediction using the downwind (second-stage) LMM, which consists of both the estimated fixed effects and the EBLUP of the random intercept:
-```{r, eval=FALSE}
+```{r}
 #Predicting for these two observations:
 oman[1:2,]
 
@@ -215,7 +222,7 @@ predict(boot_perm_result, newdata = oman[1:2,], model = 'downwind_lmm', re_inclu
 ```
 
 Diagnostic plots for downwind (second-stage) LMM:
-```{r, out.width="100%", fig.height= 3, eval=FALSE}
+```{r, out.width="100%", fig.height= 3}
 plot(boot_perm_result, plot_type = 'model', model = 'downwind_lmm')
 
 ```

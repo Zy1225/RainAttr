@@ -2,7 +2,7 @@
 #' Oman Rainfall Enhancement Trial Dataset
 #'
 #' @description
-#' This dataset contains gauge-day observations from the 2013-2018 Oman rainfall enhancement trial, which was used in the analysis of Chambers et al. (2022a,b).
+#' This dataset contains gauge-day observations from the 2013--2018 Oman rainfall enhancement trial, which was used in the analyses of Chambers et al. (2022a,b).
 #'
 #'
 #' @format A data frame with 122259 rows (gauge-day observations) and 55 variables:
@@ -20,7 +20,7 @@
 #'    \item{Positive.Rainfall}{Observed rainfall for rainfall events; NA if no rainfall occurred}
 #'    \item{LogRain}{Log-transformed rainfall for rainfall events; NA if no rainfall occurred}
 #'    \item{Rainfall.Measurement.Status}{Character variable indicating the gauge’s location relative to deployed ionizers based on the day’s wind direction, with possible values: "Upwind", "Downwind", "Out of Scope"}
-#'    \item{Target.H.0*}{Binary indicator variables showing whether the gauge is downwind of the ionizer and the ionizer is turned on on that day (1 = yes, 0 = no)}
+#'    \item{Target.H.**}{Binary indicator variables showing whether the gauge is downwind of the ionizer and the ionizer has been deployed and turned on on that day (1 = yes, 0 = no)}
 #'    \item{Gauge.Day.Type}{Character variable that further classifies "Downwind" observations
 #'      - "Target" – downwind of at least one active ionizer (i.e., at least one of Target.H.01 -- Target.H.10 = 1)
 #'      - "Control" – downwind of all inactive ionizers (i.e., all Target.H.01 -- Target.H.10 = 0)

@@ -11,11 +11,6 @@ permutation_opt(
   permute_between_gaugeday = T,
   ionizer_operation_input = ionizer_operation,
   gaugeday_downwind_input = gaugeday_downwind,
-  year_ionizer_list = list(`2013` = c("H1", "H2"), `2014` = c("H1", "H2", "H3", "H4"),
-    `2015` = c("H1", "H2", "H3", "H4", "H5", "H6"), `2016` = c("H1", "H2", "H3", "H4",
-    "H5", "H6", "H7", "H8"), `2017` = c("H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8",
-    "H9", "H10"), `2018` = c("H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8", "H9",
-    "H10")),
   data_target_column_names = c("Target.H.01", "Target.H.02", "Target.H.03",
     "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08",
     "Target.H.09", "Target.H.10"),
@@ -35,16 +30,13 @@ permutation_opt(
 
 \item{permute_between_gaugeday}{Logical. If \code{TRUE}, for each year, a random permutation is performed among the gauge-day level operation schedule of all gauge-days within that year. Default is \code{TRUE}.}
 
-\item{ionizer_operation_input}{A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on and 0 indicates that it is off or not deployed yet.
+\item{ionizer_operation_input}{A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on, 0 indicates that it is off, and NA indicates that it is not deployed yet.
 Additionally, this data frame must include two columns with names specified by \code{ionizer_operation_day_column_name} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
 Each day must appear only once in this data frame (no duplicated day entries).
 The ionizer columns must appear in the same order as specified by \code{data_target_column_names} and must be consistent with the column order in \code{gaugeday_downwind_input}. Default is \code{ionizer_operation}.}
 
-\item{gaugeday_downwind_input}{A binary matrix indicating which gauge-day observations (row) are downwind of which ionizers (column), where 1 indicates that the gauge is downwind of the ionizer on that day, and 0 indicates that the gauge is not downwind of the ionizer or the ionizer has not been deployed yet.
+\item{gaugeday_downwind_input}{A binary matrix indicating which gauge-day observations (row) are downwind of which ionizers (column), where 1 indicates that the gauge is downwind of the ionizer on that day, 0 indicates that the gauge is not downwind of the ionizer, and NA indicates that the ionizer has not been deployed yet.
 The row order of this matrix must match that of the original dataset supplied to \code{\link{rain_attr}}. The column order must correspond to the ionizer columns in \code{ionizer_operation_input} (excluding the day and year columns) and be in the same order as specified by \code{data_target_column_names}. Default is \code{gaugeday_downwind}.}
-
-\item{year_ionizer_list}{A named list, where each element corresponds to a year and contains the names of deployed ionizers in that year. Default is:
-\code{list('2013' = c('H1','H2'), '2014' = c('H1','H2','H3','H4'), '2015' = c('H1','H2','H3','H4','H5','H6'), '2016' = c('H1','H2','H3','H4','H5','H6','H7','H8'), '2017' = c('H1','H2','H3','H4','H5','H6','H7','H8','H9','H10'), '2018' = c('H1','H2','H3','H4','H5','H6','H7','H8','H9','H10'))}.}
 
 \item{data_target_column_names}{A character vector specifying the column names of the original dataset supplied to \code{\link{rain_attr}}, corresponding to the binary target indicators used in the downwind (second stage) LMM fitting.
 The order of names in this vector must match the column order of the corresponding ionizers in \code{ionizer_operation_input} (excluding the day and year columns) and in \code{gaugeday_downwind_input}. Default is:

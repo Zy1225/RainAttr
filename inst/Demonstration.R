@@ -269,16 +269,6 @@ testing_perm = rain_attr(
     ionizer_operation_input = ionizer_operation,
     # A matrix containing gauge-day (row) level information on whether each gauge is downwind of an ionizer (column) on a particular day
     gaugeday_downwind_input = gaugeday_downwind,
-    # A list supplying information on deployed ionizers for each year
-    year_ionizer_list =
-      list(
-        '2013' = c('H1','H2'),
-        '2014' = c('H1','H2','H3','H4'),
-        '2015' = c('H1','H2','H3','H4','H5','H6'),
-        '2016' = c('H1','H2','H3','H4','H5','H6','H7','H8'),
-        '2017' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10'),
-        '2018' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10')
-      ),
     # Vector of column names in the supplied data, that corresponds to each ionizer's target indicator
     data_target_column_names = c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10"),
     # Column name in ionizer_operation_input capturing year information
@@ -358,16 +348,6 @@ test  = rain_attr(
     ionizer_operation_input = ionizer_operation,
     # A matrix containing gauge-day (row) level information on whether each gauge is downwind of an ionizer (column) on a particular day
     gaugeday_downwind_input = gaugeday_downwind,
-    # A list supplying information on deployed ionizers for each year
-    year_ionizer_list =
-      list(
-        '2013' = c('H1','H2'),
-        '2014' = c('H1','H2','H3','H4'),
-        '2015' = c('H1','H2','H3','H4','H5','H6'),
-        '2016' = c('H1','H2','H3','H4','H5','H6','H7','H8'),
-        '2017' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10'),
-        '2018' = c('H1','H2','H3','H4','H5','H6','H7','H8', 'H9', 'H10')
-      ),
     # Vector of column names in the supplied data, that corresponds to each ionizer's target indicator
     data_target_column_names = c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10"),
     # Column name in ionizer_operation_input capturing year information
