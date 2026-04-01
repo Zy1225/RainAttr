@@ -1094,3 +1094,6 @@ gganimate::animate(
 
 #TODO: Do a full-scale replication of previous permutation analysis, bootstrap analysis in Bootstrap paper, and previous bootstrap analysis (involving bootstrap_zero) to verify the correctness of all functions
 
+#Bootstrap function can follow similar attribute_bootstrap() in D:\Postdoc\Simulation\Replicate ISR Results\Bootstrap Analysis with generate_zero_T and scaled_h_sampling and Correct Scaling REB1 using Oman Data.R
+#as well as D:\Postdoc\Bootstrap Paper\R Codes\Functions_realdata.R
+#Also look at Overleaf/Rainfall Enhancement/Ray's implementation.tex

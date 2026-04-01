@@ -238,8 +238,8 @@
 
 
 #TODO: Consider to add another variation of 'PREB2' and 'REB2' for adjusting downwind_lmm_fit's fixef as well as random effects, and plug these corrected estimates to compute hatattr and hatsate, rather than directly centering hatattr and hatsate
-#TODO: Consider to not having to refit downwind_propernsity_formula in every bootstrap run if bootstrap_zero = FALSE, since they should be exactly the same when bootstrap_zero = FALSE
 #TODO: Think if we really need to save the bootstrapped LogRain for each bootstrap run, as this would be a LARGE object when B_bootstrap is large since it is of dimension B_bootstrap x num_downwind (43276)
+
 bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_individual_rain, individual_rain_interval, winsorize_total_rain, total_rain_interval,
                               bootstrap_seed, bootstrap_parallel, bootstrap_parallel_num_worker,
                               ori_data, downwind, ori_positive, rain_col_name, downwind_target_expr, downwind_control_expr, ori_fitted_models,
@@ -323,7 +323,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     final.hat.e = hat.e.s
   }
 
-  #
+
   if(bootstrap_type %in% c('REB0','REB1','REB2','MREB1')){
     cluster_sample_prob = rep(1/ori_D_groups, ori_D_groups)
   }
@@ -366,7 +366,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
   z_downwind_name = setdiff(names(lme4::fixef(ori_fitted_models$downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
   downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
 
-  #browser()
+
   if(!bootstrap_parallel){
     if(!is.null(bootstrap_seed)){
       set.seed(bootstrap_seed)
@@ -376,7 +376,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
         if(bootstrap_zero){
           b_downwind_positive = (runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
-          b_downwind_logistic_fit = glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, data = ori_data[downwind,], family = 'binomial')
+          b_downwind_logistic_fit = glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, family = 'binomial')
           bootstrap_downwind_logistic_param_matrix[b,] = coef(b_downwind_logistic_fit)
         }else{
           b_downwind_positive = ori_positive[downwind]
@@ -399,7 +399,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
         b_u = sample(x = final.hat.u,  size= b_D_groups, replace=T)
 
-        #browser()
+
 
         for(h in 1:b_D_groups){
           target.units = (1:b_num_downwind_positive)[b_downwind_positive_group == b_downwind_positive_group_label[h] ]
@@ -499,9 +499,8 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
         bootstrap_downwind_LogRain_matrix[b, !b_downwind_positive] = NA
 
 
-        # b_downwind_positive_target = b_downwind_positive_data$Gauge.Day.Type == 'Target'
-        # b_downwind_positive_control = b_downwind_positive_data$Gauge.Day.Type == 'Control'
-        #browser()
+
+
         b_downwind_positive_target = rlang::eval_tidy(downwind_target_expr, data = b_downwind_positive_data)
         b_downwind_positive_control = rlang::eval_tidy(downwind_control_expr, data = b_downwind_positive_data)
 
@@ -523,8 +522,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
                                                                      as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])
 
 
-        #TODO: try to save tor and tlr as well, to understand why the bootstrap plots for apo and apl are always the same shape
-        #Maybe can also go back and look at previous plots to see if we always have same shape for apo and apl
+
         bootstrap_attr_matrix[b,] = c(b_hatattr$apo, b_hatattr$apl)
         bootstrap_sate_matrix[b,] = c(b_hatsate$estimates$sate.mb, b_hatsate$estimates$sate.ipw, b_hatsate$estimates$sate.ipw.l, b_hatsate$estimates$sate.ipw.ma, b_hatsate$estimates$sate.aipw)
 
@@ -554,7 +552,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     results = foreach::foreach(b = 1:B_bootstrap, .packages = c("lme4","rlang","formula.tools"), .errorhandling = 'remove') %dopar% {
       if(bootstrap_zero){
         b_downwind_positive = (runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
-        b_downwind_logistic_fit = glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, data = ori_data[downwind,], family = 'binomial')
+        b_downwind_logistic_fit = glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, family = 'binomial')
         downwind_logistic_param_b = coef(b_downwind_logistic_fit)
       }else{
         b_downwind_positive = ori_positive[downwind]
@@ -662,8 +660,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
                                                 as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])
 
 
-      #TODO: try to save tor and tlr as well, to understand why the bootstrap plots for apo and apl are always the same shape
-      #Maybe can also go back and look at previous plots to see if we always have same shape for apo and apl
+
       attr_b = c(b_hatattr$apo, b_hatattr$apl)
       sate_b = c(b_hatsate$estimates$sate.mb, b_hatsate$estimates$sate.ipw, b_hatsate$estimates$sate.ipw.l, b_hatsate$estimates$sate.ipw.ma, b_hatsate$estimates$sate.aipw)
 
@@ -711,7 +708,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
   }
 
 
-  #browser()
+
 
   if(bootstrap_type %in% c('REB2','PREB2')){
 
@@ -800,7 +797,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
   }
 }
 
-#
+
 adjust_bootstrap_var_components = function(bootstrapped_var_components){
   if(ncol(bootstrapped_var_components)!= 2){
     stop('There should be only 2 columns in bootstrapped_var_components corresponding to the variance components of cluster and residuals')
@@ -899,7 +896,7 @@ bootstrap_opt = function(B_bootstrap = 10000,
   ))
 }
 
-#
+
 bootstrap_p_value = function(bootstrap_result){
   if(is.null(bootstrap_result)){
     return(NULL)

@@ -309,7 +309,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   fitted_models = fit_upwind_downwind_models(data, upwind_lmm_formula, instr_pred_name, instr_pred_type, downwind_lmm_formula, downwind_logistic_formula, upwind, downwind, positive)
 
   downwind_positive_data = fitted_models$data[downwind & positive, ]
-  #Compute Point Estimates for Attribution - using ChambersEtAl or ChambersEtAl_No_Winsorize or ThoEtAl Estimates
+  #Compute Point Estimates for Attribution - using ChambersEtAl or ChambersEtAl_No_Winsorize or ThoEtAl or No Estimates
   hatattr = attr_est(attr_type, downwind_positive_data, rain_col_name, downwind_positive_target, downwind_positive_control,
                      x_downwind_name, target_only = target_only, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
@@ -322,13 +322,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   hatsate = sate_est(downwind_positive_data, downwind_positive_target, downwind_positive_control, downwind_propensity_formula, downwind_separate_formula,
                      x_downwind_name, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
-  #Perform Bootstrap Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() and glm() directly instead of using fit_upwind_downwind_models() in each bootstrap run
-  #Bootstrap function can follow similar attribute_bootstrap() in D:\Postdoc\Simulation\Replicate ISR Results\Bootstrap Analysis with generate_zero_T and scaled_h_sampling and Correct Scaling REB1 using Oman Data.R
-  #as well as D:\Postdoc\Bootstrap Paper\R Codes\Functions_realdata.R
-  #Also look at Overleaf/Rainfall Enhancement/Ray's implementation.tex
 
-  #Bootstrap function should allow for the choice of bootstrap_type (REB0/1/2, PREB0/1/2, MREB-1), as well as whether or not to bootstrap zero.
-  #When bootstrap_zero = T, need to check Ray's original code and my implementation of MQ bootstrap to see how we get bootstrap distribution of SATE - more specifically, did we refit the propensity logistic model for each bootstrap dataset?
+
 
   all_fitted_models = list(
     upwind_lmm_fit = fitted_models$upwind_lmm_fit,
@@ -339,7 +334,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     downwind_positive_control_lmm_fit = hatsate$fitted_models$downwind_positive_control_lmm_fit
   )
 
-  #For bootstrapping, need to be careful when we are using instr_pred as offset - the generation of y_b data should be different in this case, if not, maybe need to keep in mind we are modelling LogRain - natural_pred
+  #Perform Bootstrap Inference
+
   if(bootstrap){
     bootstrap_result = bootstrap_downwind(B_bootstrap = bootstrap_option$B_bootstrap,
                                           bootstrap_type = bootstrap_option$bootstrap_type,
@@ -384,7 +380,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 
 
 
-  #Perform Permutation Inference on the attribution estimates (could use parallelization) - maybe directly use lme4::lmer() directly instead of using fit_upwind_downwind_models() in each permutation run
+  #Perform Permutation Inference
 
   if(permutation){
     permutation_result = permutation_ionizer(B_permutation = permutation_option$B_permutation,
@@ -432,9 +428,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     permutation_result = permutation_result,
     permutation_p_value_result = permutation_p_value_result,
     permutation_plot_result = permutation_plot_result,
-    args = original_args,
-    #temporary - will be removed later sicne we dont need to return data. Currently included for debugging purposes
-    data = fitted_models$data
+    args = original_args
   )
 
   class(output) = "rain_attr"
@@ -443,15 +437,15 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 }
 
 
-#Note that hatu should be for downwind positive (i,t) regardless of target_only
-#Optional input arguments: hatalphabeta, hatu
-#Note that for attr_type == 'ThoEtAl', the hatSigma_beta matrix is ALWAYS obtained from downwind_lmm_fit
-#When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{conditional}
-
 
 
 attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_positive_target, downwind_positive_control,
                     x_downwind_name, target_only, downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL){
+  #Note that hatu should be for downwind positive (i,t) regardless of target_only
+  #Optional input arguments: hatalphabeta, hatu - these are only placeholders for now, which would be useful in the future if we want to develop alternative variant of REB2/PREB2 that considers mean-correcting variance components and hatalphabeta, before plugging them into the attribution estimate formula
+  #Note that for attr_type == 'ThoEtAl', the hatSigma_beta matrix is ALWAYS obtained from downwind_lmm_fit
+  #When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{hat{q}_i}
+
   if(target_only){
     downwind_positive_useful_row = downwind_positive_target
   }else{
@@ -493,7 +487,6 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
       }
     }
 
-    # log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row])
 
     #compute log_hatd = z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
     log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
@@ -503,6 +496,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
 
     #compute mu = (1/n) * sum of  (y_{i't'} / haty_{i't'}^naive ), where the sum is across PDR (i,t) or PDR Target (i,t), and n is the number of PDR (i,t) or PDR Target (i,t)  observation.
     mu = mean( y_vec / exp(log_haty_naive) )
+
 
     #compute m = Var{(1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t} / Var{z_it %*% hatbeta}, where the Var is across PDR (i,t) or PDR Target (i,t).
     m = (var(log_hatw))/var(log_hatd)
@@ -544,7 +538,6 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
       }
     }
 
-    # log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row])
 
     #compute log_hatd = z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
     log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
@@ -639,13 +632,11 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
 
 
 
-#DONE: verified the sate_est() below, by having the same exact SATE estimates as 'Different Variations of 2SLMM on Log Rainfall.R', as well as same reported SATE estimates in Table 6 of JRSSA paper corresponding to LogRain as response.
-
-#Compute different types of SATE estimate in Chambers et al. (2022)
-#When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{conditional}
-#Note that when the instr_pred or natural_pred is used as an offset term, the sate.ipw is computed using LogRain - natural_pred, instead of LogRain only
 sate_est = function(downwind_positive_data, downwind_positive_target, downwind_positive_control, downwind_propensity_formula, downwind_separate_formula,
                     x_downwind_name, downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL){
+  #Compute different types of SATE estimate in Chambers et al. (2022)
+  #When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{hat{q}_i}
+  #Note that when the instr_pred or natural_pred is used as an offset term, the sate.ipw is computed using LogRain - natural_pred, instead of LogRain only
 
   downwind_propensity_fit = glm(downwind_propensity_formula, family = binomial, data = downwind_positive_data)
   hatpi = predict(downwind_propensity_fit, type = "response")
@@ -671,15 +662,7 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
   sate.ipw = sum( hatw_1 * as.numeric(downwind_propensity_fit$y) * lme4::getME(downwind_lmm_fit, 'y')  ) - sum( hatw_0 * ( 1- as.numeric(downwind_propensity_fit$y)) * lme4::getME(downwind_lmm_fit, 'y'  ) )
   sate.ipw.l = sum( hatw_1 * as.numeric(downwind_propensity_fit$y) * as.vector(z_mat %*% hatbeta_downwind)  )
 
-  # #Checking relationship between IPW-L and IPW in eq(4) of JRSSA - the expression is correct
-  # r.vec = lme4::getME(downwind_lmm_fit, 'y')  - as.vector(z_mat %*% hatbeta_downwind)
-  # sate.ipw.l.check1 = sate.ipw - (  sum(hatw_1 *as.numeric(downwind_propensity_fit$y) * r.vec ) - sum(hatw_0 * (1 - as.numeric(downwind_propensity_fit$y)) * r.vec ) )
-  # sate.ipw.l - sate.ipw.l.check1
-  #
-  # r.vec2 = lme4::getME(downwind_lmm_fit, 'y')  - as.vector(z_mat %*% hatbeta_downwind) *as.numeric(downwind_propensity_fit$y)
-  # sate.ipw.l.check2 = sate.ipw - (  sum(hatw_1 *as.numeric(downwind_propensity_fit$y) * r.vec2 ) - sum(hatw_0 * (1 - as.numeric(downwind_propensity_fit$y)) * r.vec2 ) )
-  # sate.ipw.l - sate.ipw.l.check2
-  # browser()
+
 
   #Fit separate LMM to downwind_positive_target and downwind_positive_control
   downwind_positive_target_lmm_fit = lme4::lmer(downwind_separate_formula, data = downwind_positive_data[downwind_positive_target,])
@@ -689,38 +672,8 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
   sate.ipw.ma = mean(hatm_1) - mean(hatm_0) + sum(hatw_1 * as.numeric(downwind_propensity_fit$y) * (lme4::getME(downwind_lmm_fit, 'y') - hatm_1)  ) - sum( hatw_0 * (1 - as.numeric(downwind_propensity_fit$y) ) * (lme4::getME(downwind_lmm_fit, 'y'  ) - hatm_0)  )
 
   #TODO: Need to check when this function is used to compute estimated sate.aipw within each bootstrap run and we are using natural_pred as offset term, should we still follow the equation (7) in JRSSA paper,
-  #where we replace y_i with (LogRain_i - natural_pred_i) which is captured by lme4::getME(downwind_lmm_fit, 'y') ) below that returns the response of b_downwind_lmm_fit i.e., Lograin_i^* - natural_pred_i
+  #i.e., we replace y_i with (LogRain_i - natural_pred_i) which is captured by lme4::getME(downwind_lmm_fit, 'y') ) below that returns the response of b_downwind_lmm_fit i.e., Lograin_i^* - natural_pred_i
   sate.aipw = sum( hatw_1 * ( ( as.numeric(downwind_propensity_fit$y) * lme4::getME(downwind_lmm_fit, 'y') ) - ( (as.numeric(downwind_propensity_fit$y) - hatpi ) * hatm_1   )  )  ) - sum( hatw_0 * ( ( (1 - as.numeric(downwind_propensity_fit$y)) *  lme4::getME(downwind_lmm_fit, 'y'  )  ) -  ( (as.numeric(downwind_propensity_fit$y) - hatpi ) * hatm_0   )   )   )
-
-  # #Checking the equation below eq(7) of JRSSA
-  # check = sate.aipw - sate.ipw.ma
-  # #This expression provided in the equation below eq(7) of JRSSA paper is probably incorrect
-  check2 = sum( hatm_1 * ( 1/(sum( (1/hatpi) *as.numeric(downwind_propensity_fit$y)  ) ) - 1/ nrow(downwind_positive_data)   ) ) -  sum(hatm_0 * ( 1/( sum( (1/(1-hatpi)) * (1 - as.numeric(downwind_propensity_fit$y) )  ) ) - 1/ nrow(downwind_positive_data)  ) )
-  # #This expression is the correct expression - see its derivation in iPad's 'Relationship between AIPW and IPW-MA'
-  # check3 = sum( hatm_1 * ( 1/(sum( (1/hatpi) *as.numeric(downwind_propensity_fit$y)  ) ) - 1/nrow(downwind_positive_data)   ) ) -  sum(hatm_0 * ( (1/( 1 - hatpi  )) * (hatpi - 2* as.numeric(downwind_propensity_fit$y) + 1 ) /( sum( (1/(1-hatpi)) * (1 - as.numeric(downwind_propensity_fit$y))  ) )  - 1/nrow(downwind_positive_data)  ) )
-  # check3 - check
-  # check2 - check
-  wrong.sate.aipw = sate.ipw.ma + check2
-
-
-  # #Checking expression below eq(9) of JRSSA
-  # alternative_hatm_0 = lme4::getME(downwind_lmm_fit, 'y') - as.vector(z_mat %*% hatbeta_downwind) * as.numeric(downwind_propensity_fit$y)
-  # #alternative_hatm_1 = lme4::getME(downwind_lmm_fit, 'y') + as.vector(z_mat %*% hatbeta_downwind) * (1-as.numeric(downwind_propensity_fit$y))
-  # alternative_sate.ipw.ma = mean(alternative_hatm_1) - mean(alternative_hatm_0) + sum(hatw_1 * as.numeric(downwind_propensity_fit$y) * (lme4::getME(downwind_lmm_fit, 'y') - alternative_hatm_1)  ) - sum( hatw_0 * (1 - as.numeric(downwind_propensity_fit$y) ) * (lme4::getME(downwind_lmm_fit, 'y'  ) - alternative_hatm_0)  )
-  # # The expression below eq(9) of JRSSA is incorrect
-  # alternative_sate.ipw.ma - sate.mb
-  # # This is because alternative_sate.ipw.ma is equal to sum_{i=1}^{n} \hat{lambda}_i I_i / n, instead of sum_{i=1}^{n} \hat{lambda}_i I_i / sum_{i=1}^{n} I_i - see its derivation in Ipad's 'Relationship between IPW-MA and MB'
-  # alternative_sate.ipw.ma - mean(as.vector(z_mat %*% hatbeta_downwind))
-
-
-  #Checking eq(10) of JRSSA - can't really check since it involves y_{0i} which is unobserved
-  # x_mat = x_z_mat[,which(colnames(x_z_mat) %in%  c('(Intercept)',x_downwind_name) )]
-  # hate = lme4::getME(downwind_lmm_fit, 'y') - as.numeric(downwind_propensity_fit$y)*as.vector(z_mat %*% hatbeta_downwind) - as.vector(x_mat %*% hatalpha_downwind)
-  # haty_0 = as.vector(x_mat %*% hatalpha_downwind) + hate
-  # #This expression is incorrect since we dont really have y_{01}, so we are incorrectly using y_i here
-  # R_0 = lme4::getME(downwind_lmm_fit, 'y') - haty_0
-  # eq10 = sum(hatw_1 * as.numeric(downwind_propensity_fit$y) * as.vector(z_mat %*% hatbeta_downwind) ) - sum( hatw_1 *  R_0) - sum( hatw_0 * (1 - as.numeric(downwind_propensity_fit$y)) * R_0 )
-  # alternative_sate.ipw.l = sum( hatw_1 * as.numeric(downwind_propensity_fit$y) * lme4::getME(downwind_lmm_fit, 'y') ) - sum(hatw_0 * (1-as.numeric(downwind_propensity_fit$y)) * lme4::getME(downwind_lmm_fit, 'y')) - sum(hatw_1 * haty_0) + sum(hatw_0 * (1-as.numeric(downwind_propensity_fit$y)) * haty_0)
 
 
   return(list(
@@ -728,8 +681,7 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
                      sate.ipw = sate.ipw,
                      sate.ipw.l = sate.ipw.l,
                      sate.ipw.ma = sate.ipw.ma,
-                     sate.aipw = sate.aipw,
-                     wrong.sate.aipw = wrong.sate.aipw),
+                     sate.aipw = sate.aipw),
     fitted_models = list(
       downwind_propensity_fit = downwind_propensity_fit,
       downwind_positive_target_lmm_fit = downwind_positive_target_lmm_fit,
@@ -738,9 +690,10 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
   ))
 }
 
-#data is the full data
-#optional input arguments: downwind_logistic_formula
+
 fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type, downwind_lmm_formula, downwind_logistic_formula = NULL, upwind, downwind, positive){
+  #data is the full data
+
   upwind_lmm_fit = lme4::lmer(upwind_lmm_formula, data = data[upwind & positive,])
 
   if(!instr_pred_type %in% c('Unconditional','Conditional')){
@@ -769,9 +722,13 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 }
 
 
-# Note that this function requires downwind_lmm_formula to not use the interaction syntax such as x1*x2, but instead it should always use x1 + x2 + x1:x2
-#Function to remove some variables from a given formula - this is used to obtain the formula for fitting separate LMM to downwind_positive_target and downwind_positive_control
+
 remove_fixed_terms <- function(input_formula, vars_to_remove){
+  #Function to remove some variables from a given formula - this is used to obtain the formula for fitting separate LMM to downwind_positive_target and downwind_positive_control
+
+  # Note that this function requires downwind_lmm_formula to not use the interaction syntax such as x1*x2, but instead it should always use x1 + x2 + x1:x2
+
+
   # Flatten input_formula to a single string
   rhs_str = paste(deparse(formula.tools::rhs(input_formula)), collapse = "")
   rhs_terms = trimws(unlist(strsplit(rhs_str,'\\+')))

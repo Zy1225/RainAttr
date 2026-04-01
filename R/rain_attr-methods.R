@@ -169,7 +169,7 @@ residuals.rain_attr <- function(object, model = "downwind_lmm",
 
   selected_model <- model_map[[model]]
 
-  #
+
   if (inherits(selected_model, "merMod")) {
     if (is.null(residual_type)) residual_type <- "response"  # Default for LMM
     valid_types <- c("working", "response", "deviance", "pearson")
@@ -225,7 +225,7 @@ varcomp.rain_attr <- function(object, ...) {
     downwind_control_lmm = object$all_fitted_models$downwind_positive_control_lmm_fit
   )
 
-  #
+
   res_mat <- matrix(NA, nrow = 4, ncol = 2)
   rownames(res_mat) <- names(lmm_list)
 
@@ -301,7 +301,6 @@ predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
 #' @rdname rain_attr-class
 #' @export
 
-#TODO: Think if we want to modify the qqplot for glm to be a half normal qqplot, or we need to at least add a note to be careful when viewing the residual plots of glm since these residuals are not required to be normal
 plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plot_quantity = c("attr", "sate"),
                           model = 'downwind_lmm', residual_type = NULL, residual_scaled = TRUE,
                           re_include = TRUE, fixef_include = TRUE, allow.new.levels = FALSE, predict_type = "link",
@@ -570,15 +569,7 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
 #' @export
 #'
 
-#TODO: Consider to remove bootstrap p-value and bootstrap CI, and permutation p-value computation from rain_attr() and only include it into summary()
-#ANS: Maybe not, since 1. we are not having all bootstrap results in the summary object, such as those for downwind logistic etc. Also, 2. the bootstrap results stored in rain_attr() object is better for directly extracting the lower/upper quantile of bootstrap CI rather than combined into a string (lower,upper) in summary object
 
-
-#TODO: Think if we want to add the summary results for downwind_logistic, downwind_propensity, downwind_treatment_lmm, downwind_control_lmm
-#ANS: Maybe not, since our focus is not really on these models, and these models results can be recovered from rain_attr output anyway.
-
-#TODO: Think if we want to add the bootstrap CI results for the fixef effect and variance components of downwind_lmm
-#ANS: Maybe not, since the focus of bootstrap inference is for attribution but not the parameters of downwind_lmm, and also that the bootstrap CI is conditional on upwind model and might involve resampling of rainfall event indicators so could be confusing when compared to the original estimate/std error reported by lme4
 summary.rain_attr <- function(object, ...) {
   # Extract data name
   data_name <- deparse(object$args$data)
@@ -725,8 +716,7 @@ print.summary.rain_attr <- function(summary_object, ...) {
 
   # Attribution Results Table
   cat("Attribution Results (Assuming Log-Rainfall being Modelled):\n")
-  # print(summary_object$attr_table)
-  # cat("\n")
+
 
   attr_tbl = summary_object$attr_table
 
@@ -741,7 +731,6 @@ print.summary.rain_attr <- function(summary_object, ...) {
 
   # SATE Results Table
   cat("SATE Results:\n")
-  # print(summary_object$sate_table)
 
   sate_tbl <- summary_object$sate_table
   pval_cols <- grep("P-Val", colnames(sate_tbl))

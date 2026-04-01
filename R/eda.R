@@ -526,7 +526,6 @@ eda = function(eda_type,
 
 
 
-    #browser()
     if(!is.null(ts_focus_gauge)){
       data[,gauge_id_column_name] <- factor(data[,gauge_id_column_name])
       output_plot = ggplot2::ggplot(data, ggplot2::aes(x = .data[[day_column_name]],

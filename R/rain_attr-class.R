@@ -20,8 +20,8 @@
 #'  \item{\code{downwind_propensity}}{Downwind (second stage) propensity score model for the treatment indicator.}
 #' }
 #'
-#' The object also includes attribution estimates, SATE, and results from bootstrap and permutation-based procedures if \code{bootstrap = TRUE}
-#' or \code{permutation = TRUE} were specified in the original call.
+#' The object also includes attribution estimates, SATE, results from bootstrap and permutation-based procedures if \code{bootstrap = TRUE}
+#' or \code{permutation = TRUE} were specified in the original \code{\link{rain_attr}} call, and the specified arguments in the original call.
 #'
 #' @section S3 Methods:
 #' \describe{

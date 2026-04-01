@@ -199,28 +199,6 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
         }
 
 
-        # perm_ionizer_operation_yearlist = ionizer_operation_yearlist
-        # if(permute_between_ionizer){
-        #   for(i in 1:length(perm_ionizer_operation_yearlist)){
-        #     deployed_ionizers = year_ionizer_list[[names(perm_ionizer_operation_yearlist)[i]]]
-        #     perm_ionizer_operation_yearlist[[i]] = t(apply(perm_ionizer_operation_yearlist[[i]], 1, function(x){
-        #       x[colnames(x) %in% deployed_ionizers] = sample(x[colnames(x) %in% deployed_ionizers])
-        #       return(x)
-        #     }))
-        #   }
-        # }
-        #
-        # if(permute_all_ionizers_between_day){
-        #   for(i in 1:length(perm_ionizer_operation_yearlist)){
-        #     perm_ionizer_operation_yearlist[[i]] = perm_ionizer_operation_yearlist[[i]][sample(1:nrow(perm_ionizer_operation_yearlist[[i]])),]
-        #   }
-        # }
-        #
-        # perm_ionizer_operation_day = ionizer_operation_input
-        # for(i in 1:length(year_ionizer_list)){
-        #   perm_ionizer_operation_day[perm_ionizer_operation_day[,ionizer_operation_year_column_name] == names(year_ionizer_list)[i], -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name) )  ] = perm_ionizer_operation_yearlist[[i]]
-        # }
-
         perm_ionizer_operation_gaugeday = dplyr::left_join(perm_data[, ionizer_operation_day_column_name, drop = FALSE], perm_ionizer_operation_day, by = ionizer_operation_day_column_name)
 
         if(permute_between_gaugeday){
@@ -235,7 +213,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 
         perm_data[,data_target_column_names][is.na(perm_data[,data_target_column_names])] = 0
 
-        #Refit downwind LMM to permuted data, and then compute hatattr and hatsate, noting we need to becareful with the definition of downwind_positive_target, downwind_positive_control, and downwind_propensity_
+        #Refit downwind LMM to permuted data, and then compute hatattr and hatsate, noting we need to be careful with the definition of downwind_positive_target, downwind_positive_control, and downwind_propensity_formula
         perm_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = perm_data[downwind & positive,])
 
         perm_downwind_positive_data = perm_data[downwind & positive,]
@@ -303,27 +281,6 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
       }
 
 
-      # perm_ionizer_operation_yearlist = ionizer_operation_yearlist
-      # if(permute_between_ionizer){
-      #   for(i in 1:length(perm_ionizer_operation_yearlist)){
-      #     deployed_ionizers = year_ionizer_list[[names(perm_ionizer_operation_yearlist)[i]]]
-      #     perm_ionizer_operation_yearlist[[i]] = t(apply(perm_ionizer_operation_yearlist[[i]], 1, function(x){
-      #       x[colnames(x) %in% deployed_ionizers] = sample(x[colnames(x) %in% deployed_ionizers])
-      #       return(x)
-      #     }))
-      #   }
-      # }
-      #
-      # if(permute_all_ionizers_between_day){
-      #   for(i in 1:length(perm_ionizer_operation_yearlist)){
-      #     perm_ionizer_operation_yearlist[[i]] = perm_ionizer_operation_yearlist[[i]][sample(1:nrow(perm_ionizer_operation_yearlist[[i]])),]
-      #   }
-      # }
-      #
-      # perm_ionizer_operation_day = ionizer_operation_input
-      # for(i in 1:length(year_ionizer_list)){
-      #   perm_ionizer_operation_day[perm_ionizer_operation_day[,ionizer_operation_year_column_name] == names(year_ionizer_list)[i], -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name) )  ] = perm_ionizer_operation_yearlist[[i]]
-      # }
 
       perm_ionizer_operation_gaugeday = dplyr::left_join(perm_data[, ionizer_operation_day_column_name, drop = FALSE], perm_ionizer_operation_day, by = ionizer_operation_day_column_name)
 
@@ -339,7 +296,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 
       perm_data[,data_target_column_names][is.na(perm_data[,data_target_column_names])] = 0
 
-      #Refit downwind LMM to permuted data, and then compute hatattr and hatsate, noting we need to becareful with the definition of downwind_positive_target, downwind_positive_control, and downwind_propensity_
+      #Refit downwind LMM to permuted data, and then compute hatattr and hatsate, noting we need to becareful with the definition of downwind_positive_target, downwind_positive_control, and downwind_propensity_formula
       perm_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = perm_data[downwind & positive,])
 
       perm_downwind_positive_data = perm_data[downwind & positive,]
