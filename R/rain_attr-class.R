@@ -1,6 +1,3 @@
-#TODO: Modify the following documentation to match what is actually being done
-#TODO: Continue adding description of each @param
-
 #' @title Class "rain_attr" of Two-Stage LMM Fitted to Rainfall Enhancement Trial Data
 #' @description
 #' Objects of class `rain_attr` represent results from the two-stage LMM-based
