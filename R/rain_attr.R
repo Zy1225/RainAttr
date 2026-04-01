@@ -115,7 +115,7 @@
 #' It should also contain variables named in \code{rain_col_name}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, and \code{downwind_control_subset}.
 #' @param upwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the upwind (first stage) LMM.
 #' @param instr_pred_name A character string to store the variable name of the fitted values generated from the upwind (first stage) LMM.
-#' @param instr_pred_type Type of fitted values generated from the upwind (first stage) LMM.. If "Unconditional" the fitted values equal to only the estimated fixed effects. If "Conditional" the fitted values equal to the sum of estimated fixed effects and EBLUPs of random intercepts.
+#' @param instr_pred_type Type of fitted values generated from the upwind (first stage) LMM. If "Unconditional" the fitted values equal to only the estimated fixed effects. If "Conditional" the fitted values equal to the sum of estimated fixed effects and EBLUPs of random intercepts.
 #' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM. This formula should contain the variable name specified in \code{instr_pred_name}.
 #' @param downwind_logistic_formula An optional two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a logistic model to the indicators of rainfall event. This only needs to be specified when \code{bootstrap = TRUE} and \code{bootstrap_option$bootstrap_zero = TRUE}.
 #' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
@@ -127,7 +127,7 @@
 #' @param positive_subset A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall - these are the observations that are used in the fitting of upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, and the downwind (second stage) propensity score model.
 #' @param attr_type An optional character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"} (default), or \code{"No"}. See "Details" for more information.
 #' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
-#' @param target_only An optional logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
+#' @param target_only An optional logical. If \code{TRUE} the attribution estimates are computed based on only treated observations. If \code{FALSE} the attribution estimates are computed based on both treated and control observations.
 #' @param bootstrap An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.
 #' @param bootstrap_option An optional list containing all bootstrap settings, used only when \code{bootstrap = TRUE}. See \code{\link{bootstrap_option}} for the default list elements and their usage.
 #' @param permutation An optional logical, If \code{TRUE} randomized permutation is carried out on the ionizer operation (treatment) schedule to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no randomized permutation is carried out.
@@ -173,6 +173,7 @@
 #' }
 #'
 #' \item{args}{A list of the original function arguments.}
+#' \item{data}{A data frame containing the original supplied \code{data}, with an additional column containing the fitted values generated from the upwind (first stage) LMM.}
 #'
 #'}
 #'
@@ -428,7 +429,8 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     permutation_result = permutation_result,
     permutation_p_value_result = permutation_p_value_result,
     permutation_plot_result = permutation_plot_result,
-    args = original_args
+    args = original_args,
+    data = fitted_models$data
   )
 
   class(output) = "rain_attr"

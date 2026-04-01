@@ -1,6 +1,7 @@
 ---
 title: "Introduction to RainAttr"
 output: rmarkdown::html_vignette
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Introduction to RainAttr}
   %\VignetteEngine{knitr::rmarkdown}
@@ -36,11 +37,11 @@ The `Gauge.Day.Type` column classifies each observation into one of the followin
 * Out of Scope: gauges that are neither upwind, target, nor control
 
 
-### Example 
+### Example - Attribution and SATE Estimation and Inference using Oman Data
 
-#### Using the main function  
+#### rain_attr() - Main Function
 
-We examine the effectiveness of the ionization technology used in the Oman 2013-2018 trial, based on the two-stage linear mixed model (LMM) approach employed in Chambers et al. (2022a). This is achieved by using the main function `rain_attr` from the package:
+We examine the effectiveness of the ionization technology used in the Oman 2013-2018 trial, based on the two-stage linear mixed model (LMM) approach employed in @chambers2022a. This is achieved by using the main function `rain_attr` from the package:
 
 ```{r}
 result = rain_attr(
@@ -101,9 +102,16 @@ The estimated LMM model parameters are then used to calculate attribution and SA
 
 Moreover, a logistic propensity score model is also fitted using `glm(downwind_propensity_formula, family = "binomial")` to `data[downwind_subset & positive_subset,]` with the response being the binary indicator for whether each observation is exposed to the ionizer (i.e., a target observation). This fitted model, along with the arguments specified via `downwind_target_subset` and `downwind_control_subset`, facilitate the estimation of SATEs.
 
+While different options can be specified via the arguments of `rain_attr()`, the above example illustrates our recommended options:
+
+* `instr_pred_type = 'Conditional'`: uses the conditional fitted values from the upwind (first-stage) LMM
+* `downwind_lmm_formula = LogRain - natural_pred ~ ...`: incorporates the conditional fitted values as an offset term
+* `attr_type = 'ThoEtAl'`: attribution estimation is based on an adjustment proposed by @tho2026 to account for the back-transformation bias arising from the modelling of log-transformed rainfall
+* `target_only = FALSE` (the default option, and hence not explicitly specified above): attribution estimates are computed using both treated (exposed to operating ionizers) and control (not exposed) observations.
 
 
-#### Returned object from the main function
+
+#### Object Returned by rain_attr()
 
 The `rain_attr` function returns an S3 object of class `rain_attr`, which can be called to print the main results associated with the attribution and SATEs. Some basic information related to the estimated upwind (first-stage) and downwind (second-stage) models are also printed, such as the number of observations and the estimated fixed effects.
 ```{r}
@@ -112,7 +120,7 @@ result
 
 The `apo` and `apl` attribution estimates indicate that `r round(result$hatattr$apo * 100,2)`% and `r round(result$hatattr$apl * 100,2)`% increase in raw-scale downwind rainfall are attributable to the operation of the ionizers, expressed as a percentage of the total observed rainfall and the total natural rainfall, respectively. We note that attribution estimates are only meaningful when log-rainfall is modeled in both stages, which is typically the case since raw-scale rainfall is often heavily right-skewed, whereas log-rainfall better satisfies the normality assumptions of LMMs.
 
-The above results also show that all SATE estimates are positive, suggesting a causal effect of ionization technology in increasing downwind rainfall. For exact formulas of the five types of SATE estimates, see `help(rain_attr)`. A detailed comparison is also provided in Chambers et al. (2022b).
+The above results also show that all SATE estimates are positive, suggesting a causal effect of ionization technology in increasing downwind rainfall. For exact formulas of the five types of SATE estimates, see `help(rain_attr)`. A detailed comparison is also provided in @chambers2022b.
 
 
 
@@ -168,6 +176,8 @@ end_time = Sys.time()
 end_time - start_time
 ```
 
+In the above example, we use the default PREB1 bootstrap proposed by @tho2025; hence, it is not necessary to explicitly specify `bootstrap_opt(bootstrap_type = "PREB1")`. This bootstrap is a generalization of the REB bootstraps by @chambers2013 and can accommodate clustered data with either balanced or unbalanced cluster sizes. Accordingly, PREB1 is our recommended choice, particularly when the Oman trial dataset exhibits highly unbalanced cluster sizes.
+
 
 The S3 object from `rain_attr` contains detailed results for the bootstrap and permutation analyses, which can be extracted nicely using the `summary` method. In particular, if bootstrap and permutation was performed, the `summary` method would return the bootstrap percentile confidence interval, the bootstrap p-value for positive attribution or SATE (proportion of bootstrapped attribution or SATEs that are less than or equal to zero), and permutation p-value (proportion of permuted attribution or SATEs that are greater than or equal to the estimates obtained from the original data):
 ```{r}
@@ -181,7 +191,7 @@ We can plot the bootstrap and permutation distributions of the attribution and S
 plot(boot_perm_result)
 ```
 
-## S3 Methods for Objects Returned by rain_attr
+#### S3 Methods for Objects Returned by rain_attr()
 The S3 object returned by the main function `rain_attr` is of class `rain_attr`, which supports a wide range of common S3 methods:
 
 * `coef`: computes the fixed effect coefficients and the EBLUPs of random intercepts if the selected model is a LMM, or the regression coefficients if the selected model is a GLM.
@@ -229,7 +239,7 @@ plot(boot_perm_result, plot_type = 'model', model = 'downwind_lmm')
 
 For more details on these S3 methods applicable to the `rain_attr` class object as well as the returned value from the `summary` method, we refer to `help("rain_attr-class")`.
 
-## Exploratory Data Analysis Plotting Function
+### eda() - Exploratory Data Analysis Plotting Function 
 The package also provide another function `eda` that performs various exploratory data analyses (EDA) on gauge-day level rainfall enhancement trial data, with the argument `eda_type` controlling the type of EDA:
 
 * `eda_type = num_obs_days`: Compute contigency tables of the number of observations and number of unique days, with rows corresponding to different types of gauge-day observations, and columns corresponding to positive vs. zero rainfall events.
@@ -342,14 +352,14 @@ animated_map$gif_image
 
 For more details on the `eda` function, we refer to `help(eda)`.
 
-## Replicating the Analysis of Chambers et al. (2022a)
+### Replicating the Attribution Analysis of @chambers2022a
 
-The package can be used to replicate the `apl` attribution analysis of Chambers et al. (2022a). published in International Statistical Review, "Nudging a Pseudo-Science Towards a Science - The Role of Statistics in a Rainfall Enhancement Trial in Oman", noting that this paper focused on the `apl` attribution.
+The package can be used to replicate the `apl` attribution analysis of @chambers2022a, published in International Statistical Review, "Nudging a Pseudo-Science Towards a Science - The Role of Statistics in a Rainfall Enhancement Trial in Oman", noting that this paper focused on the `apl` attribution.
 
 
-### Headline Statistical Analysis in Section 5.1
+#### Headline Statistical Analysis in Section 5.1
 
-The headline analysis presented in Section 5.1 can be reproduced using the code below. Note that Chambers et al. (2022a) used the unconditional fitted value from upwind (first-stage) model (`instr_pred_type = 'Unconditional'`), estimated the attribution `apl` using their proposed method (`attr_type = 'ChambersEtAl'`), and made use of the REB2 type bootstrap (`bootstrap_opt(bootstrap_type = 'REB2')`). See `help(rain_attr)` and `help(bootstrap_downwind)`  for further details on the `attr_type = 'ChambersEtAl'` attribution estimator and the REB2 type bootstrap, respectively. Moreover, the unconditional fitted value from upwind (first-stage) model is included as a covariate in the RHS of the `downwind_lmm_formula`, instead of an offset term in the LHS of the `downwind_lmm_formula`.
+The headline analysis presented in Section 5.1 can be reproduced using the code below. Note that @chambers2022a used the unconditional fitted value from upwind (first-stage) model (`instr_pred_type = 'Unconditional'`), estimated the attribution `apl` using their proposed method (`attr_type = 'ChambersEtAl'`), and made use of the REB2 type bootstrap (`bootstrap_opt(bootstrap_type = 'REB2')`). See `help(rain_attr)` and `help(bootstrap_downwind)`  for further details on the `attr_type = 'ChambersEtAl'` attribution estimator and the REB2 type bootstrap, respectively. Moreover, the unconditional fitted value from upwind (first-stage) model is included as a covariate in the RHS of the `downwind_lmm_formula`, instead of an offset term in the LHS of the `downwind_lmm_formula`.
 
 ```{r}
 headline = rain_attr(
@@ -386,11 +396,11 @@ Table 3 and 4, which are identical to the following summary tables of upwind (fi
 ```{r}
 summary(headline)
 ```
-Chambers et al (2022a) reported a 95% bootstrap CI for `apl` in Section 5.1 as (10.10%,23.09%), based on 10000 bootstrap replicates, with a bootstrap p-value of less than 0.0001. In addition, they also reported a permutation p-value of 0.0007. Our bootstrap and permutation results for `apl` presented below differ for several reasons:
+@chambers2022a reported a 95% bootstrap CI for `apl` in Section 5.1 as (10.10%,23.09%), based on 10000 bootstrap replicates, with a bootstrap p-value of less than 0.0001. In addition, they also reported a permutation p-value of 0.0007. Our bootstrap and permutation results for `apl` presented below differ for several reasons:
 
 * The inherent of the bootstrap and permutation procedure, as well as the smaller number of bootstrap and permutation replicates used here (`bootstrap_opt(B_bootstrap = 500)` and `permutation_opt(B_permutation = 500)`) to reduce computational cost
 
-* More importantly, the original implementation of the `apl` estimator in Chambers et al (2022a) contained a coding error, which has been corrected in the present implementation.
+* More importantly, the original implementation of the `apl` estimator in @chambers2022a contained a coding error, which has been corrected in the present implementation.
 
 ```{r}
 summary(headline)$attr_table[2,]
@@ -402,7 +412,7 @@ headline$bootstrap_plot_result$hatattr$apl
 headline$permutation_plot_result$hatattr$apl
 ```
 
-### After the Event Statistical Analyses in Section 5.2
+#### After the Event Statistical Analyses in Section 5.2
 
 The after the event statistical analyses presented in Section 5.2 can also be replicated using the package. In particular, these analyses correspond to the three columns in Table 6: 2013-2018, 2013-2015, 2016-2018. 
 
@@ -585,9 +595,9 @@ ggpubr::ggarrange(fig11_bootstrap, fig11_permutation, nrow = 1, common.legend = 
 
 ```
 
-## Replicating the Analysis of Chambers et al. (2022b)
+### Replicating the SATE Analysis of @chambers2022b
 
-The package can also be used to replicate the SATE analysis of Chambers et al. (2022b). published in Journal of the Royal Statistical Society Series A (Statistics in Society), "Weighting, informativeness and causal
+The package can also be used to replicate the SATE analysis of @chambers2022b, published in Journal of the Royal Statistical Society Series A (Statistics in Society), "Weighting, informativeness and causal
 inference, with an application to rainfall enhancement".
 
 In particular, the real data analysis presented in Section 5 can be reproduced using the code below.
@@ -781,3 +791,4 @@ fig6_jrssa_lograin = ggplot2::ggplot() +
 fig6_jrssa_lograin
 ```
 
+# References

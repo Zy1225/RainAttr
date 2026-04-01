@@ -18,7 +18,7 @@
 #' }
 #'
 #' The object also includes attribution estimates, SATE, results from bootstrap and permutation-based procedures if \code{bootstrap = TRUE}
-#' or \code{permutation = TRUE} were specified in the original \code{\link{rain_attr}} call, and the specified arguments in the original call.
+#' or \code{permutation = TRUE} were specified in the original \code{\link{rain_attr}} call, the data supplied in the original call with an additional column containing the fitted values generated from the upwind (first stage) LMM., and the specified arguments in the original call.
 #'
 #' @section S3 Methods:
 #' \describe{

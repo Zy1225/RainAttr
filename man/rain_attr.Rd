@@ -35,7 +35,7 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 
 \item{instr_pred_name}{A character string to store the variable name of the fitted values generated from the upwind (first stage) LMM.}
 
-\item{instr_pred_type}{Type of fitted values generated from the upwind (first stage) LMM.. If "Unconditional" the fitted values equal to only the estimated fixed effects. If "Conditional" the fitted values equal to the sum of estimated fixed effects and EBLUPs of random intercepts.}
+\item{instr_pred_type}{Type of fitted values generated from the upwind (first stage) LMM. If "Unconditional" the fitted values equal to only the estimated fixed effects. If "Conditional" the fitted values equal to the sum of estimated fixed effects and EBLUPs of random intercepts.}
 
 \item{downwind_lmm_formula}{A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM. This formula should contain the variable name specified in \code{instr_pred_name}.}
 
@@ -59,7 +59,7 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 
 \item{x_downwind_name}{A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.}
 
-\item{target_only}{An optional logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.}
+\item{target_only}{An optional logical. If \code{TRUE} the attribution estimates are computed based on only treated observations. If \code{FALSE} the attribution estimates are computed based on both treated and control observations.}
 
 \item{bootstrap}{An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.}
 
@@ -113,6 +113,7 @@ An object of class \code{\link[=rain_attr-class]{rain_attr}}, which is a list co
 }
 
 \item{args}{A list of the original function arguments.}
+\item{data}{A data frame containing the original supplied \code{data}, with an additional column containing the fitted values generated from the upwind (first stage) LMM.}
 
 }
 }
