@@ -8,6 +8,7 @@
 \alias{print.rain_attr}
 \alias{residuals.rain_attr}
 \alias{fitted.rain_attr}
+\alias{varcomp}
 \alias{varcomp.rain_attr}
 \alias{predict.rain_attr}
 \alias{plot.rain_attr}

@@ -206,12 +206,14 @@ fitted.rain_attr = function(object, model = "downwind_lmm", ...){
 
 
 
-
-if (!exists("varcomp", mode = "function")) {
-  varcomp <- function(x, ...) {
-    UseMethod("varcomp")
-  }
+#' Generic for variance components
+#' @rdname rain_attr-class
+#' @usage NULL
+#' @export
+varcomp <- function(object, ...) {
+  UseMethod("varcomp")
 }
+
 
 #' @rdname rain_attr-class
 #' @export
