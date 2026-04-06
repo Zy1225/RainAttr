@@ -28,7 +28,7 @@ library(RainAttr)
 
 
 
-## Using the package
+# Using the package
 This package estimates and performs inference on the **attribution**, defined as the percentage increase in raw-scale rainfall attributable to the ionization technology, and **sample average treatment effect (SATE)** for gauge-day level rainfall enhancement trial data. An example of a gauge-day level dataset is given below:
 
 ```{r}
@@ -43,9 +43,9 @@ The `Gauge.Day.Type` column classifies each observation into one of the followin
 * Out of Scope: gauges that are neither upwind, target, nor control
 
 
-### Example - Attribution and SATE Estimation and Inference using Oman Data
+## Example - Attribution and SATE Estimation and Inference using Oman Data
 
-#### rain_attr() - Main Function
+### rain_attr() - Main Function
 
 We examine the effectiveness of the ionization technology used in the Oman 2013-2018 trial, based on the two-stage linear mixed model (LMM) approach employed in @chambers2022a. This is achieved by using the main function `rain_attr` from the package:
 
@@ -117,7 +117,7 @@ While different options can be specified via the arguments of `rain_attr()`, the
 
 
 
-#### Object Returned by rain_attr()
+### Object Returned by rain_attr()
 
 The `rain_attr` function returns an S3 object of class `rain_attr`, which can be called to print the main results associated with the attribution and SATEs. Some basic information related to the estimated upwind (first-stage) and downwind (second-stage) models are also printed, such as the number of observations and the estimated fixed effects.
 ```{r}
@@ -130,7 +130,7 @@ The above results also show that all SATE estimates are positive, suggesting a c
 
 
 
-#### Bootstrap and Permutation Inference
+### Bootstrap and Permutation Inference
 The `rain_attr` function also allows for bootstrap and permutation inference on the attribution and SATEs, by setting the arguments `bootstrap = TRUE` and `permutation = TRUE`. Additional options for bootstrap and permutation can be set by inputting named lists to the arguments `bootstrap_option` and `permutation_option`, with the default options returned by `bootstrap_opt()` and `permutation_opt()`. For example, `bootstrap_option = bootstrap_opt(B_bootstrap = 500)` and `permutation_option = permutation_opt(B_permutation = 500)` set the number of bootstrap replicates and permutation replicates to be 500.
 
 A useful feature of the package for implementing bootstrap and permutation analyses is the option for **parallelization**, which allows users to reduce computation time by running replicates in parallel using the `parallel` package. This can be enabled by setting `bootstrap_opt(bootstrap_parallel = TRUE, bootstrap_parallel_num_worker = 6)` and `permutation_opt(permutation_parallel = TRUE, permutation_parallel_num_worker = 6)`, which will distribute the bootstrap and permutation runs across six workers. 
@@ -197,7 +197,7 @@ We can plot the bootstrap and permutation distributions of the attribution and S
 plot(boot_perm_result)
 ```
 
-#### S3 Methods for Objects Returned by rain_attr()
+### S3 Methods for Objects Returned by rain_attr()
 The S3 object returned by the main function `rain_attr` is of class `rain_attr`, which supports a wide range of common S3 methods:
 
 * `coef`: computes the fixed effect coefficients and the EBLUPs of random intercepts if the selected model is a LMM, or the regression coefficients if the selected model is a GLM.
@@ -245,7 +245,7 @@ plot(boot_perm_result, plot_type = 'model', model = 'downwind_lmm')
 
 For more details on these S3 methods applicable to the `rain_attr` class object as well as the returned value from the `summary` method, we refer to `help("rain_attr-class")`.
 
-### eda() - Exploratory Data Analysis Plotting Function 
+## eda() - Exploratory Data Analysis Plotting Function 
 The package also provide another function `eda` that performs various exploratory data analyses (EDA) on gauge-day level rainfall enhancement trial data, with the argument `eda_type` controlling the type of EDA:
 
 * `eda_type = num_obs_days`: Compute contigency tables of the number of observations and number of unique days, with rows corresponding to different types of gauge-day observations, and columns corresponding to positive vs. zero rainfall events.
@@ -358,12 +358,12 @@ animated_map$gif_image
 
 For more details on the `eda` function, we refer to `help(eda)`.
 
-### Replicating the Attribution Analysis of @chambers2022a
+## Replicating the Attribution Analysis of @chambers2022a
 
 The package can be used to replicate the `apl` attribution analysis of @chambers2022a, published in International Statistical Review, "Nudging a Pseudo-Science Towards a Science - The Role of Statistics in a Rainfall Enhancement Trial in Oman", noting that this paper focused on the `apl` attribution.
 
 
-#### Headline Statistical Analysis in Section 5.1
+### Headline Statistical Analysis in Section 5.1
 
 The headline analysis presented in Section 5.1 can be reproduced using the code below. Note that @chambers2022a used the unconditional fitted value from upwind (first-stage) model (`instr_pred_type = 'Unconditional'`), estimated the attribution `apl` using their proposed method (`attr_type = 'ChambersEtAl'`), and made use of the REB2 type bootstrap (`bootstrap_opt(bootstrap_type = 'REB2')`). See `help(rain_attr)` and `help(bootstrap_downwind)`  for further details on the `attr_type = 'ChambersEtAl'` attribution estimator and the REB2 type bootstrap, respectively. Moreover, the unconditional fitted value from upwind (first-stage) model is included as a covariate in the RHS of the `downwind_lmm_formula`, instead of an offset term in the LHS of the `downwind_lmm_formula`.
 
@@ -418,7 +418,7 @@ headline$bootstrap_plot_result$hatattr$apl
 headline$permutation_plot_result$hatattr$apl
 ```
 
-#### After the Event Statistical Analyses in Section 5.2
+### After the Event Statistical Analyses in Section 5.2
 
 The after the event statistical analyses presented in Section 5.2 can also be replicated using the package. In particular, these analyses correspond to the three columns in Table 6: 2013-2018, 2013-2015, 2016-2018. 
 
