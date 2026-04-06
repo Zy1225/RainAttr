@@ -158,32 +158,32 @@
 #' }
 #'
 #' @param B_bootstrap An integer specifying the number of bootstrap replicates.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param bootstrap_type A character string specifying the type of bootstrap.
 #'   Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 #'   \code{"PREB1"}, \code{"PREB2"}, or \code{"MREB1"}.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param bootstrap_zero Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param positive_prob_threshold An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param discretize_rain Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param winsorize_individual_rain Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed the upper bound specified by \code{individual_rain_interval} are replaced with random draws from a uniform distribution over \code{[individual_rain_interval[1], individual_rain_interval[2]]}.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param individual_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \code{winsorize_individual_rain = TRUE}.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param winsorize_total_rain Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are proportionally rescaled so that the total equals a random number drawn uniformly from
 #'   \code{[total_rain_interval[1], total_rain_interval[2]]} whenever the total bootstrapped rainfall falls outside this interval.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param total_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting the total of bootstrapped rainfall values when \code{winsorize_total_rain = TRUE}.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param bootstrap_seed An integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation.
-#' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param bootstrap_parallel Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
-#' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param bootstrap_parallel_num_worker An integer specifying the number of parallel workers to use when \code{bootstrap_parallel = TRUE}.
-#' (User-configurable bootstrap option using \code{\link{bootstrap_option}})
+#' (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #'
 #' @param ori_data A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -226,7 +226,7 @@
 #'  \item{downwind_LogRain}{Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}.}
 #' }
 #'
-#' @seealso \code{\link{rain_attr}} for the main function, \code{\link{bootstrap_option}} for specifying bootstrap options
+#' @seealso \code{\link{rain_attr}} for the main function, \code{\link{bootstrap_opt}} for specifying bootstrap options
 #'
 #' @references
 #'\itemize{
@@ -542,7 +542,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     #                                           'attr_type', 'x_downwind_name', 'target_only', 'downwind_propensity_formula', 'downwind_separate_formula'),
     #                           envir = environment())
     # }
-    parallel::clusterExport(cl, varlist = c('attr_est', 'sate_est'))
+    parallel::clusterExport(cl, varlist = c('attr_est', 'sate_est'), envir = asNamespace("RainAttr"))
     doParallel::registerDoParallel(cl)
     if(!is.null(bootstrap_seed)){
       doRNG::registerDoRNG(seed = bootstrap_seed)
@@ -865,6 +865,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #'   bootstrap_parallel_num_worker = parallel::detectCores() - 1
 #' )
 #' str(boot_options_parallel)
+#' @export
 
 bootstrap_opt = function(B_bootstrap = 10000,
                          bootstrap_type = 'PREB1',

@@ -6,34 +6,34 @@
 #'
 #'
 #' @param B_permutation An integer specifying the number of permutation replicates.
-#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#'   (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param permute_between_ionizer Logical. If \code{TRUE}, for each day, a random permutation is performed among the operation statuses of all ionizers that have been deployed on that day.
-#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#'   (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param permute_all_ionizers_between_day Logical. If \code{TRUE}, for each year, a random permutation is performed among the daily operation schedules of all trial days within that year.
-#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#'   (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param permute_between_gaugeday Logical. If \code{TRUE}, for each year, a random permutation is performed among the gauge-day level operation schedule of all gauge-days within that year.
-#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#'   (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param ionizer_operation_input A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on, 0 indicates that it is off and NA indicates that it is not deployed yet.
 #' Additionally, this data frame must include two columns with names specified by \code{ionizer_operation_day_column_name} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
 #' Each day must appear only once in this data frame (no duplicated day entries).
 #' The ionizer columns must appear in the same order as specified by \code{data_target_column_names} and must be consistent with the column order in \code{gaugeday_downwind_input}.
-#'   (User-supplied using \code{\link{permutation_option}})
+#'   (User-supplied using \code{\link{permutation_opt}})
 #' @param gaugeday_downwind_input A binary matrix indicating which gauge-day observations (row) are downwind of which ionizers (column), where 1 indicates that the gauge is downwind of the ionizer on that day, 0 indicates that the gauge is not downwind of the ionizer, and NA indicates that the ionizer has not been deployed yet.
 #'   The row order of this matrix must match that of \code{data}. The column order must correspond to the ionizer columns in \code{ionizer_operation_input} (excluding the day and year columns) and be in the same order as specified by \code{data_target_column_names}.
-#'   (User-supplied using \code{\link{permutation_option}})
+#'   (User-supplied using \code{\link{permutation_opt}})
 #' @param data_target_column_names A character vector specifying the column names of \code{data} corresponding to the binary target indicators used in the downwind (second stage) LMM fitting.
 #'   The order of names in this vector must match the column order of the corresponding ionizers in \code{ionizer_operation_input} (excluding the day and year columns) and in \code{gaugeday_downwind_input}.
-#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#'   (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param ionizer_operation_year_column_name A character string specifying the column name of \code{ionizer_operation_input} containing the year of each day.
-#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#'   (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param ionizer_operation_day_column_name A character string specifying the column name of \code{ionizer_operation_input} containing the day of each observation. The same column name should also be found in \code{data}.
-#'   (User-configurable permutation option using \code{\link{permutation_option}})
+#'   (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param permutation_seed An integer specifying the random seed for the permutation-based procedure. Reproducibility is guaranteed only if \code{permutation_parallel} is the same, since parallel execution changes the order of random number generation.
-#' (User-configurable permutation option using \code{\link{permutation_option}})
+#' (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param permutation_parallel Logical. If \code{TRUE}, each permutation run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
-#' (User-configurable permutation option using \code{\link{permutation_option}})
+#' (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \code{permutation_parallel = TRUE}.
-#' (User-configurable permutation option using \code{\link{permutation_option}})
+#' (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param data A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 #'   Its column names should contain \code{data_target_column_names} (binary target indicators) and \code{ionizer_operation_day_column_name} (day).
 #'   The row order of this data frame must match that of \code{gaugeday_downwind_input}.
@@ -62,7 +62,7 @@
 #' Instead, permutation-based inference should be performed by calling \code{\link{rain_attr}} with \code{permutation = TRUE}.
 #'
 #  \strong{Additional Information Required for Permutation-Based Procedure} \cr
-#' To perform permutation-based procedure, additional information need to be supplied through the following arguments of \code{\link{permutation_option}}:
+#' To perform permutation-based procedure, additional information need to be supplied through the following arguments of \code{\link{permutation_opt}}:
 #' \describe{
 #'  \item{\code{ionizer_operation_input}}{Day(group)-level ionizers operation schedule during the rainfall enhancement trial.}
 #'  \item{{gaugeday_downwind_input}}{Gauge-day(unit within group)-level information on relative orientation of gauges from ionizers each day.}
@@ -112,7 +112,7 @@
 #'    \item{Plot the kernel density estimate with a solid vertical line for the original estimate \eqn{\hat{\theta}}. }
 #' }
 #'
-#' @seealso \code{\link{rain_attr}} for the main function, \code{\link{permutation_option}} for specifying permutation options
+#' @seealso \code{\link{rain_attr}} for the main function, \code{\link{permutation_opt}} for specifying permutation options
 
 
 
@@ -246,7 +246,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
     perm_downwind_propensity_formula = update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
 
     permutation_cl = parallel::makeCluster(permutation_parallel_num_worker)
-    parallel::clusterExport(permutation_cl, varlist = c('attr_est', 'sate_est'))
+    parallel::clusterExport(permutation_cl, varlist = c('attr_est', 'sate_est'), envir = asNamespace("RainAttr"))
     doParallel::registerDoParallel(permutation_cl)
     if(!is.null(permutation_seed)){
       doRNG::registerDoRNG(seed = permutation_seed)
@@ -396,6 +396,8 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 #' )
 #' str(perm_options_parallel)
 #'
+#' @export
+
 permutation_opt = function(B_permutation = 10000,
                            permute_between_ionizer = T,
                            permute_all_ionizers_between_day = F,

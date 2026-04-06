@@ -63,11 +63,11 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 
 \item{bootstrap}{An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.}
 
-\item{bootstrap_option}{An optional list containing all bootstrap settings, used only when \code{bootstrap = TRUE}. See \code{\link{bootstrap_option}} for the default list elements and their usage.}
+\item{bootstrap_option}{An optional list containing all bootstrap settings, used only when \code{bootstrap = TRUE}. See \code{\link{bootstrap_opt}} for the default list elements and their usage.}
 
 \item{permutation}{An optional logical, If \code{TRUE} randomized permutation is carried out on the ionizer operation (treatment) schedule to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no randomized permutation is carried out.}
 
-\item{permutation_option}{An optional list containing all permutation settings, used only when \code{permutation = TRUE}. See \code{\link{permutation_option}} for the default list elements and their usage.}
+\item{permutation_option}{An optional list containing all permutation settings, used only when \code{permutation = TRUE}. See \code{\link{permutation_opt}} for the default list elements and their usage.}
 }
 \value{
 An object of class \code{\link[=rain_attr-class]{rain_attr}}, which is a list containing
@@ -209,7 +209,7 @@ Similarly, \eqn{\hat{m}_{ij,0}} are fitted values (using fixed effect only) obta
 }
 
 \strong{Bootstrap and Permutation Inference} \cr
-This function can also be used to perform bootstrap inference on the attribution and SATE, by setting \code{bootstrap = TRUE} and supplying the relevant bootstrap options using \code{\link{bootstrap_option}()}.
+This function can also be used to perform bootstrap inference on the attribution and SATE, by setting \code{bootstrap = TRUE} and supplying the relevant bootstrap options using \code{\link{bootstrap_opt}()}.
 For full details of the bootstrap procedure, please see \code{\link{bootstrap_downwind}}. Briefly, the bootstrap is carried out in two levels by conditioning on the upwind (first stage) LMM and its fitted values:
 \itemize{
 \item{First level is an optional level that is only carried out when \code{bootstrap_opt(bootstrap_zero = TRUE)}. This level considers generating bootstrap samples of rainfall event indicator for the subset of observations satisfying \code{downwind_subset} using the predicted probabilities from the downwind logistic model. This model is fitted using \code{glm(downwind_logistic_formula, family = "binomial")} to the subset of observations from \code{data} satisfying \code{downwind_subset}, with the response being an indicator for whether the observed rainfall is greater than zero, i.e., the indicator is defined by the logical expression \code{positive_subset}.
@@ -222,7 +222,7 @@ The above attribution and SATE estimates are then computed based on each bootstr
 These bootstrap distributions are then used to compute bootstrap p-values (proportion of bootstrapped estimates that are negative), form bootstrap percentile confidence intervals (with confidence level specified in \code{bootstrap_option$CI_level}), and generate their respective plots.
 It is worth noting that the entire bootstrap procedure (including rainfall resampling, model fitting, and parameter estimation) can be run in parallel by setting \code{bootstrap_option$bootstrap_parallel = TRUE}, using \code{bootstrap_option$bootstrap_parallel_num_worker} workers.
 
-Finally, this function enables permutation-based inference on the attribution and SATE, by setting \code{permutation = TRUE} and supplying the relevant permutation options using \code{\link{permutation_option}()}.
+Finally, this function enables permutation-based inference on the attribution and SATE, by setting \code{permutation = TRUE} and supplying the relevant permutation options using \code{\link{permutation_opt}()}.
 For full details of the permutation-based procedure, please see \code{\link{permutation_ionizer}}. In short, the permutation-based procedure involves randomly permuting the operating schedules of the ionizers (treatment) and re-estimating the attribution and SATE based on the permuted data, from which permutations distributions of attribution and SATE estimates are formed.
 These permutation distributions are used to compute permutation p-values (proportion of permuted estimates that are greater than the observed estimates) and generate their respective plots.
 }
