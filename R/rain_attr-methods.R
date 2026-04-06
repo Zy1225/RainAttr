@@ -729,7 +729,7 @@ print.summary.rain_attr <- function(summary_object, ...) {
     attr_tbl[,col] = paste0(attr_tbl[,col], stars)
   }
   print(attr_tbl)
-  cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\n")
+  cat("---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
 
   # SATE Results Table
   cat("SATE Results:\n")
@@ -741,7 +741,7 @@ print.summary.rain_attr <- function(summary_object, ...) {
     sate_tbl[,col] <- paste0(sate_tbl[,col], stars)
   }
   print(sate_tbl)
-  cat("---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\n")
+  cat("---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
 
   cat("\n======================================================================\n\n")
 

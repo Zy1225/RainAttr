@@ -66,7 +66,9 @@ This function is used to configure and store all settings needed for performing 
 boot_options = bootstrap_opt()
 str(boot_options)
 
-#Bootstrap option with parallelization over (parallel::detectCores() - 1) number of workers and seed = 1 for reproducibility
+#Bootstrap option with parallelization over
+#(parallel::detectCores() - 1) number of workers
+#and seed = 1 for reproducibility
 boot_options_parallel = bootstrap_opt(
   bootstrap_seed = 1,
   bootstrap_parallel = TRUE,

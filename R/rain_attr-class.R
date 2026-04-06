@@ -55,6 +55,7 @@
 #' \code{"model"} provides two diagnostic plots for the chosen \code{model}: a plot of residuals against fitted values, and a Q-Q plot of residuals.
 #' @param plot_quantity An optional character string or vector specifying the quantity whose bootstrap or permutation distribution is to be plotted. Only used when \code{plot_type} includes \code{"bootstrap"} or \code{"permutation"}.  Can be a single value: \code{"attr"} or \code{"sate"}, or a vector of length 2: \code{c("attr","sate")} (default). \code{"attr"} stands for the attribution estimates (\code{apo}, \code{apl}), while \code{"sate"} stands for the sample average treatment effect estimates (\code{sate.mb}, \code{sate.ipw}, \code{sate.ipw.l}, \code{sate.ipw.ma}, \code{sate.aipw}). See \code{\link{rain_attr}} for more details.
 #' @param summary_object An \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}, i.e., an output from applying \code{\link{summary.rain_attr}} to an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}.
+#' @param ... Additional arguments passed to methods.
 
 
 #' @section Value from \code{summary.rain_attr}:
@@ -67,7 +68,7 @@
 #'   \item{\code{upwind_formula}, \code{downwind_formula}}{Model formulas used for fitting the upwind (first stage) and downwind (second stage) LMMs.}
 #'   \item{\code{upwind_n_obs}, \code{downwind_n_obs}}{Number of observations used for fitting the upwind and downwind LMMs.}
 #'   \item{\code{upwind_n_groups}, \code{downwind_n_groups}}{Number of unique days (groups) used for fitting the upwind and downwind LMMs.}
-#'   \item{\code{upwind_summary}, \code{downwind_summary}}{Objects of class \code{\link[=merMod-class]{summary.merMod}} containing summaries of the fitted upwind and downwind LMMs.}
+#'   \item{\code{upwind_summary}, \code{downwind_summary}}{Objects of class \code{\link[lme4:merMod-class]{summary.merMod}} containing summaries of the fitted upwind and downwind LMMs.}
 #'   \item{\code{upwind_fitted}, \code{downwind_fitted}}{Fitted values of the upwind and downwind LMMs, which include both the fixed effects and the predicted random intercepts.}
 #'   \item{\code{upwind_residuals}, \code{downwind_residuals}}{Scaled residuals of the upwind and downwind LMMs, which take the general form of (observed - fitted)/\eqn{\hat{\sigma}_e}, where the fitted values are either \code{upwind_fitted} or \code{downwind_fitted} and \eqn{\hat{\sigma}_e} denote the corresponding estimated error variance. }
 #'   \item{\code{upwind_lmm_fixef}, \code{downwind_lmm_fixef}}{Matrices of fixed effect coefficients for the upwind and downwind LMMs, along with their corresponding standard error estimates and t-value computed from \code{\link[lme4]{summary.merMod}}.}
