@@ -544,7 +544,7 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
 
 
       # QQ plot
-      qq_vals = stats::qqnorm(res, plot.it = FALSE)
+      qq_vals = qqnorm(res, plot.it = FALSE)
       qq_df = data.frame(Theoretical = qq_vals$x, Sample = qq_vals$y)
 
       q_sample = quantile(res, probs = c(0.25, 0.75))

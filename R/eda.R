@@ -84,6 +84,7 @@
 #'   - Interactive \code{\link[plotly:plot_ly]{plotly}} object (\code{"ts_by_gauge_interactive"})
 #'   - A list consisting of an animated \code{\link[gganimate:gganimate-package]{gganim}} object and its associated gif_image (\code{"map_dynamic"})
 #'
+#'@export
 
 
 #TODO: Think if we want to add smoothed (static/dynamic) spatial map

@@ -1,8 +1,13 @@
 ---
 title: "Introduction to RainAttr"
-output: rmarkdown::html_vignette
+output: rmarkdown::html_document:
+  toc: true          
+  toc_depth: 4       
+  number_sections: true  
+  toc_float:
+      collapsed: false
+      smooth_scroll: true
 bibliography: references.bib
-csl: apa.csl
 vignette: >
   %\VignetteIndexEntry{Introduction to RainAttr}
   %\VignetteEngine{knitr::rmarkdown}
@@ -17,8 +22,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-#library(RainAttr)
-devtools::load_all(".")
+library(RainAttr)
 ```
 
 

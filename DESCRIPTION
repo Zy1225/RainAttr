@@ -1,12 +1,12 @@
 Package: RainAttr
-Title: Rainfall Attribution (One Line, Title Case)
+Title: Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data
 Version: 0.0.0.9000
 Authors@R: 
-    person("Zhi Yang", "Tho", , "tzhiyang1995@hotmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: This package performs analyses on rainfall attribution based on fitting a two-stage instrumental model to rainfall enhancement trial data.
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    c(person("Zhi Yang", "Tho", , "zhiyang.tho@anu.edu.au", role = c("aut", "cre")),
+      person("Raymond", "Chambers ", , "Raymond.Chambers@anu.edu.au", role = "aut"),
+      person("A. H.", "Welsh", , "Alan.Welsh@anu.edu.au", role = "aut"))
+Description: This package performs analyses on attribution and sample average treatment effect based on fitting a two-stage linear mixed model to rainfall enhancement trial data.
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
@@ -19,3 +19,23 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+Imports: 
+    doParallel,
+    doRNG,
+    dplyr,
+    elevatr,
+    foreach,
+    formula.tools,
+    gganimate,
+    ggplot2,
+    ggpubr,
+    gifski,
+    lme4,
+    maps,
+    parallel,
+    plotly,
+    raster,
+    rlang,
+    rnaturalearth,
+    sf,
+    viridis
