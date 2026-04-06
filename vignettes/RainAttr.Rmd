@@ -295,7 +295,7 @@ hist_example
 ```
 
 
-Daily rainfall (on log-scale) time series for each gauge, with the gauge at the highest elevation highlighted:
+Daily rainfall (on log-scale) time series for each gauge, with the gauge at the lowest elevation highlighted:
 ```{r, out.width="100%"}
 daily_lograin_by_gauge = eda(eda_type = "ts_by_gauge",
               data = oman,
