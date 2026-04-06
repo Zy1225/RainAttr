@@ -363,7 +363,7 @@ For more details on the `eda` function, we refer to `help(eda)`.
 The package can be used to replicate the `apl` attribution analysis of @chambers2022a, published in International Statistical Review, "Nudging a Pseudo-Science Towards a Science - The Role of Statistics in a Rainfall Enhancement Trial in Oman", noting that this paper focused on the `apl` attribution.
 
 
-### Headline Statistical Analysis in Section 5.1
+### Headline Statistical Analysis in Section 5.1 of @chambers2022a
 
 The headline analysis presented in Section 5.1 can be reproduced using the code below. Note that @chambers2022a used the unconditional fitted value from upwind (first-stage) model (`instr_pred_type = 'Unconditional'`), estimated the attribution `apl` using their proposed method (`attr_type = 'ChambersEtAl'`), and made use of the REB2 type bootstrap (`bootstrap_opt(bootstrap_type = 'REB2')`). See `help(rain_attr)` and `help(bootstrap_downwind)`  for further details on the `attr_type = 'ChambersEtAl'` attribution estimator and the REB2 type bootstrap, respectively. Moreover, the unconditional fitted value from upwind (first-stage) model is included as a covariate in the RHS of the `downwind_lmm_formula`, instead of an offset term in the LHS of the `downwind_lmm_formula`.
 
@@ -418,7 +418,7 @@ headline$bootstrap_plot_result$hatattr$apl
 headline$permutation_plot_result$hatattr$apl
 ```
 
-### After the Event Statistical Analyses in Section 5.2
+### After the Event Statistical Analyses in Section 5.2 of @chambers2022a
 
 The after the event statistical analyses presented in Section 5.2 can also be replicated using the package. In particular, these analyses correspond to the three columns in Table 6: 2013-2018, 2013-2015, 2016-2018. 
 
@@ -601,7 +601,7 @@ ggpubr::ggarrange(fig11_bootstrap, fig11_permutation, nrow = 1, common.legend = 
 
 ```
 
-### Replicating the SATE Analysis of @chambers2022b
+## Replicating the SATE Analysis of @chambers2022b
 
 The package can also be used to replicate the SATE analysis of @chambers2022b, published in Journal of the Royal Statistical Society Series A (Statistics in Society), "Weighting, informativeness and causal
 inference, with an application to rainfall enhancement".
