@@ -385,7 +385,7 @@ animated_map = eda(eda_type = "map_dynamic",
 animated_map$gif_image
 ```
 
-```{r, out.width="100%", include=FALSE}
+```{r, out.width="100%", echo=FALSE}
 knitr::include_graphics(system.file("extdata", "animated_map.gif", package = "RainAttr"))
 ```
 
