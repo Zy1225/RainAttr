@@ -357,6 +357,19 @@ animated_map$gif_image
 
 For more details on the `eda` function, we refer to `help(eda)`.
 
+
+# Datasets Included with RainAttr
+
+The package also contains the following four datasets containing information for the 2013 -- 2018 Oman rainfall enhancement trial, which were used in the analyses of @chambers2022a and @chambers2022b:
+
+- `oman`: contains gauge-day observations from the 2013 -- 2018 Oman trial with 55 variables that could be used for the two-stage LMM modelling. See `help(oman)` for more details.
+
+- `ionizer_location`: contains the latitude and longitude of the ten ionizers and their deployment timing during the 2013 -- 2018 Oman trial. See `help(ionizer_location)` for more details.
+
+- `ionizer_operation`: contains the daily operation schedule of the ionizers during the 2013 -- 2018 Oman trial. See `help(ionizer_operation)` for more details.
+
+- `gaugeday_downwind`: contains binary indicators of whether each gauge-day observation (in the `oman` dataset) is downwind of each ionizer during the 2013 -- 2018 Oman trial. See `help(gaugeday_downwind)` for more details.
+
 # Replicating the Attribution Analysis of @chambers2022a
 
 The package can be used to replicate the `apl` attribution analysis of @chambers2022a, published in International Statistical Review, "Nudging a Pseudo-Science Towards a Science - The Role of Statistics in a Rainfall Enhancement Trial in Oman", noting that this paper focused on the `apl` attribution.
