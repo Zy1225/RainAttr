@@ -135,8 +135,8 @@ The `rain_attr` function also allows for bootstrap and permutation inference on 
 A useful feature of the package for implementing bootstrap and permutation analyses is the option for **parallelization**, which allows users to reduce computation time by running replicates in parallel using the `parallel` package. This can be enabled by setting `bootstrap_opt(bootstrap_parallel = TRUE, bootstrap_parallel_num_worker = 6)` and `permutation_opt(permutation_parallel = TRUE, permutation_parallel_num_worker = 6)`, which will distribute the bootstrap and permutation runs across six workers. 
 
 Here is an example of performing bootstrap and permutation inference, each with 500 replicates parallelized over six workers:
-```{r}
-start_time = Sys.time()
+```{r, eval=FALSE}
+
 boot_perm_result = rain_attr(
   data = oman,
   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
@@ -175,11 +175,17 @@ boot_perm_result = rain_attr(
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
   )
-end_time = Sys.time()
-
-#Total computation time
-end_time - start_time
 ```
+```{r, eval=FALSE, include=FALSE}
+saveRDS(boot_perm_result, "inst/extdata/boot_perm_result.rds")
+```
+
+```{r, include=FALSE}
+#boot_perm_result = readRDS("inst/extdata/boot_perm_result.rds")
+boot_perm_result = readRDS(system.file("extdata", "boot_perm_result.rds", package = "RainAttr"))
+```
+
+The total computational time was about 3.5 minutes, on a 3.6 GHz 8 core CPU.
 
 In the above example, we use the default PREB1 bootstrap proposed by @tho2025; hence, it is not necessary to explicitly specify `bootstrap_opt(bootstrap_type = "PREB1")`. This bootstrap is a generalization of the REB bootstraps by @chambers2013 and can accommodate clustered data with either balanced or unbalanced cluster sizes. Accordingly, PREB1 is our recommended choice, particularly when the Oman trial dataset exhibits highly unbalanced cluster sizes.
 
@@ -331,7 +337,7 @@ annual_map
 ```
 
 
-```{r, out.width="100%"}
+```{r, eval=FALSE}
 animated_map = eda(eda_type = "map_dynamic",
               data = oman,
               rain_col_name = 'Rain.Gauge.Measurement',
@@ -350,7 +356,19 @@ animated_map = eda(eda_type = "map_dynamic",
               focus_year = c(2013),
               fps = 30
 )
+```
 
+```{r, eval=FALSE, include=FALSE}
+saveRDS(animated_map, "inst/extdata/animated_map.rds")
+```
+
+```{r, include=FALSE}
+#animated_map = readRDS("inst/extdata/animated_map.rds")
+animated_map = readRDS(system.file("extdata", "animated_map.rds", package = "RainAttr"))
+```
+
+
+```{r, out.width="100%"}
 animated_map$gif_image
 ```
 
@@ -379,7 +397,7 @@ The package can be used to replicate the `apl` attribution analysis of @chambers
 
 The headline analysis presented in Section 5.1 can be reproduced using the code below. Note that @chambers2022a used the unconditional fitted value from upwind (first-stage) model (`instr_pred_type = 'Unconditional'`), estimated the attribution `apl` using their proposed method (`attr_type = 'ChambersEtAl'`), and made use of the REB2 type bootstrap (`bootstrap_opt(bootstrap_type = 'REB2')`). See `help(rain_attr)` and `help(bootstrap_downwind)`  for further details on the `attr_type = 'ChambersEtAl'` attribution estimator and the REB2 type bootstrap, respectively. Moreover, the unconditional fitted value from upwind (first-stage) model is included as a covariate in the RHS of the `downwind_lmm_formula`, instead of an offset term in the LHS of the `downwind_lmm_formula`.
 
-```{r}
+```{r, eval=FALSE}
 headline = rain_attr(
   data = oman,
   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
@@ -410,6 +428,15 @@ headline = rain_attr(
   )
 ```
 
+```{r, eval=FALSE, include=FALSE}
+saveRDS(headline, "inst/extdata/headline.rds")
+```
+
+```{r, include=FALSE}
+#headline = readRDS("inst/extdata/headline.rds")
+headline = readRDS(system.file("extdata", "headline.rds", package = "RainAttr"))
+```
+
 Table 3 and 4, which are identical to the following summary tables of upwind (first-stage) and downwind (second-stage) LMM, respectively:
 ```{r}
 summary(headline)
@@ -436,7 +463,7 @@ The after the event statistical analyses presented in Section 5.2 can also be re
 
 In the following, we replicate the parameter estimates and associated t-values for the downwind (second-stage) LMM presented in each column of Table 6, noting that the `apl` attribution estimates (except for the 2016-2018 column) differ due to the aforementioned coding error in the original implementation.
 
-```{r}
+```{r, eval=FALSE}
 #2013-2018 column
 table6_2013_2018 = rain_attr(
   data = oman,
@@ -466,11 +493,23 @@ table6_2013_2018 = rain_attr(
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
 )
+```
 
+```{r, eval=FALSE, include=FALSE}
+saveRDS(table6_2013_2018, "inst/extdata/table6_2013_2018.rds")
+```
+
+```{r, include=FALSE}
+#table6_2013_2018 = readRDS("inst/extdata/table6_2013_2018.rds")
+table6_2013_2018 = readRDS(system.file("extdata", "table6_2013_2018.rds", package = "RainAttr"))
+```
+
+2013-2018 column: 
+```{r}
 summary(table6_2013_2018)
 ```
 
-```{r}
+```{r, eval=FALSE}
 #2013-2015 column
 table6_2013_2015 = rain_attr(
   data = oman,
@@ -500,11 +539,23 @@ table6_2013_2015 = rain_attr(
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
 )
+```
 
+```{r, eval=FALSE, include=FALSE}
+saveRDS(table6_2013_2015, "inst/extdata/table6_2013_2015.rds")
+```
+
+```{r, include=FALSE}
+#table6_2013_2015 = readRDS("inst/extdata/table6_2013_2015.rds")
+table6_2013_2015 = readRDS(system.file("extdata", "table6_2013_2015.rds", package = "RainAttr"))
+```
+
+2013-2015 column:
+```{r}
 summary(table6_2013_2015)
 ```
 
-```{r}
+```{r, eval=FALSE}
 #2016-2018 column
 table6_2016_2018 = rain_attr(
   data = oman,
@@ -534,7 +585,19 @@ table6_2016_2018 = rain_attr(
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
 )
+```
 
+```{r, eval=FALSE, include=FALSE}
+saveRDS(table6_2016_2018, "inst/extdata/table6_2016_2018.rds")
+```
+
+```{r, include=FALSE}
+#table6_2016_2018 = readRDS("inst/extdata/table6_2016_2018.rds")
+table6_2016_2018 = readRDS(system.file("extdata", "table6_2016_2018.rds", package = "RainAttr"))
+```
+
+2016-2018 column:
+```{r}
 summary(table6_2016_2018)
 ```
 
@@ -619,7 +682,7 @@ The package can also be used to replicate the SATE analysis of @chambers2022b, p
 inference, with an application to rainfall enhancement".
 
 In particular, the real data analysis presented in Section 5 can be reproduced using the code below.
-```{r}
+```{r, eval=FALSE}
 jrssa = rain_attr(
   data = oman,
   upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
@@ -650,6 +713,16 @@ jrssa = rain_attr(
                                        permutation_parallel_num_worker = 6)
   )
 ```
+
+```{r, eval=FALSE, include=FALSE}
+saveRDS(jrssa, "inst/extdata/jrssa.rds")
+```
+
+```{r, include=FALSE}
+#jrssa = readRDS("inst/extdata/jrssa.rds")
+jrssa = readRDS(system.file("extdata", "jrssa.rds", package = "RainAttr"))
+```
+
 
 Table 1 is identical to:
 ```{r}
