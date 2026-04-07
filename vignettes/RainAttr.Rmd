@@ -359,19 +359,35 @@ animated_map = eda(eda_type = "map_dynamic",
 ```
 
 ```{r, eval=FALSE, include=FALSE}
-saveRDS(animated_map, "inst/extdata/animated_map.rds")
+animated_map = eda(eda_type = "map_dynamic",
+              data = oman,
+              rain_col_name = 'Rain.Gauge.Measurement',
+              day_column_name = 'TrialDay',
+              year_column_name = 'Year',
+              use_raw = F,
+              longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
+              long_lim = c(55,60),
+              lat_lim = c(22,25),
+              input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
+              ionizer_location_df = ionizer_location,
+              ionizer_id_column_name = 'Ionizer',
+              ionizer_longlat_column_names = c("Longitude","Latitude"),
+              elev_contour = TRUE,
+              elev_resolution = 2,
+              focus_year = c(2013),
+              fps = 30, animate_filename = "inst/extdata/animated_map.gif"
+)
 ```
 
-```{r, include=FALSE}
-#animated_map = readRDS("inst/extdata/animated_map.rds")
-animated_map = readRDS(system.file("extdata", "animated_map.rds", package = "RainAttr"))
-```
 
 
-```{r, out.width="100%"}
+```{r, out.width="100%", eval=FALSE}
 animated_map$gif_image
 ```
 
+```{r, out.width="100%", include=FALSE}
+knitr::include_graphics(system.file("extdata", "animated_map.gif", package = "RainAttr"))
+```
 
 For more details on the `eda` function, we refer to `help(eda)`.
 
