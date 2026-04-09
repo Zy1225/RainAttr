@@ -353,6 +353,10 @@ animated_map = eda(eda_type = "map_dynamic",
               ionizer_longlat_column_names = c("Longitude","Latitude"),
               elev_contour = TRUE,
               elev_resolution = 2,
+              wind_direction_column_name = "Steering.Wind.Direction", 
+              wind_arrow_long_lat = c(59.25,24.5), 
+              wind_speed_column_name = "Steering.Wind.Speed", 
+              wind_speed_scaling = 0.075,
               focus_year = c(2013),
               fps = 30
 )
