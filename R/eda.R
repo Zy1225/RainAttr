@@ -95,6 +95,7 @@ eda = function(eda_type,
                longlat_column_names, long_lim, lat_lim, input_sf = NULL,
                ionizer_location_df = NULL, ionizer_id_column_name = NULL, ionizer_longlat_column_names = NULL,
                elev_contour = TRUE, elev_resolution = 2,
+               wind_direction_column_name = NULL, wind_speed_column_name = NULL, wind_arrow_long_lat = NULL,
                focus_year = NULL, fps = 10, animate_filename = NULL,
                upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset){
 
@@ -775,7 +776,7 @@ eda = function(eda_type,
       rain_label = rain_col_name
     }
 
-    data_df = data[, c(longlat_column_names, day_column_name, year_column_name, rain_col_name, 'alpha')]
+    data_df = data[, c(longlat_column_names, day_column_name, year_column_name, rain_col_name, 'alpha', wind_direction_column_name, wind_speed_column_name)]
 
     if(!is.null(ionizer_location_df)){
       ionizer_long = reshape(
@@ -822,6 +823,12 @@ eda = function(eda_type,
 
     }
 
+    if(!is.null(wind_speed_column_name)){
+      range_ws = range(data_df[, wind_speed_column_name])
+      data_df[, wind_speed_column_name] = (data_df[, wind_speed_column_name] - range_ws[1]) / (range_ws[2] - range_ws[1]) * (1 - 0.2) + 0.2
+    }
+
+
     if(!is.null(input_sf)){
       points_sf <- sf::st_as_sf(
         data_df,
@@ -841,6 +848,11 @@ eda = function(eda_type,
           ionizer_long_day <- merge(unique(data_df[, c(day_column_name, year_column_name)]), ionizer_long, by = year_column_name, all.x = TRUE)
         }
       }
+
+
+
+
+
 
       if(!is.null(ionizer_location_df)){
         ionizer_long_day_sf = sf::st_as_sf(
@@ -866,6 +878,11 @@ eda = function(eda_type,
             size = 3,
             fontface = "bold"
           )  +
+          ggplot2::geom_spoke(data = points_sf_year,
+                              mapping = ggplot2::aes(x = wind_arrow_long_lat[1], y = wind_arrow_long_lat[2],
+                                                     angle = (270 - .data[[wind_direction_column_name]]) * pi / 180,
+                                                     radius = .data[[wind_speed_column_name]]),
+                              arrow = ggplot2::arrow(length = ggplot2::unit(0.3, "cm"))) +
           ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
           ggplot2::labs(
             title = paste0(
