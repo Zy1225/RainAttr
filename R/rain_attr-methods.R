@@ -452,16 +452,30 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
         data = object$data[rlang::eval_tidy(object$args$downwind_subset, data = object$data) &
                              rlang::eval_tidy(object$args$positive_subset, data = object$data), ]
       )
+
+      control_label = as.character(object$args$downwind_control_subset)[3]
+      target_label = as.character(object$args$downwind_target_subset)[3]
+
       df = data.frame(
         Fitted = fit,
         Residuals = res,
-        Group = factor(ifelse(downwind_positive_target, "Target", "Control"))
+        Group = factor(ifelse(downwind_positive_target, target_label, control_label))
       )
+
+
 
       legend_title = as.character(object$args$downwind_target_subset)[2]
 
-      color_vals = c("Target" = "#1f77b4", "Control" = "#ff7f0e")
-      shape_vals = c("Target" = 16, "Control" = 17)
+
+      color_vals <- c(
+        setNames("#1f77b4", target_label),
+        setNames("#ff7f0e", control_label)
+      )
+
+      shape_vals <- c(
+        setNames(16, target_label),
+        setNames(17, control_label)
+      )
 
       # Residuals vs Fitted
       p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals, color = Group, shape = Group)) +

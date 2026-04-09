@@ -28,10 +28,10 @@
 #' @param elev_resolution An optional integer between 1 and 14, specifying the resolution of the elevation data obtained from Amazon Web Services Terrain Tiles via \code{\link[elevatr]{get_elev_raster}}. Defaults to 2. Higher values indicate higher resolution; see the \code{z} argument in \code{\link[elevatr]{get_elev_raster}} for more details.
 #' @param focus_year An optional vector specifying years to filter for animated maps. If \code{focus_year} is not supplied, all years are included.
 #' @param fps An optional numeric specifying frames per second for animated maps. Default is \code{10}.
-#' @param wind_direction_column_name An optional character string that refers to the column name of the daily wind direction in \code{data}. The wind direction should be expressed in degree, e.g., 90 represents easterly wind. If this is supplied, arrows representing daily wind direction are plotted on the animated map.
-#' @param wind_arrow_long_lat An optional numeric vector of length 2 specifying the longitude and latitude for the starting point of the wind arrows. This is only used when \code{wind_direction_column_name} is supplied.
-#' @param wind_speed_column_name An optional character string that refers to the column name of the daily wind speed in \code{data}. If supplied, the length of wind arrows are equal to the wind speed multiplied with \code{wind_scaling}. If not supplied, the length of wind arrows are equal to \code{wind_scaling}. This is only used when \code{wind_direction_column_name} is supplied.
-#' @param wind_speed_scaling An optional positive number that represent the scaling to the wind speed as the length of wind arrows when \code{wind_speed_column_name} is supplied, or represent the length of the wind arrows when \code{wind_speed_column_name} is supplied. Default is 0.1. This is only used when \code{wind_direction_column_name} is supplied.
+#' @param wind_direction_column_name An optional character string that refers to the column name of the daily wind direction in \code{data}. The wind direction should be expressed in degree, e.g., 90 represents easterly wind. If this is supplied, arrows representing daily wind direction are plotted on the animated map. It is recommended to supply \code{long_lim} and \code{lat_lim} so that the map is approximately square, ensuring that the wind arrow lengths appear visually consistent across directions.
+#' @param wind_arrow_long_lat An optional numeric vector of length 2 specifying the longitude and latitude for the starting point of the wind arrows. If not supplied, it is set to be \code{c( long_lim[2] - (long_lim[2] - long_lim[1]) / 5,lat_lim[2] - (lat_lim[2] - lat_lim[1]) / 5)}.  This is only used when \code{wind_direction_column_name} is supplied.
+#' @param wind_speed_column_name An optional character string that refers to the column name of the daily wind speed in \code{data}. If supplied, wind arrow lengths are equal to wind speed multiplied with \code{wind_speed_scaling}. Otherwise, arrow lengths are constant and equal to \code{wind_speed_scaling}. This is only used when \code{wind_direction_column_name} is supplied.
+#' @param wind_speed_scaling An optional positive numeric value controlling arrow length. If \code{wind_speed_column_name} is supplied,  wind arrow lengths are equal to wind speed multiplied with this value.  Otherwise, all wind arrows have length equal to this value. Default is 0.1 when \code{wind_speed_column_name} is supplied, and 1 otherwise. This is only used when \code{wind_direction_column_name} is supplied.
 #' @param animate_filename An optional character string specifying the file name used to save the animated map as a GIF. The file name should end with \code{".gif"}. If \code{animate_filename} is not supplied, no GIF is saved on disk.
 #' @param upwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == "Upwind"}.
 #' @param downwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the downwind (second stage) LMM fitting. For example, \code{Gauge.Day.Type \%in\% c("Target","Control")}.
@@ -99,7 +99,7 @@ eda = function(eda_type,
                longlat_column_names, long_lim, lat_lim, input_sf = NULL,
                ionizer_location_df = NULL, ionizer_id_column_name = NULL, ionizer_longlat_column_names = NULL,
                elev_contour = TRUE, elev_resolution = 2,
-               wind_direction_column_name = NULL, wind_arrow_long_lat = NULL, wind_speed_column_name = NULL, wind_speed_scaling = 0.1,
+               wind_direction_column_name = NULL, wind_arrow_long_lat = NULL, wind_speed_column_name = NULL, wind_speed_scaling = NULL,
                focus_year = NULL, fps = 10, animate_filename = NULL,
                upwind_subset, downwind_subset, downwind_target_subset, downwind_control_subset, positive_subset){
 
@@ -683,7 +683,7 @@ eda = function(eda_type,
         output_plot = ggplot2::ggplot(positive_df_avg, ggplot2::aes(x = .data[[longlat_column_names[1]]],
                                                                     y = .data[[longlat_column_names[2]]])) +
           ggplot2::borders()+
-          ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
+          ggplot2::coord_cartesian(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
           ggplot2::geom_point(ggplot2::aes(color = .data[[rain_col_name]])) +
           ggplot2::geom_point(data = ionizer_long, ggplot2::aes(x = .data[[ionizer_longlat_column_names[1]]],
                                                                 y = .data[[ionizer_longlat_column_names[2]]]),
@@ -708,7 +708,7 @@ eda = function(eda_type,
         output_plot = ggplot2::ggplot(positive_df_avg, ggplot2::aes(x = .data[[longlat_column_names[1]]],
                                                                     y = .data[[longlat_column_names[2]]])) +
           ggplot2::borders()+
-          ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
+          ggplot2::coord_cartesian(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
           ggplot2::geom_point(ggplot2::aes(color = .data[[rain_col_name]])) +
           ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = "free") +
           ggplot2::labs(title = paste0('Spatial Plots of ', rain_label, ' Averaged Across\nAll Days Satisfying ',
@@ -772,7 +772,15 @@ eda = function(eda_type,
   if(eda_type == 'map_dynamic'){
     if(!is.null(wind_direction_column_name)){
       if( nrow(unique( data[, c( day_column_name, wind_direction_column_name, wind_speed_column_name  )] ) ) != length(unique(data[, day_column_name]))   ){
-        stop("The wind direction is not unique for each day.")
+        stop(
+          sprintf(
+            "Data should have columns '%s'%s that are constant within each '%s'. However, multiple values were found within at least one '%s'.",
+            wind_direction_column_name,
+            if (!is.null(wind_speed_column_name)) paste0(" and '", wind_speed_column_name, "'") else "",
+            day_column_name,
+            day_column_name
+          )
+        )
       }
     }
 
@@ -835,6 +843,16 @@ eda = function(eda_type,
 
     if(!is.null(wind_direction_column_name)){
       scaled_ws_column_name = 'scaled_ws'
+
+      if (is.null(wind_speed_scaling)) {
+        if (!is.null(wind_speed_column_name)) {
+          wind_speed_scaling = 0.1
+        } else {
+          wind_speed_scaling = 1
+        }
+      }
+
+
       if(!is.null(wind_speed_column_name)){
         data_df[, scaled_ws_column_name] = data_df[, wind_speed_column_name] * wind_speed_scaling
       }else{
@@ -882,6 +900,7 @@ eda = function(eda_type,
           )
 
 
+
           output_plot = ggplot2::ggplot() +
             ggplot2::geom_sf(data = input_sf, fill = "white", color = "black", linewidth = 0.3) +
             ggplot2::geom_sf(
@@ -914,7 +933,7 @@ eda = function(eda_type,
             ) +
             ggplot2::scale_color_viridis_c(name = rain_label) +
             ggplot2::theme_bw() +
-            ggplot2::theme(legend.position = "bottom") +
+            ggplot2::theme(legend.position = "bottom", aspect.ratio=1) +
             ggplot2::guides(alpha = 'none') +
             gganimate::transition_states(
               states = .data[[day_column_name]],
@@ -963,7 +982,7 @@ eda = function(eda_type,
             ) +
             ggplot2::scale_color_viridis_c(name = rain_label) +
             ggplot2::theme_bw() +
-            ggplot2::theme(legend.position = "bottom") +
+            ggplot2::theme(legend.position = "bottom", aspect.ratio=1) +
             ggplot2::guides(alpha = 'none') +
             gganimate::transition_states(
               states = .data[[day_column_name]],
@@ -1003,7 +1022,6 @@ eda = function(eda_type,
         if(!is.null(ionizer_location_df)){
           output_plot = ggplot2::ggplot(data_df_year, ggplot2::aes(x = .data[[longlat_column_names[1]]],
                                                                    y = .data[[longlat_column_names[2]]])) +
-            ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
             ggplot2::geom_point(ggplot2::aes(color = .data[[rain_col_name]],
                                              alpha = .data[['alpha']])) +
             ggplot2::geom_point(data = ionizer_long_day, ggplot2::aes(x = .data[[ionizer_longlat_column_names[1]]],
@@ -1022,6 +1040,7 @@ eda = function(eda_type,
                                                        angle = (270 - .data[[wind_direction_column_name]]) * pi / 180,
                                                        radius = .data[[scaled_ws_column_name]]),
                                 arrow = ggplot2::arrow(length = ggplot2::unit(0.3, "cm"))) +
+            ggplot2::coord_cartesian(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
               title = paste0(rain_label, " for ", day_column_name, " : {closest_state}"),
               x = "Longitude",
@@ -1029,7 +1048,7 @@ eda = function(eda_type,
               color = rain_label) +
             ggplot2::scale_color_viridis_c(name = rain_label) +
             ggplot2::theme_bw() +
-            ggplot2::theme(legend.position = 'bottom')+
+            ggplot2::theme(legend.position = 'bottom', aspect.ratio=1)+
             ggplot2::guides(alpha = 'none') +
             gganimate::transition_states(
               states = .data[[day_column_name]],
@@ -1057,7 +1076,6 @@ eda = function(eda_type,
         }else{
           output_plot = ggplot2::ggplot(data_df_year, ggplot2::aes(x = .data[[longlat_column_names[1]]],
                                                                    y = .data[[longlat_column_names[2]]])) +
-            ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
             ggplot2::geom_point(ggplot2::aes(color = .data[[rain_col_name]],
                                              alpha = .data[['alpha']]))  +
             ggplot2::geom_spoke(data = data_df_year,
@@ -1065,6 +1083,7 @@ eda = function(eda_type,
                                                        angle = (270 - .data[[wind_direction_column_name]]) * pi / 180,
                                                        radius = .data[[scaled_ws_column_name]]),
                                 arrow = ggplot2::arrow(length = ggplot2::unit(0.3, "cm"))) +
+            ggplot2::coord_cartesian(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
               title = paste0(rain_label, " for ", day_column_name, " : {closest_state}"),
               x = "Longitude",
@@ -1072,7 +1091,7 @@ eda = function(eda_type,
               color = rain_label) +
             ggplot2::scale_color_viridis_c(name = rain_label) +
             ggplot2::theme_bw() +
-            ggplot2::theme(legend.position = 'bottom')+
+            ggplot2::theme(legend.position = 'bottom', aspect.ratio=1)+
             ggplot2::guides(alpha = 'none') +
             gganimate::transition_states(
               states = .data[[day_column_name]],
@@ -1245,7 +1264,6 @@ eda = function(eda_type,
         if(!is.null(ionizer_location_df)){
           output_plot = ggplot2::ggplot(data_df_year, ggplot2::aes(x = .data[[longlat_column_names[1]]],
                                                                    y = .data[[longlat_column_names[2]]])) +
-            ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
             ggplot2::geom_point(ggplot2::aes(color = .data[[rain_col_name]],
                                              alpha = .data[['alpha']])) +
             ggplot2::geom_point(data = ionizer_long_day, ggplot2::aes(x = .data[[ionizer_longlat_column_names[1]]],
@@ -1259,6 +1277,7 @@ eda = function(eda_type,
               size = 3,
               fontface = "bold"
             ) +
+            ggplot2::coord_cartesian(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
               title = paste0(rain_label, " for ", day_column_name, " : {closest_state}"),
               x = "Longitude",
@@ -1294,9 +1313,9 @@ eda = function(eda_type,
         }else{
           output_plot = ggplot2::ggplot(data_df_year, ggplot2::aes(x = .data[[longlat_column_names[1]]],
                                                                    y = .data[[longlat_column_names[2]]])) +
-            ggplot2::xlim(long_lim) + ggplot2::ylim(lat_lim) +
             ggplot2::geom_point(ggplot2::aes(color = .data[[rain_col_name]],
                                              alpha = .data[['alpha']]))  +
+            ggplot2::coord_cartesian(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
               title = paste0(rain_label, " for ", day_column_name, " : {closest_state}"),
               x = "Longitude",

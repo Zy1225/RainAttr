@@ -22,6 +22,10 @@ eda(
   ionizer_longlat_column_names = NULL,
   elev_contour = TRUE,
   elev_resolution = 2,
+  wind_direction_column_name = NULL,
+  wind_arrow_long_lat = NULL,
+  wind_speed_column_name = NULL,
+  wind_speed_scaling = NULL,
   focus_year = NULL,
   fps = 10,
   animate_filename = NULL,
@@ -72,6 +76,14 @@ The data frame must contain columns specified by \code{ionizer_id_column_name} a
 \item{elev_contour}{An optional logical. If \code{TRUE}, elevation contour lines (obtained from Amazon Web Services Terrain Tiles) are added to the spatial plots. If \code{FALSE} (default), elevation contour lines are not included.}
 
 \item{elev_resolution}{An optional integer between 1 and 14, specifying the resolution of the elevation data obtained from Amazon Web Services Terrain Tiles via \code{\link[elevatr]{get_elev_raster}}. Defaults to 2. Higher values indicate higher resolution; see the \code{z} argument in \code{\link[elevatr]{get_elev_raster}} for more details.}
+
+\item{wind_direction_column_name}{An optional character string that refers to the column name of the daily wind direction in \code{data}. The wind direction should be expressed in degree, e.g., 90 represents easterly wind. If this is supplied, arrows representing daily wind direction are plotted on the animated map. It is recommended to supply \code{long_lim} and \code{lat_lim} so that the map is approximately square, ensuring that the wind arrow lengths appear visually consistent across directions.}
+
+\item{wind_arrow_long_lat}{An optional numeric vector of length 2 specifying the longitude and latitude for the starting point of the wind arrows. If not supplied, it is set to be \code{c( long_lim[2] - (long_lim[2] - long_lim[1]) / 5,lat_lim[2] - (lat_lim[2] - lat_lim[1]) / 5)}.  This is only used when \code{wind_direction_column_name} is supplied.}
+
+\item{wind_speed_column_name}{An optional character string that refers to the column name of the daily wind speed in \code{data}. If supplied, wind arrow lengths are equal to wind speed multiplied with \code{wind_speed_scaling}. Otherwise, arrow lengths are constant and equal to \code{wind_speed_scaling}. This is only used when \code{wind_direction_column_name} is supplied.}
+
+\item{wind_speed_scaling}{An optional positive numeric value controlling arrow length. If \code{wind_speed_column_name} is supplied,  wind arrow lengths are equal to wind speed multiplied with this value.  Otherwise, all wind arrows have length equal to this value. Default is 0.1 when \code{wind_speed_column_name} is supplied, and 1 otherwise. This is only used when \code{wind_direction_column_name} is supplied.}
 
 \item{focus_year}{An optional vector specifying years to filter for animated maps. If \code{focus_year} is not supplied, all years are included.}
 
@@ -138,8 +150,8 @@ Unlike \code{\link[ggplot2:ggplot]{ggplot2}}, \code{\link[plotly:plot_ly]{plotly
 Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} and adding elevation contour lines if \code{elev_contour = TRUE} as well as plotting ionizers supplied via \code{ionizer_location_df}, with faceting by year.
 Averaging is performed only over days with positive rainfall for each gauge. Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines (obtained from Amazon Web Services Terrain Tiles) when \code{elev_contour = TRUE}.
 }
-\item{\code{map_dynamic} (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{focus_year}, \code{fps}, \code{animate_filename})}{
-Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as adding elevation contour lines if \code{elev_contour = TRUE}, and plotting ionizers supplied via \code{ionizer_location_df}.
+\item{\code{map_dynamic} (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{wind_direction_column_name}, \code{wind_arrow_long_lat}, \code{wind_speed_column_name}, \code{wind_speed_scaling}, \code{focus_year}, \code{fps}, \code{animate_filename})}{
+Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as adding elevation contour lines if \code{elev_contour = TRUE}, plotting ionizers supplied via \code{ionizer_location_df}, and plotting wind arrows based on daily wind directions supplied via \code{wind_direction_column_name}.
 The animation frames are displayed in the order of \code{data[,day_column_name]}. Users should ensure that \code{data[,day_column_name]} contains values that can be meaningfully ordered (e.g., numeric or Date), rather than nominal/factor values, so the animation reflects the correct temporal progression.
 Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines (obtained from Amazon Web Services Terrain Tiles) when \code{elev_contour = TRUE}. When \code{animate_filename} is supplied, the resulting gif_image of the animated map will be saved to the location specified by \code{animate_filename}.
 }
