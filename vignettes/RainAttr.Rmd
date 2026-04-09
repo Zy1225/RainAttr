@@ -341,8 +341,7 @@ annual_map
 ```
 
 
-Animated map of daily rainfall (on log scale), with  with map polygon layer for Oman added using `input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf")`, ionizer locations plotted using `ionizer_location_df = ionizer_location`, elevation contour lines added using `elev_contour = TRUE`, and wind direction arrows using
-`wind_direction_column_name = "Steering.Wind.Direction"` along with wind speed supplied via `wind_speed_column_name = "Steering.Wind.Speed"`, noting that `long_lim = c(55,60)` and `lat_lim = c(20,25)` are used to ensure a square map is produce so that the wind arrow lengths appear visually consistent across directions across directions:
+Animated map of daily rainfall (on log scale), with map polygon layer for Oman added using `input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf")`, ionizer locations plotted using `ionizer_location_df = ionizer_location`, elevation contour lines added using `elev_contour = TRUE`, and wind direction arrows added using `wind_direction_column_name = "Steering.Wind.Direction"` along with wind speed supplied via `wind_speed_column_name = "Steering.Wind.Speed"`, noting that `long_lim = c(55,60)` and `lat_lim = c(20,25)` are used to ensure a square map is produced so that the wind arrow lengths appear visually consistent across directions:
 
 ```{r, eval=FALSE}
 animated_map = eda(eda_type = "map_dynamic",
