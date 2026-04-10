@@ -488,7 +488,7 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
         ggplot2::theme_bw() +
         ggplot2::scale_color_manual(values = color_vals) +
         ggplot2::scale_shape_manual(values = shape_vals) +
-        ggplot2::theme(plot.title = ggplot2::element_text(size = 9),
+        ggplot2::theme(plot.title = ggplot2::element_text(size = 10),
                        axis.title.x = ggplot2::element_text(size = 8),
                        axis.title.y = ggplot2::element_text(size = 8))
 
@@ -510,7 +510,7 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
         ggplot2::theme_bw() +
         ggplot2::scale_color_manual(values = color_vals) +
         ggplot2::scale_shape_manual(values = shape_vals) +
-        ggplot2::theme(plot.title = ggplot2::element_text(size = 9),
+        ggplot2::theme(plot.title = ggplot2::element_text(size = 10),
                        axis.title.x = ggplot2::element_text(size = 8),
                        axis.title.y = ggplot2::element_text(size = 8))
 
@@ -531,7 +531,7 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
                       y = paste0("Residuals (type=", ifelse(is.null(residual_type), 'response', residual_type), ", scaled=", residual_scaled, ")"),
                       x = paste0("Fitted (fixef_include =", fixef_include, ", re_include =", re_include, ")")) +
         ggplot2::theme_bw() +
-        ggplot2::theme(plot.title = ggplot2::element_text(size = 9),
+        ggplot2::theme(plot.title = ggplot2::element_text(size = 10),
                        axis.title.x = ggplot2::element_text(size = 8),
                        axis.title.y = ggplot2::element_text(size = 8))
 
@@ -550,7 +550,7 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
         ggplot2::geom_abline(intercept = qqline_intercept, slope = qqline_slope, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals")) +
         ggplot2::theme_bw() +
-        ggplot2::theme(plot.title = ggplot2::element_text(size = 9),
+        ggplot2::theme(plot.title = ggplot2::element_text(size = 10),
                        axis.title.x = ggplot2::element_text(size = 8),
                        axis.title.y = ggplot2::element_text(size = 8))
 
@@ -569,7 +569,7 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
                       y = paste0("Residuals (type=", ifelse(is.null(residual_type), 'deviance', residual_type), ", scaled=", residual_scaled, ")"),
                       x = paste0("Fitted (type=", predict_type, ")") )  +
         ggplot2::theme_bw() +
-        ggplot2::theme(plot.title = ggplot2::element_text(size = 9),
+        ggplot2::theme(plot.title = ggplot2::element_text(size = 10),
                        axis.title.x = ggplot2::element_text(size = 8),
                        axis.title.y = ggplot2::element_text(size = 8))
 
@@ -588,7 +588,7 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
         ggplot2::geom_abline(intercept = qqline_intercept, slope = qqline_slope, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals")) +
         ggplot2::theme_bw() +
-        ggplot2::theme(plot.title = ggplot2::element_text(size = 9),
+        ggplot2::theme(plot.title = ggplot2::element_text(size = 10),
                        axis.title.x = ggplot2::element_text(size = 8),
                        axis.title.y = ggplot2::element_text(size = 8))
 
