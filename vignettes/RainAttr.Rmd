@@ -162,7 +162,7 @@ boot_perm_result = rain_attr(
   bootstrap = TRUE,
 
   #Specification of various option for bootstrap, e.g., bootstrap_opt(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
-  bootstrap_option = bootstrap_opt(B_bootstrap = 100, 
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500, 
                                    bootstrap_seed = 123, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
@@ -171,7 +171,7 @@ boot_perm_result = rain_attr(
   permutation = TRUE,
 
   #Specification of various option for permutation,  e.g., whether to permute the operating states between ionizers, between days, between gaugedays
-  permutation_option = permutation_opt(B_permutation = 100,
+  permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 999,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
@@ -389,7 +389,7 @@ The package can be used to replicate the `apl` attribution analysis of @chambers
 
 The headline analysis presented in Section 5.1 can be reproduced using the code below. Note that @chambers2022a used the unconditional fitted value from upwind (first-stage) model (`instr_pred_type = 'Unconditional'`), estimated the attribution `apl` using their proposed method (`attr_type = 'ChambersEtAl'`), and made use of the REB2 type bootstrap (`bootstrap_opt(bootstrap_type = 'REB2')`). See `help(rain_attr)` and `help(bootstrap_downwind)`  for further details on the `attr_type = 'ChambersEtAl'` attribution estimator and the REB2 type bootstrap, respectively. Moreover, the unconditional fitted value from upwind (first-stage) model is included as a covariate in the RHS of the `downwind_lmm_formula`, instead of an offset term in the LHS of the `downwind_lmm_formula`.
 
-```{r, eval=FALSE}
+```{r}
 headline = rain_attr(
   data = oman,
   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
@@ -407,13 +407,13 @@ headline = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 100,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 1, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 100,
+  permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 321,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
@@ -467,13 +467,13 @@ table6_2013_2018 = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018' , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 100,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 11, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 100,
+  permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 3211,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
@@ -503,13 +503,13 @@ table6_2013_2015 = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Year...2013' , 'Year...2014'  , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 100,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 199, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 100,
+  permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 3210,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
@@ -538,13 +538,13 @@ table6_2016_2018 = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Year...2016' , 'Year...2018'  , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 100,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 91, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 100,
+  permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 9321,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
@@ -653,13 +653,13 @@ jrssa = rain_attr(
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
   target_only = FALSE,
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 100,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 191,
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 100,
+  permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 19321,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
