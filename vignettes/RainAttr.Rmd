@@ -484,8 +484,8 @@ summary(headline)$attr_table[2,]
 
 The following plots aim to replicate Figure 7, noting that some differences remain due to the same reasons outlined above.
 ```{r, out.width="100%"}
-headline$bootstrap_plot_result$hatattr$apl
-headline$permutation_plot_result$hatattr$apl
+headline$bootstrap_plot_result$hatattr$apl + ggplot2::ggtitle('Bootstrap Distribution of Attribution\n (% Natural Rainfall)') + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+headline$permutation_plot_result$hatattr$apl + ggplot2::ggtitle('Permutation Distribution of Attribution\n (% Natural Rainfall)') + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
 ```
 
 ## After the Event Statistical Analyses in Section 5.2 of @chambers2022a
@@ -693,7 +693,7 @@ ori_df = rbind(
 fig11_bootstrap = ggplot2::ggplot() +
       ggplot2::geom_density(data = bootstrap_df, ggplot2::aes(x = apl, linetype = type)) +
       ggplot2::geom_vline(data = ori_df, ggplot2::aes(xintercept = apl, linetype = type)) +
-      ggplot2::ggtitle('Bootstrap Distribution of Attribution (% Natural Rainfall)') +
+      ggplot2::ggtitle('Bootstrap Distribution of Attribution\n (% Natural Rainfall)') +
       ggplot2::xlab('Bootstrapped Values') +
       ggplot2::ylab('Bootstrap Density') +
       ggplot2::theme_bw() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
@@ -701,7 +701,7 @@ fig11_bootstrap = ggplot2::ggplot() +
 fig11_permutation = ggplot2::ggplot() +
       ggplot2::geom_density(data = permutation_df, ggplot2::aes(x = apl, linetype = type)) +
       ggplot2::geom_vline(data = ori_df, ggplot2::aes(xintercept = apl, linetype = type)) +
-      ggplot2::ggtitle('Permutation Distribution of Attribution (% Natural Rainfall)') +
+      ggplot2::ggtitle('Permutation Distribution of Attribution\n (% Natural Rainfall)') +
       ggplot2::xlab('Permuted Values') +
       ggplot2::ylab('Permutation Density') +
       ggplot2::theme_bw() + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
