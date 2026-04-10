@@ -183,7 +183,7 @@ end_time - start_time
 
 ```
 
-The total computational time was about 3.5 minutes, on a 3.6 GHz 8 core CPU.
+The total computational time was less than 4 minutes, on a 3.6 GHz 8 core CPU.
 
 In the above example, we use the default PREB1 bootstrap proposed by @tho2025; hence, it is not necessary to explicitly specify `bootstrap_opt(bootstrap_type = "PREB1")`. This bootstrap is a generalization of the REB bootstraps by @chambers2013 and can accommodate clustered data with either balanced or unbalanced cluster sizes. Accordingly, PREB1 is our recommended choice, particularly when the Oman trial dataset exhibits highly unbalanced cluster sizes.
 
