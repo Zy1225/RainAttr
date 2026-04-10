@@ -135,8 +135,9 @@ The `rain_attr` function also allows for bootstrap and permutation inference on 
 A useful feature of the package for implementing bootstrap and permutation analyses is the option for **parallelization**, which allows users to reduce computation time by running replicates in parallel using the `parallel` package. This can be enabled by setting `bootstrap_opt(bootstrap_parallel = TRUE, bootstrap_parallel_num_worker = 6)` and `permutation_opt(permutation_parallel = TRUE, permutation_parallel_num_worker = 6)`, which will distribute the bootstrap and permutation runs across six workers. 
 
 Here is an example of performing bootstrap and permutation inference, each with 500 replicates parallelized over six workers:
-```{r, eval=FALSE}
+```{r}
 
+start_time = Sys.time()
 boot_perm_result = rain_attr(
   data = oman,
   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
@@ -161,7 +162,7 @@ boot_perm_result = rain_attr(
   bootstrap = TRUE,
 
   #Specification of various option for bootstrap, e.g., bootstrap_opt(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500, 
+  bootstrap_option = bootstrap_opt(B_bootstrap = 100, 
                                    bootstrap_seed = 123, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
@@ -170,23 +171,16 @@ boot_perm_result = rain_attr(
   permutation = TRUE,
 
   #Specification of various option for permutation,  e.g., whether to permute the operating states between ionizers, between days, between gaugedays
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = 100,
                                        permutation_seed = 999,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
   )
+end_time = Sys.time()
 
+#
+end_time - start_time
 
-
-```
-```{r, eval=FALSE, include=FALSE}
-boot_perm_result$bootstrap_result$downwind_LogRain = NULL
-saveRDS(boot_perm_result, "inst/extdata/boot_perm_result.rds")
-```
-
-```{r, include=FALSE}
-#boot_perm_result = readRDS("inst/extdata/boot_perm_result.rds")
-boot_perm_result = readRDS(system.file("extdata", "boot_perm_result.rds", package = "RainAttr"))
 ```
 
 The total computational time was about 3.5 minutes, on a 3.6 GHz 8 core CPU.
@@ -343,7 +337,7 @@ annual_map
 
 Animated map of daily rainfall (on log scale), with map polygon layer for Oman added using `input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf")`, ionizer locations plotted using `ionizer_location_df = ionizer_location`, elevation contour lines added using `elev_contour = TRUE`, and wind direction arrows added using `wind_direction_column_name = "Steering.Wind.Direction"` along with wind speed supplied via `wind_speed_column_name = "Steering.Wind.Speed"`, noting that `long_lim = c(55,60)` and `lat_lim = c(20,25)` are used to ensure a square map is produced so that the wind arrow lengths appear visually consistent across directions:
 
-```{r, eval=FALSE}
+```{r, out.width="100%"}
 animated_map = eda(eda_type = "map_dynamic",
               data = oman,
               rain_col_name = 'Rain.Gauge.Measurement',
@@ -366,42 +360,10 @@ animated_map = eda(eda_type = "map_dynamic",
               focus_year = c(2013),
               fps = 30
 )
-```
 
-```{r, eval=FALSE, include=FALSE}
-animated_map = eda(eda_type = "map_dynamic",
-              data = oman,
-              rain_col_name = 'Rain.Gauge.Measurement',
-              day_column_name = 'TrialDay',
-              year_column_name = 'Year',
-              use_raw = F,
-              longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
-              long_lim = c(55,60),
-              lat_lim = c(20,25),
-              input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
-              ionizer_location_df = ionizer_location,
-              ionizer_id_column_name = 'Ionizer',
-              ionizer_longlat_column_names = c("Longitude","Latitude"),
-              elev_contour = TRUE,
-              elev_resolution = 2,
-              wind_direction_column_name = "Steering.Wind.Direction", 
-              wind_arrow_long_lat = c(59.25,24.5), 
-              wind_speed_column_name = "Steering.Wind.Speed", 
-              wind_speed_scaling = 0.075,
-              focus_year = c(2013),
-              fps = 30, animate_filename = "inst/extdata/animated_map.gif"
-)
-```
-
-
-
-```{r, out.width="100%", eval=FALSE}
 animated_map$gif_image
 ```
 
-```{r, out.width="100%", echo=FALSE}
-knitr::include_graphics(system.file("extdata", "animated_map.gif", package = "RainAttr"))
-```
 
 For more details on the `eda` function, we refer to `help(eda)`.
 
@@ -445,28 +407,19 @@ headline = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 100,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 1, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = 100,
                                        permutation_seed = 321,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
   )
 ```
 
-```{r, eval=FALSE, include=FALSE}
-headline$bootstrap_result$downwind_LogRain = NULL
-saveRDS(headline, "inst/extdata/headline.rds")
-```
-
-```{r, include=FALSE}
-#headline = readRDS("inst/extdata/headline.rds")
-headline = readRDS(system.file("extdata", "headline.rds", package = "RainAttr"))
-```
 
 Table 3 and 4, which are identical to the following summary tables of upwind (first-stage) and downwind (second-stage) LMM, respectively:
 ```{r}
@@ -494,7 +447,8 @@ The after the event statistical analyses presented in Section 5.2 can also be re
 
 In the following, we replicate the parameter estimates and associated t-values for the downwind (second-stage) LMM presented in each column of Table 6, noting that the `apl` attribution estimates (except for the 2016-2018 column) differ due to the aforementioned coding error in the original implementation.
 
-```{r, eval=FALSE}
+2013-2018 column:
+```{r}
 #2013-2018 column
 table6_2013_2018 = rain_attr(
   data = oman,
@@ -513,35 +467,24 @@ table6_2013_2018 = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018' , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 100,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 11, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = 100,
                                        permutation_seed = 3211,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
 )
-```
 
-```{r, eval=FALSE, include=FALSE}
-table6_2013_2018$bootstrap_result$downwind_LogRain = NULL
-saveRDS(table6_2013_2018, "inst/extdata/table6_2013_2018.rds")
-```
-
-```{r, include=FALSE}
-#table6_2013_2018 = readRDS("inst/extdata/table6_2013_2018.rds")
-table6_2013_2018 = readRDS(system.file("extdata", "table6_2013_2018.rds", package = "RainAttr"))
-```
-
-2013-2018 column: 
-```{r}
 summary(table6_2013_2018)
 ```
 
-```{r, eval=FALSE}
+
+2013-2015 column:
+```{r}
 #2013-2015 column
 table6_2013_2015 = rain_attr(
   data = oman,
@@ -560,35 +503,23 @@ table6_2013_2015 = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Year...2013' , 'Year...2014'  , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 100,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 199, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = 100,
                                        permutation_seed = 3210,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
 )
-```
 
-```{r, eval=FALSE, include=FALSE}
-table6_2013_2015$bootstrap_result$downwind_LogRain = NULL
-saveRDS(table6_2013_2015, "inst/extdata/table6_2013_2015.rds")
-```
-
-```{r, include=FALSE}
-#table6_2013_2015 = readRDS("inst/extdata/table6_2013_2015.rds")
-table6_2013_2015 = readRDS(system.file("extdata", "table6_2013_2015.rds", package = "RainAttr"))
-```
-
-2013-2015 column:
-```{r}
 summary(table6_2013_2015)
 ```
 
-```{r, eval=FALSE}
+2016-2018 column:
+```{r}
 #2016-2018 column
 table6_2016_2018 = rain_attr(
   data = oman,
@@ -607,31 +538,18 @@ table6_2016_2018 = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Year...2016' , 'Year...2018'  , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 100,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 91, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = 100,
                                        permutation_seed = 9321,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
 )
-```
 
-```{r, eval=FALSE, include=FALSE}
-table6_2016_2018$bootstrap_result$downwind_LogRain = NULL
-saveRDS(table6_2016_2018, "inst/extdata/table6_2016_2018.rds")
-```
-
-```{r, include=FALSE}
-#table6_2016_2018 = readRDS("inst/extdata/table6_2016_2018.rds")
-table6_2016_2018 = readRDS(system.file("extdata", "table6_2016_2018.rds", package = "RainAttr"))
-```
-
-2016-2018 column:
-```{r}
 summary(table6_2016_2018)
 ```
 
@@ -716,7 +634,7 @@ The package can also be used to replicate the SATE analysis of @chambers2022b, p
 inference, with an application to rainfall enhancement".
 
 In particular, the real data analysis presented in Section 5 can be reproduced using the code below.
-```{r, eval=FALSE}
+```{r}
 jrssa = rain_attr(
   data = oman,
   upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
@@ -735,27 +653,17 @@ jrssa = rain_attr(
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
   target_only = FALSE,
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+  bootstrap_option = bootstrap_opt(B_bootstrap = 100,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 191,
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = 100,
                                        permutation_seed = 19321,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
   )
-```
-
-```{r, eval=FALSE, include=FALSE}
-jrssa$bootstrap_result$downwind_LogRain = NULL
-saveRDS(jrssa, "inst/extdata/jrssa.rds")
-```
-
-```{r, include=FALSE}
-#jrssa = readRDS("inst/extdata/jrssa.rds")
-jrssa = readRDS(system.file("extdata", "jrssa.rds", package = "RainAttr"))
 ```
 
 
