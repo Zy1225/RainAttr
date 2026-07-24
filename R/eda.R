@@ -925,7 +925,7 @@ eda = function(eda_type,
             ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
               title = paste0(
-                rain_label, " for ", day_column_name, " : {closest_state}"
+                rain_label, "\nfor ", day_column_name, " : {closest_state}"
               ),
               x = "Longitude",
               y = "Latitude",
@@ -974,7 +974,7 @@ eda = function(eda_type,
             ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
               title = paste0(
-                rain_label, " for ", day_column_name, " : {closest_state}"
+                rain_label, "\nfor ", day_column_name, " : {closest_state}"
               ),
               x = "Longitude",
               y = "Latitude",
@@ -1042,7 +1042,7 @@ eda = function(eda_type,
                                 arrow = ggplot2::arrow(length = ggplot2::unit(0.3, "cm"))) +
             ggplot2::coord_cartesian(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
-              title = paste0(rain_label, " for ", day_column_name, " : {closest_state}"),
+              title = paste0(rain_label, "\nfor ", day_column_name, " : {closest_state}"),
               x = "Longitude",
               y = "Latitude",
               color = rain_label) +
@@ -1085,7 +1085,7 @@ eda = function(eda_type,
                                 arrow = ggplot2::arrow(length = ggplot2::unit(0.3, "cm"))) +
             ggplot2::coord_cartesian(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
-              title = paste0(rain_label, " for ", day_column_name, " : {closest_state}"),
+              title = paste0(rain_label, "\nfor ", day_column_name, " : {closest_state}"),
               x = "Longitude",
               y = "Latitude",
               color = rain_label) +
@@ -1172,7 +1172,7 @@ eda = function(eda_type,
             ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
               title = paste0(
-                rain_label, " for ", day_column_name, " : {closest_state}"
+                rain_label, "\nfor ", day_column_name, " : {closest_state}"
               ),
               x = "Longitude",
               y = "Latitude",
@@ -1216,7 +1216,7 @@ eda = function(eda_type,
             ggplot2::coord_sf(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
               title = paste0(
-                rain_label, " for ", day_column_name, " : {closest_state}"
+                rain_label, "\nfor ", day_column_name, " : {closest_state}"
               ),
               x = "Longitude",
               y = "Latitude",
@@ -1279,7 +1279,7 @@ eda = function(eda_type,
             ) +
             ggplot2::coord_cartesian(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
-              title = paste0(rain_label, " for ", day_column_name, " : {closest_state}"),
+              title = paste0(rain_label, "\nfor ", day_column_name, " : {closest_state}"),
               x = "Longitude",
               y = "Latitude",
               color = rain_label) +
@@ -1317,7 +1317,7 @@ eda = function(eda_type,
                                              alpha = .data[['alpha']]))  +
             ggplot2::coord_cartesian(xlim = long_lim, ylim = lat_lim, expand = FALSE) +
             ggplot2::labs(
-              title = paste0(rain_label, " for ", day_column_name, " : {closest_state}"),
+              title = paste0(rain_label, "\nfor ", day_column_name, " : {closest_state}"),
               x = "Longitude",
               y = "Latitude",
               color = rain_label) +
