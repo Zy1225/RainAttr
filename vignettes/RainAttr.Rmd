@@ -24,6 +24,15 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(RainAttr)
+
+# Use 4 workers on GitHub Actions and 6 workers locally
+in_github_actions <- identical(
+  Sys.getenv("GITHUB_ACTIONS"),
+  "true"
+)
+
+n_workers <- if (in_github_actions) 4L else 6L
+
 ```
 
 
@@ -132,9 +141,9 @@ The above results also show that all SATE estimates are positive, suggesting a c
 ## Bootstrap and Permutation Inference
 The `rain_attr` function also allows for bootstrap and permutation inference on the attribution and SATEs, by setting the arguments `bootstrap = TRUE` and `permutation = TRUE`. Additional options for bootstrap and permutation can be set by inputting named lists to the arguments `bootstrap_option` and `permutation_option`, with the default options returned by `bootstrap_opt()` and `permutation_opt()`. For example, `bootstrap_option = bootstrap_opt(B_bootstrap = 500)` and `permutation_option = permutation_opt(B_permutation = 500)` set the number of bootstrap replicates and permutation replicates to be 500.
 
-A useful feature of the package for implementing bootstrap and permutation analyses is the option for **parallelization**, which allows users to reduce computation time by running replicates in parallel using the `parallel` package. This can be enabled by setting `bootstrap_opt(bootstrap_parallel = TRUE, bootstrap_parallel_num_worker = 6)` and `permutation_opt(permutation_parallel = TRUE, permutation_parallel_num_worker = 6)`, which will distribute the bootstrap and permutation runs across six workers. 
+A useful feature of the package for implementing bootstrap and permutation analyses is the option for **parallelization**, which allows users to reduce computation time by running replicates in parallel using the `parallel` package. This can be enabled by setting `bootstrap_opt(bootstrap_parallel = TRUE, bootstrap_parallel_num_worker = n_workers)` and `permutation_opt(permutation_parallel = TRUE, permutation_parallel_num_worker = n_workers)`, which will distribute the bootstrap and permutation runs across `r n_workers` workers. 
 
-Here is an example of performing bootstrap and permutation inference, each with 500 replicates parallelized over six workers:
+Here is an example of performing bootstrap and permutation inference, each with 500 replicates parallelized over `r n_workers`` workers:
 ```{r}
 
 start_time = Sys.time()
@@ -165,7 +174,7 @@ boot_perm_result = rain_attr(
   bootstrap_option = bootstrap_opt(B_bootstrap = 500, 
                                    bootstrap_seed = 123, 
                                    bootstrap_parallel = TRUE,
-                                   bootstrap_parallel_num_worker = 6),
+                                   bootstrap_parallel_num_worker = n_workers),
 
   #Indicator for whether to perform permutation inference on attribution and SATE
   permutation = TRUE,
@@ -174,7 +183,7 @@ boot_perm_result = rain_attr(
   permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 999,
                                        permutation_parallel = TRUE,
-                                       permutation_parallel_num_worker = 6)
+                                       permutation_parallel_num_worker = n_workers)
   )
 end_time = Sys.time()
 
@@ -183,7 +192,7 @@ end_time - start_time
 
 ```
 
-The total computational time was `r round(as.numeric(difftime(end_time, start_time, units = "mins")), 2)` minutes, on a 3.6 GHz 8 core CPU.
+The total computational time was `r round(as.numeric(difftime(end_time, start_time, units = "mins")), 2)` minutes.
 
 In the above example, we use the default PREB1 bootstrap proposed by @tho2025; hence, it is not necessary to explicitly specify `bootstrap_opt(bootstrap_type = "PREB1")`. This bootstrap is a generalization of the REB bootstraps by @chambers2013 and can accommodate clustered data with either balanced or unbalanced cluster sizes. Accordingly, PREB1 is our recommended choice, particularly when the Oman trial dataset exhibits highly unbalanced cluster sizes.
 
@@ -411,12 +420,12 @@ headline = rain_attr(
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 1, 
                                    bootstrap_parallel = TRUE,
-                                   bootstrap_parallel_num_worker = 6),
+                                   bootstrap_parallel_num_worker = n_workers),
   permutation = TRUE,
   permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 321,
                                        permutation_parallel = TRUE,
-                                       permutation_parallel_num_worker = 6)
+                                       permutation_parallel_num_worker = n_workers)
   )
 ```
 
@@ -471,12 +480,12 @@ table6_2013_2018 = rain_attr(
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 11, 
                                    bootstrap_parallel = TRUE,
-                                   bootstrap_parallel_num_worker = 6),
+                                   bootstrap_parallel_num_worker = n_workers),
   permutation = TRUE,
   permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 3211,
                                        permutation_parallel = TRUE,
-                                       permutation_parallel_num_worker = 6)
+                                       permutation_parallel_num_worker = n_workers)
 )
 
 summary(table6_2013_2018)
@@ -507,12 +516,12 @@ table6_2013_2015 = rain_attr(
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 199, 
                                    bootstrap_parallel = TRUE,
-                                   bootstrap_parallel_num_worker = 6),
+                                   bootstrap_parallel_num_worker = n_workers),
   permutation = TRUE,
   permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 3210,
                                        permutation_parallel = TRUE,
-                                       permutation_parallel_num_worker = 6)
+                                       permutation_parallel_num_worker = n_workers)
 )
 
 summary(table6_2013_2015)
@@ -542,12 +551,12 @@ table6_2016_2018 = rain_attr(
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 91, 
                                    bootstrap_parallel = TRUE,
-                                   bootstrap_parallel_num_worker = 6),
+                                   bootstrap_parallel_num_worker = n_workers),
   permutation = TRUE,
   permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 9321,
                                        permutation_parallel = TRUE,
-                                       permutation_parallel_num_worker = 6)
+                                       permutation_parallel_num_worker = n_workers)
 )
 
 summary(table6_2016_2018)
@@ -657,12 +666,12 @@ jrssa = rain_attr(
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 191,
                                    bootstrap_parallel = TRUE,
-                                   bootstrap_parallel_num_worker = 6),
+                                   bootstrap_parallel_num_worker = n_workers),
   permutation = TRUE,
   permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 19321,
                                        permutation_parallel = TRUE,
-                                       permutation_parallel_num_worker = 6)
+                                       permutation_parallel_num_worker = n_workers)
   )
 ```
 
