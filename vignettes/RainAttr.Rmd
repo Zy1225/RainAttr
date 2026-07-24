@@ -24,15 +24,6 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(RainAttr)
-
-# Use 4 workers on GitHub Actions and 6 workers locally
-in_github_actions <- identical(
-  Sys.getenv("GITHUB_ACTIONS"),
-  "true"
-)
-
-n_workers <- if (in_github_actions) 4L else 6L
-
 ```
 
 
@@ -140,6 +131,31 @@ The above results also show that all SATE estimates are positive, suggesting a c
 
 ## Bootstrap and Permutation Inference
 The `rain_attr` function also allows for bootstrap and permutation inference on the attribution and SATEs, by setting the arguments `bootstrap = TRUE` and `permutation = TRUE`. Additional options for bootstrap and permutation can be set by inputting named lists to the arguments `bootstrap_option` and `permutation_option`, with the default options returned by `bootstrap_opt()` and `permutation_opt()`. For example, `bootstrap_option = bootstrap_opt(B_bootstrap = 500)` and `permutation_option = permutation_opt(B_permutation = 500)` set the number of bootstrap replicates and permutation replicates to be 500.
+
+```{r}
+# Use 2 workers for R Check or pkgdown build, 4 workers on GitHub Actions, and 6 workers locally
+in_github_actions <- identical(
+  Sys.getenv("GITHUB_ACTIONS"),
+  "true"
+)
+
+in_r_check <- nzchar(Sys.getenv("_R_CHECK_LIMIT_CORES_"))
+
+in_pkgdown <- identical(
+  Sys.getenv("IN_PKGDOWN"),
+  "true"
+)
+
+n_workers <- if (in_r_check) {
+  2L
+} else if (in_github_actions) {
+  4L
+} else if (in_pkgdown) {
+  2L
+} else {
+  6L
+}
+```
 
 A useful feature of the package for implementing bootstrap and permutation analyses is the option for **parallelization**, which allows users to reduce computation time by running replicates in parallel using the `parallel` package. This can be enabled by setting `bootstrap_opt(bootstrap_parallel = TRUE, bootstrap_parallel_num_worker = n_workers)` and `permutation_opt(permutation_parallel = TRUE, permutation_parallel_num_worker = n_workers)`, which will distribute the bootstrap and permutation runs across `r n_workers` workers. 
 
