@@ -408,7 +408,7 @@ end_time = Sys.time()
 
 #
 end_time - start_time
-#> Time difference of 6.528157 mins
+#> Time difference of 6.52799 mins
 ```
 
 The total computational time was 6.53 minutes.
