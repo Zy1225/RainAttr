@@ -1,6 +1,7 @@
 Package: RainAttr
 Title: Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data
 Version: 0.0.0.9000
+Date: 2026-07-24
 Authors@R: 
     c(person("Zhi Yang", "Tho", , "zhiyang.tho@anu.edu.au", role = c("aut", "cre")),
       person("Raymond", "Chambers ", , "Raymond.Chambers@anu.edu.au", role = "aut"),
