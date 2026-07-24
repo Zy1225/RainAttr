@@ -1,5 +1,5 @@
 #' @title
-#' Gauge-Day Level Observation Downwind Indicator
+#' Gauge-Day Downwind Indicator
 #'
 #' @description
 #' This dataset contains binary indicators of whether each gauge-day observation is downwind of each ionizer during the 2013--2018 Oman rainfall enhancement trial, as used in the analyses of Chambers et al. (2022a,b).

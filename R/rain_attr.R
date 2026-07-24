@@ -182,7 +182,7 @@
 #'  \item Chambers, R., Beare, S., Peak, S. and Al-Kalbani, M. (2022a) Nudging a Pseudo-Science Towards a Science—The Role of Statistics in a Rainfall Enhancement Trial in Oman. \emph{International Statistical Review}, 90: 346–373.
 #'  \item Chambers, R. and Chandra, H. (2013). A Random Effect Block Bootstrap for Clustered Data. \emph{Journal of Computational and Graphical Statistics}, 22, 452–470.
 #'  \item Chambers, R., Ranjbar, S., Salvati, N., and Pacini, B. (2022b) Weighting, Informativeness and Causal Inference, with an Application to Rainfall Enhancement. \emph{Journal of the Royal Statistical Society Series A: Statistics in Society}, 185: 1584–1612
-#'  \item Tho, Z. Y., Chambers, R., and Welsh, A. H. (2025) Adjusted Random Effect Block Bootstraps for Highly Unbalanced Clustered Data.
+#'  \item Tho, Z. Y., Chambers, R., and Welsh, A. H. (2025) A Proportional Random Effect Block Bootstrap for General Clustered Data.
 #'     \href{https://arxiv.org/abs/2510.07770}{arXiv:2510.07770}.
 #'  \item Tho, Z. Y., Chambers, R., and Welsh, A. H. (2026) Bias-Adjusted Attribution Estimation for Rainfall Enhancement Trials.
 #'}
