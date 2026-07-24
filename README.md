@@ -4,9 +4,14 @@
 # RainAttr
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
-The goal of RainAttr is to …
+`RainAttr` provide tools for estimation and inference of attribution and
+sample average treatment effect in rainfall enhancement trials, based on
+the two-stage linear mixed model approach employed by [Chambers et
+al. (2022)](#references). It also provides tools for exploratory
+analysis of rainfall enhancement trial data.
 
 ## Installation
 
@@ -14,39 +19,183 @@ You can install the development version of RainAttr from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("Zy1225/RainAttr")
+# install.packages("remotes")
+remotes::install_github("Zy1225/RainAttr")
 ```
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+This basic example shows how to use the package for estimation,
+bootstrap inference, and permutation inference. For simplicity, the
+numbers of bootstrap and permutation replicates are both set to 100.
 
 ``` r
 library(RainAttr)
-## basic example code
+
+result = rain_attr(
+  #gauge-day level trial data
+  data = oman,
+  
+  #LMM formula fitted to the upwind (first-stage) observations
+  upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
+  
+  #Variable name for storing instrumental prediction from upwind (first-stage) LMM
+  instr_pred_name = 'natural_pred',
+  
+  #Types of instrumental prediction: 'Unconditional' or 'Conditional'
+  instr_pred_type = 'Conditional',
+  
+  #LMM formula fitted to the downwind (second-stage) observations
+  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  
+  #Formula for fitting a logistic regression model to the indicator of rainfall event (used for bootstrapping of rainfall events when bootstrap_opt(bootstrap_zero) = TRUE)
+  downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
+  
+  #Formula for fitting the propensity score model to downwind observations, where responses are indicators of whether each downwind observations is a 'Target'
+  downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
+  
+  #Specify the column in input data that contains the raw rainfall
+  rain_col_name = 'Rain.Gauge.Measurement',
+  
+  #Logical expression identifying subset of observations to which upwind_lmm_formula is fitted
+  upwind_subset = Gauge.Day.Type == 'Upwind',
+
+  #Logical expression identifying subset of observations to which downwind_lmm_formula is fitted
+  downwind_subset = Gauge.Day.Type  %in% c('Target','Control'),
+
+  #Logical expression identifying subset of observations of those that are 'Target'
+  downwind_target_subset = Gauge.Day.Type == 'Target',
+
+  #Logical expression identifying subset of observations of those that are 'Control'
+  downwind_control_subset = Gauge.Day.Type == 'Control',
+
+  #Logical expression identifying subset of observations with rainfall event
+  positive_subset = Rain.Gauge.Measurement > 0,
+  
+  #Types of correction (for back-transformation bias) used for computing the attribution estimate: 'ChambersEtAl', 'ChambersEtAl_No_Winsorize', 'ThoEtAl', or 'No'
+  attr_type = 'ThoEtAl',
+
+  #Vector of variable names in downwind_lmm_formula to identify non-ionizer related covariates, whose effects are not included in the calculation of attribution and SATE
+  x_downwind_name = c('Gauge.Elevation'),
+  
+  #Indicator for whether to perform bootstrap inference on attribution and SATE
+  bootstrap = TRUE,
+
+  #Specification of various option for bootstrap, e.g., bootstrap_opt(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
+  bootstrap_option = bootstrap_opt(B_bootstrap = 100, 
+                                   bootstrap_seed = 123, 
+                                   bootstrap_parallel = TRUE,
+                                   bootstrap_parallel_num_worker = 6),
+
+  #Indicator for whether to perform permutation inference on attribution and SATE
+  permutation = TRUE,
+
+  #Specification of various option for permutation,  e.g., whether to permute the operating states between ionizers, between days, between gaugedays
+  permutation_option = permutation_opt(B_permutation = 100,
+                                       permutation_seed = 999,
+                                       permutation_parallel = TRUE,
+                                       permutation_parallel_num_worker = 6)
+  )
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+The main function, `rain_attr`, returns an S3 object that supports a
+range of common S3 methods, including:
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+summary(result)
+#> Summary of Two Stage LMM Rainfall Enhancement Analysis
+#> ======================================================================
+#> 
+#> Attribution Results (Assuming Log-Rainfall being Modelled):
+#>     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
+#> apo    6.27% (1.2221%, 11.13%)            0***              0***
+#> apl    6.69% (1.2374%, 12.53%)            0***              0***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> SATE Results:
+#>             Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val
+#> sate.mb       0.1153 (0.0069, 0.1901)            0***              0***
+#> sate.ipw      0.0751 (-3e-04, 0.1863)           0.04*             0.06.
+#> sate.ipw.l    0.1132 (0.0067, 0.1903)            0***              0***
+#> sate.ipw.ma   0.0813  (0.0049, 0.191)           0.01*             0.06.
+#> sate.aipw     0.0771  (0.001, 0.1873)           0.02*             0.05.
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> 
+#> ======================================================================
+#> 
+#> Upwind (First Stage) LMM:
+#> Formula:
+#> LogRain ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals + 
+#>     PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + 
+#>     (1 | TrialDay)
+#> 
+#> Data subset used: oman [ Gauge.Day.Type == "Upwind"  &  Rain.Gauge.Measurement > 0 , ]
+#> Number of observations: 1545, Number of groups: 292
+#> 
+#> Random effects:
+#>    Groups        Name  Variance
+#>  TrialDay (Intercept) 0.4158771
+#>  Residual             1.6003327
+#> 
+#> Fixed effects:
+#>                           Estimate Std. Error t value
+#> (Intercept)                -1.4397     0.3988 -3.6104
+#> Gauge.Elevation             0.4340     0.0740  5.8631
+#> Steering.Wind.Speed        -0.0964     0.0204 -4.7277
+#> Total.Totals                0.0327     0.0083  3.9204
+#> PC2.Dry.Temperature         0.1448     0.0527  2.7454
+#> PC1.Relative.Humidity       0.1779     0.0223  7.9681
+#> PC1.Ground.Level.Pressure  -0.0523     0.0201 -2.6041
+#> 
+#> ======================================================================
+#> 
+#> Downwind (Second Stage) LMM:
+#> Formula:
+#> LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + 
+#>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
+#>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + 
+#>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+#> 
+#> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
+#> Number of observations: 4168, Number of groups: 488
+#> 
+#> Random effects:
+#>    Groups        Name  Variance
+#>  TrialDay (Intercept) 0.3001795
+#>  Residual             1.8492958
+#> 
+#> Fixed effects:
+#>                             Estimate Std. Error t value
+#> (Intercept)                   0.3078     0.0626  4.9154
+#> Gauge.Elevation              -0.1958     0.0606 -3.2293
+#> Target.H.01                   0.3157     0.1362  2.3172
+#> Target.H.02                   0.2398     0.1237  1.9389
+#> Target.H.03                   0.2368     0.0925  2.5604
+#> Target.H.04                  -0.1401     0.0890 -1.5738
+#> Target.H.05                   0.4180     0.1319  3.1685
+#> Target.H.06                  -0.2002     0.1493 -1.3413
+#> Target.H.07                   0.2309     0.1876  1.2312
+#> Target.H.08                   0.0786     0.1276  0.6163
+#> Target.H.09                   0.5648     0.3062  1.8448
+#> Target.H.10                   0.0527     0.1677  0.3141
+#> Gauge.Elevation:Target.H.01  -0.1335     0.1437 -0.9287
+#> Gauge.Elevation:Target.H.02  -0.1978     0.1196 -1.6539
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+and
 
-You can also embed plots, for example:
+``` r
+plot(result)
+```
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+<img src="man/figures/README-plot-1.png" width="100%" />
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+## References
+
+Chambers, R., Ranjbar, S., Salvati, N., and Pacini, B. (2022).
+Weighting, informativeness and causal inference, with an application to
+rainfall enhancement. *Journal of the Royal Statistical Society: Series
+A (Statistics in Society)*, **185**, 1584–1612.
