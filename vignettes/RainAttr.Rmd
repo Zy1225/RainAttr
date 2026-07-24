@@ -143,7 +143,7 @@ The `rain_attr` function also allows for bootstrap and permutation inference on 
 
 A useful feature of the package for implementing bootstrap and permutation analyses is the option for **parallelization**, which allows users to reduce computation time by running replicates in parallel using the `parallel` package. This can be enabled by setting `bootstrap_opt(bootstrap_parallel = TRUE, bootstrap_parallel_num_worker = n_workers)` and `permutation_opt(permutation_parallel = TRUE, permutation_parallel_num_worker = n_workers)`, which will distribute the bootstrap and permutation runs across `r n_workers` workers. 
 
-Here is an example of performing bootstrap and permutation inference, each with 500 replicates parallelized over `r n_workers`` workers:
+Here is an example of performing bootstrap and permutation inference, each with 500 replicates parallelized over `r n_workers` workers:
 ```{r}
 
 start_time = Sys.time()
