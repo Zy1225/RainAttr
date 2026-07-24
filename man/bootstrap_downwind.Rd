@@ -286,7 +286,7 @@ Additionally, the bootstrap distributions of attribution and SATE are also plott
 \references{
 \itemize{
 \item Chambers, R. and Chandra, H. (2013). A Random Effect Block Bootstrap for Clustered Data. \emph{Journal of Computational and Graphical Statistics}, 22, 452–470.
-\item Tho, Z. Y., Chambers, R., and Welsh, A. H. (2025) Adjusted Random Effect Block Bootstraps for Highly Unbalanced Clustered Data.
+\item Tho, Z. Y., Chambers, R., and Welsh, A. H. (2025) A Proportional Random Effect Block Bootstrap for General Clustered Data.
 \href{https://arxiv.org/abs/2510.07770}{arXiv:2510.07770}.
 }
 }

@@ -3,7 +3,7 @@
 \docType{data}
 \name{gaugeday_downwind}
 \alias{gaugeday_downwind}
-\title{Gauge-Day Level Observation Downwind Indicator}
+\title{Gauge-Day Downwind Indicator}
 \format{
 A binary matrix with 122259 rows (corresponding to gauge-days in \code{\link{oman}} dataset) and 10 variables:
 \describe{
