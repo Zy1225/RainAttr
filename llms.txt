@@ -20,8 +20,7 @@ remotes::install_github("Zy1225/RainAttr")
 ## Example
 
 This basic example shows how to use the package for estimation,
-bootstrap inference, and permutation inference. For simplicity, the
-numbers of bootstrap and permutation replicates are both set to 100.
+bootstrap inference, and permutation inference.
 
 ``` r
 
@@ -77,7 +76,7 @@ result = rain_attr(
   bootstrap = TRUE,
 
   #Specification of various option for bootstrap, e.g., bootstrap_opt(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
-  bootstrap_option = bootstrap_opt(B_bootstrap = 100, 
+  bootstrap_option = bootstrap_opt(B_bootstrap = 500, 
                                    bootstrap_seed = 123, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = 6),
@@ -86,7 +85,7 @@ result = rain_attr(
   permutation = TRUE,
 
   #Specification of various option for permutation,  e.g., whether to permute the operating states between ionizers, between days, between gaugedays
-  permutation_option = permutation_opt(B_permutation = 100,
+  permutation_option = permutation_opt(B_permutation = 500,
                                        permutation_seed = 999,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = 6)
@@ -104,18 +103,18 @@ summary(result)
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
 #>     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> apo    6.27% (1.2221%, 11.13%)            0***              0***
-#> apl    6.69% (1.2374%, 12.53%)            0***              0***
+#> apo    6.27% (2.3799%, 11.21%)            0***              0***
+#> apl    6.69%  (2.438%, 12.63%)            0***              0***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> SATE Results:
 #>             Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> sate.mb       0.1153 (0.0069, 0.1901)            0***              0***
-#> sate.ipw      0.0751 (-3e-04, 0.1863)           0.04*             0.06.
-#> sate.ipw.l    0.1132 (0.0067, 0.1903)            0***              0***
-#> sate.ipw.ma   0.0813  (0.0049, 0.191)           0.01*             0.06.
-#> sate.aipw     0.0771  (0.001, 0.1873)           0.02*             0.05.
+#> sate.mb       0.1153 (0.0259, 0.1899)            0***              0***
+#> sate.ipw      0.0751  (0.022, 0.1861)           0.01*             0.05.
+#> sate.ipw.l    0.1132 (0.0263, 0.1898)            0***              0***
+#> sate.ipw.ma   0.0813 (0.0278, 0.1895)           0.01*             0.05.
+#> sate.aipw     0.0771 (0.0243, 0.1877)           0.01*             0.05.
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -189,6 +188,36 @@ plot(result)
 ```
 
 ![](reference/figures/README-unnamed-chunk-2-1.png)
+
+## Documentation
+
+Full documentation, function references, and worked examples are
+available on the [package website](https://zy1225.github.io/RainAttr/).
+
+## Citation
+
+To cite `RainAttr`, run:
+
+``` r
+
+citation("RainAttr")
+#> Warning in citation("RainAttr"): could not determine year for 'RainAttr' from
+#> package DESCRIPTION file
+#> To cite package 'RainAttr' in publications use:
+#> 
+#>   Tho Z, Chambers R, Welsh A (????). _RainAttr: Attribution and Sample
+#>   Average Treatment Effect for Rainfall Enhancement Trial Data_. R
+#>   package version 0.0.0.9000, <https://github.com/Zy1225/RainAttr>.
+#> 
+#> A BibTeX entry for LaTeX users is
+#> 
+#>   @Manual{,
+#>     title = {RainAttr: Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data},
+#>     author = {Zhi Yang Tho and Raymond Chambers and A. H. Welsh},
+#>     note = {R package version 0.0.0.9000},
+#>     url = {https://github.com/Zy1225/RainAttr},
+#>   }
+```
 
 ## References
 
