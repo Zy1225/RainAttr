@@ -1,0 +1,44 @@
+url: https://zy1225.github.io/RainAttr/
+template:
+  bootstrap: 5
+
+reference:
+  - title: "Main function"
+    desc: >
+      Main function for fitting the two-stage model and performing estimation and inference of attribution
+      and sample average treatment effect.
+    contents:
+      - rain_attr
+
+  - title: "Fitted objects and methods"
+    desc: >
+      Documentation for fitted rain_attr objects and their associated S3
+      methods, including coefficients, residuals, predictions, variance components, diagnostic plots, and summaries.
+    contents:
+      - rain_attr-class
+
+  - title: "Inference options"
+    desc: >
+      Functions for specifying bootstrap and permutation settings.
+    contents:
+      - bootstrap_opt
+      - permutation_opt
+
+  - title: "Inference procedures"
+    desc: >
+      Detailed documentation of the bootstrap and permutation procedures
+      used for inference in rainfall enhancement trials.
+    contents:
+      - bootstrap_downwind
+      - permutation_ionizer
+
+  - title: "Exploratory analysis"
+    contents:
+      - eda
+
+  - title: "Example data"
+    contents:
+      - oman
+      - gaugeday_downwind
+      - ionizer_location
+      - ionizer_operation
