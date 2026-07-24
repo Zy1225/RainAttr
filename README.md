@@ -195,7 +195,31 @@ plot(result)
 ## Documentation
 
 Full documentation, function references, and worked examples are
-available on the [pkgdown website](https://zy1225.github.io/RainAttr/).
+available on the [package website](https://zy1225.github.io/RainAttr/).
+
+## Citation
+
+To cite `RainAttr`, run:
+
+``` r
+citation("RainAttr")
+#> Warning in citation("RainAttr"): could not determine year for 'RainAttr' from
+#> package DESCRIPTION file
+#> To cite package 'RainAttr' in publications use:
+#> 
+#>   Tho Z, Chambers R, Welsh A (????). _RainAttr: Attribution and Sample
+#>   Average Treatment Effect for Rainfall Enhancement Trial Data_. R
+#>   package version 0.0.0.9000, <https://github.com/Zy1225/RainAttr>.
+#> 
+#> A BibTeX entry for LaTeX users is
+#> 
+#>   @Manual{,
+#>     title = {RainAttr: Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data},
+#>     author = {Zhi Yang Tho and Raymond Chambers and A. H. Welsh},
+#>     note = {R package version 0.0.0.9000},
+#>     url = {https://github.com/Zy1225/RainAttr},
+#>   }
+```
 
 ## References
 

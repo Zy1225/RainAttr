@@ -117,7 +117,15 @@ plot(result)
 ## Documentation
 
 Full documentation, function references, and worked examples are available on
-the [pkgdown website](https://zy1225.github.io/RainAttr/).
+the [package website](https://zy1225.github.io/RainAttr/).
+
+## Citation
+
+To cite `RainAttr`, run:
+
+```{r}
+citation("RainAttr")
+```
 
 ## References
 
