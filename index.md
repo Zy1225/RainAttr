@@ -201,11 +201,9 @@ To cite `RainAttr`, run:
 ``` r
 
 citation("RainAttr")
-#> Warning in citation("RainAttr"): could not determine year for 'RainAttr' from
-#> package DESCRIPTION file
 #> To cite package 'RainAttr' in publications use:
 #> 
-#>   Tho Z, Chambers R, Welsh A (????). _RainAttr: Attribution and Sample
+#>   Tho Z, Chambers R, Welsh A (2026). _RainAttr: Attribution and Sample
 #>   Average Treatment Effect for Rainfall Enhancement Trial Data_. R
 #>   package version 0.0.0.9000, <https://github.com/Zy1225/RainAttr>.
 #> 
@@ -214,6 +212,7 @@ citation("RainAttr")
 #>   @Manual{,
 #>     title = {RainAttr: Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data},
 #>     author = {Zhi Yang Tho and Raymond Chambers and A. H. Welsh},
+#>     year = {2026},
 #>     note = {R package version 0.0.0.9000},
 #>     url = {https://github.com/Zy1225/RainAttr},
 #>   }

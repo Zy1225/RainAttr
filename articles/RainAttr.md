@@ -408,10 +408,10 @@ end_time = Sys.time()
 
 #
 end_time - start_time
-#> Time difference of 6.10233 mins
+#> Time difference of 6.528157 mins
 ```
 
-The total computational time was 6.1 minutes.
+The total computational time was 6.53 minutes.
 
 In the above example, we use the default PREB1 bootstrap proposed by Tho
 et al. (2025); hence, it is not necessary to explicitly specify
