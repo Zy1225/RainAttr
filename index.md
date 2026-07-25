@@ -9,7 +9,7 @@ analysis of rainfall enhancement trial data.
 ## Installation
 
 You can install the development version of RainAttr from
-[GitHub](https://github.com/) with:
+[GitHub](https://github.com/Zy1225/RainAttr/) with:
 
 ``` r
 
