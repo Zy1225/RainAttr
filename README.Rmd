@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-You can install the development version of RainAttr from [GitHub](https://github.com/) with:
+You can install the development version of RainAttr from [GitHub](https://github.com/Zy1225/RainAttr/) with:
 
 ``` r
 # install.packages("remotes")
