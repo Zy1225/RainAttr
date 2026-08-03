@@ -63,7 +63,7 @@
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>This basic example shows how to use the package for estimation, bootstrap inference, and permutation inference.</p>
+<p>This basic example shows how to use the package for estimation, bootstrap inference, and permutation inference. Depending on the computer and number of available cores, it may take up to several minutes to run. For computational convenience, only 50 bootstrap and 50 permutation replicates are used here; users should choose larger numbers, such as 500 replicates, for their actual analyses to obtain more stable inferential results.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/Zy1225/RainAttr" class="external-link">RainAttr</a></span><span class="op">)</span></span>
 <span></span>
@@ -117,19 +117,19 @@
 <span>  bootstrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span></span>
 <span>  <span class="co">#Specification of various option for bootstrap, e.g., bootstrap_opt(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'</span></span>
-<span>  bootstrap_option <span class="op">=</span> <span class="fu"><a href="reference/bootstrap_opt.html">bootstrap_opt</a></span><span class="op">(</span>B_bootstrap <span class="op">=</span> <span class="fl">500</span>, </span>
+<span>  bootstrap_option <span class="op">=</span> <span class="fu"><a href="reference/bootstrap_opt.html">bootstrap_opt</a></span><span class="op">(</span>B_bootstrap <span class="op">=</span> <span class="fl">50</span>, </span>
 <span>                                   bootstrap_seed <span class="op">=</span> <span class="fl">123</span>, </span>
 <span>                                   bootstrap_parallel <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                                   bootstrap_parallel_num_worker <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>,</span>
+<span>                                   bootstrap_parallel_num_worker <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">6</span>, <span class="fl">6</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>,</span>
 <span></span>
 <span>  <span class="co">#Indicator for whether to perform permutation inference on attribution and SATE</span></span>
 <span>  permutation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span></span>
 <span>  <span class="co">#Specification of various option for permutation,  e.g., whether to permute the operating states between ionizers, between days, between gaugedays</span></span>
-<span>  permutation_option <span class="op">=</span> <span class="fu"><a href="reference/permutation_opt.html">permutation_opt</a></span><span class="op">(</span>B_permutation <span class="op">=</span> <span class="fl">500</span>,</span>
+<span>  permutation_option <span class="op">=</span> <span class="fu"><a href="reference/permutation_opt.html">permutation_opt</a></span><span class="op">(</span>B_permutation <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>                                       permutation_seed <span class="op">=</span> <span class="fl">999</span>,</span>
 <span>                                       permutation_parallel <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                                       permutation_parallel_num_worker <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span>                                       permutation_parallel_num_worker <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">6</span>, <span class="fl">6</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>The main function, <code>rain_attr</code>, returns an S3 object that supports a range of common S3 methods, including:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -139,18 +139,18 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
 <span><span class="co">#&gt;     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; apo    6.27% (2.3799%, 11.21%)            0***              0***</span></span>
-<span><span class="co">#&gt; apl    6.69%  (2.438%, 12.63%)            0***              0***</span></span>
+<span><span class="co">#&gt; apo    6.27%  (1.2503%, 10.8%)            0***              0***</span></span>
+<span><span class="co">#&gt; apl    6.69% (1.2668%, 12.11%)            0***              0***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SATE Results:</span></span>
 <span><span class="co">#&gt;             Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; sate.mb       0.1153 (0.0259, 0.1899)            0***              0***</span></span>
-<span><span class="co">#&gt; sate.ipw      0.0751  (0.022, 0.1861)           0.01*             0.05.</span></span>
-<span><span class="co">#&gt; sate.ipw.l    0.1132 (0.0263, 0.1898)            0***              0***</span></span>
-<span><span class="co">#&gt; sate.ipw.ma   0.0813 (0.0278, 0.1895)           0.01*             0.05.</span></span>
-<span><span class="co">#&gt; sate.aipw     0.0771 (0.0243, 0.1877)           0.01*             0.05.</span></span>
+<span><span class="co">#&gt; sate.mb       0.1153 (0.0123, 0.1859)            0***              0***</span></span>
+<span><span class="co">#&gt; sate.ipw      0.0751      (0, 0.1877)           0.04*             0.06.</span></span>
+<span><span class="co">#&gt; sate.ipw.l    0.1132  (0.012, 0.1861)            0***              0***</span></span>
+<span><span class="co">#&gt; sate.ipw.ma   0.0813 (0.0055, 0.1911)            0***             0.06.</span></span>
+<span><span class="co">#&gt; sate.aipw     0.0771  (8e-04, 0.1885)           0.02*             0.04*</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
