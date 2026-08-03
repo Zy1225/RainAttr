@@ -26,7 +26,12 @@ remotes::install_github("Zy1225/RainAttr")
 ## Example
 
 This basic example shows how to use the package for estimation,
-bootstrap inference, and permutation inference.
+bootstrap inference, and permutation inference. Depending on the
+computer and number of available cores, it may take up to several
+minutes to run. For computational convenience, only 50 bootstrap and 50
+permutation replicates are used here; users should choose larger
+numbers, such as 500 replicates, for their actual analyses to obtain
+more stable inferential results.
 
 ``` r
 library(RainAttr)
@@ -81,19 +86,19 @@ result = rain_attr(
   bootstrap = TRUE,
 
   #Specification of various option for bootstrap, e.g., bootstrap_opt(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500, 
+  bootstrap_option = bootstrap_opt(B_bootstrap = 50, 
                                    bootstrap_seed = 123, 
                                    bootstrap_parallel = TRUE,
-                                   bootstrap_parallel_num_worker = 6),
+                                   bootstrap_parallel_num_worker = ifelse(parallel::detectCores() >= 6, 6, 2)),
 
   #Indicator for whether to perform permutation inference on attribution and SATE
   permutation = TRUE,
 
   #Specification of various option for permutation,  e.g., whether to permute the operating states between ionizers, between days, between gaugedays
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = 50,
                                        permutation_seed = 999,
                                        permutation_parallel = TRUE,
-                                       permutation_parallel_num_worker = 6)
+                                       permutation_parallel_num_worker = ifelse(parallel::detectCores() >= 6, 6, 2))
   )
 ```
 
@@ -107,18 +112,18 @@ summary(result)
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
 #>     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> apo    6.27% (2.3799%, 11.21%)            0***              0***
-#> apl    6.69%  (2.438%, 12.63%)            0***              0***
+#> apo    6.27%  (1.2503%, 10.8%)            0***              0***
+#> apl    6.69% (1.2668%, 12.11%)            0***              0***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> SATE Results:
 #>             Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> sate.mb       0.1153 (0.0259, 0.1899)            0***              0***
-#> sate.ipw      0.0751  (0.022, 0.1861)           0.01*             0.05.
-#> sate.ipw.l    0.1132 (0.0263, 0.1898)            0***              0***
-#> sate.ipw.ma   0.0813 (0.0278, 0.1895)           0.01*             0.05.
-#> sate.aipw     0.0771 (0.0243, 0.1877)           0.01*             0.05.
+#> sate.mb       0.1153 (0.0123, 0.1859)            0***              0***
+#> sate.ipw      0.0751      (0, 0.1877)           0.04*             0.06.
+#> sate.ipw.l    0.1132  (0.012, 0.1861)            0***              0***
+#> sate.ipw.ma   0.0813 (0.0055, 0.1911)            0***             0.06.
+#> sate.aipw     0.0771  (8e-04, 0.1885)           0.02*             0.04*
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 

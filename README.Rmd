@@ -31,7 +31,7 @@ remotes::install_github("Zy1225/RainAttr")
 
 ## Example
 
-This basic example shows how to use the package for estimation, bootstrap inference, and permutation inference.
+This basic example shows how to use the package for estimation, bootstrap inference, and permutation inference. Depending on the computer and number of available cores, it may take up to several minutes to run. For computational convenience, only 50 bootstrap and 50 permutation replicates are used here; users should choose larger numbers, such as 500 replicates, for their actual analyses to obtain more stable inferential results.
 
 ```{r example}
 library(RainAttr)
@@ -86,19 +86,19 @@ result = rain_attr(
   bootstrap = TRUE,
 
   #Specification of various option for bootstrap, e.g., bootstrap_opt(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500, 
+  bootstrap_option = bootstrap_opt(B_bootstrap = 50, 
                                    bootstrap_seed = 123, 
                                    bootstrap_parallel = TRUE,
-                                   bootstrap_parallel_num_worker = 6),
+                                   bootstrap_parallel_num_worker = ifelse(parallel::detectCores() >= 6, 6, 2)),
 
   #Indicator for whether to perform permutation inference on attribution and SATE
   permutation = TRUE,
 
   #Specification of various option for permutation,  e.g., whether to permute the operating states between ionizers, between days, between gaugedays
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = 50,
                                        permutation_seed = 999,
                                        permutation_parallel = TRUE,
-                                       permutation_parallel_num_worker = 6)
+                                       permutation_parallel_num_worker = ifelse(parallel::detectCores() >= 6, 6, 2))
   )
 ```
 
