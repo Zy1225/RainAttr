@@ -11,7 +11,7 @@ LMM-based rainfall enhancement analysis, created by calls to
 coef(object, model = "downwind_lmm", ...)
 
 # S3 method for class 'rain_attr'
-print(object, ...)
+print(x, ...)
 
 # S3 method for class 'rain_attr'
 residuals(
@@ -42,7 +42,7 @@ predict(
 
 # S3 method for class 'rain_attr'
 plot(
-  object,
+  x,
   plot_type = c("bootstrap", "permutation"),
   plot_quantity = c("attr", "sate"),
   model = "downwind_lmm",
@@ -59,7 +59,7 @@ plot(
 summary(object, ...)
 
 # S3 method for class 'summary.rain_attr'
-print(summary_object, ...)
+print(x, ...)
 ```
 
 ## Arguments
@@ -80,6 +80,16 @@ print(summary_object, ...)
 - ...:
 
   Additional arguments passed to methods.
+
+- x:
+
+  An **R** object to be printed or plotted. For `print.rain_attr()` and
+  `plot.rain_attr()`, an **R** object of class `rain_attr`, i.e., an
+  output from
+  [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md);
+  for `print.summary.rain_attr()`, an **R** object of class
+  `summary.rain_attr`, i.e., an output from applying `summary.rain_attr`
+  to an **R** object of class `rain_attr`.
 
 - residual_type:
 
@@ -163,11 +173,6 @@ print(summary_object, ...)
   `sate.ipw.ma`, `sate.aipw`). See
   [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md)
   for more details.
-
-- summary_object:
-
-  An **R** object of class `summary.rain_attr`, i.e., an output from
-  applying `summary.rain_attr` to an **R** object of class `rain_attr`.
 
 ## Details
 

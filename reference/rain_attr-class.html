@@ -46,7 +46,7 @@ rainfall enhancement analysis, created by calls to <code><a href="rain_attr.html
 <span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">object</span>, model <span class="op">=</span> <span class="st">"downwind_lmm"</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'rain_attr'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'rain_attr'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span></span>
@@ -77,7 +77,7 @@ rainfall enhancement analysis, created by calls to <code><a href="rain_attr.html
 <span></span>
 <span><span class="co"># S3 method for class 'rain_attr'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
-<span>  <span class="va">object</span>,</span>
+<span>  <span class="va">x</span>,</span>
 <span>  plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bootstrap"</span>, <span class="st">"permutation"</span><span class="op">)</span>,</span>
 <span>  plot_quantity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"attr"</span>, <span class="st">"sate"</span><span class="op">)</span>,</span>
 <span>  model <span class="op">=</span> <span class="st">"downwind_lmm"</span>,</span>
@@ -94,7 +94,7 @@ rainfall enhancement analysis, created by calls to <code><a href="rain_attr.html
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'summary.rain_attr'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">summary_object</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -111,6 +111,12 @@ rainfall enhancement analysis, created by calls to <code><a href="rain_attr.html
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments passed to methods.</p></dd>
+
+
+<dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
+<dd><p>An <b>R</b> object to be printed or plotted. For <code>print.rain_attr()</code> and
+<code>plot.rain_attr()</code>, an <b>R</b> object of class <code>rain_attr</code>, i.e., an output from <code><a href="rain_attr.html">rain_attr</a></code>; for
+<code>print.summary.rain_attr()</code>, an <b>R</b> object of class <code>summary.rain_attr</code>, i.e., an output from applying <code>summary.rain_attr</code> to an <b>R</b> object of class <code>rain_attr</code>.</p></dd>
 
 
 <dt id="arg-residual-type">residual_type<a class="anchor" aria-label="anchor" href="#arg-residual-type"></a></dt>
@@ -151,10 +157,6 @@ See <code><a href="https://rdrr.io/pkg/lme4/man/residuals.merMod.html" class="ex
 
 <dt id="arg-plot-quantity">plot_quantity<a class="anchor" aria-label="anchor" href="#arg-plot-quantity"></a></dt>
 <dd><p>An optional character string or vector specifying the quantity whose bootstrap or permutation distribution is to be plotted. Only used when <code>plot_type</code> includes <code>"bootstrap"</code> or <code>"permutation"</code>.  Can be a single value: <code>"attr"</code> or <code>"sate"</code>, or a vector of length 2: <code>c("attr","sate")</code> (default). <code>"attr"</code> stands for the attribution estimates (<code>apo</code>, <code>apl</code>), while <code>"sate"</code> stands for the sample average treatment effect estimates (<code>sate.mb</code>, <code>sate.ipw</code>, <code>sate.ipw.l</code>, <code>sate.ipw.ma</code>, <code>sate.aipw</code>). See <code><a href="rain_attr.html">rain_attr</a></code> for more details.</p></dd>
-
-
-<dt id="arg-summary-object">summary_object<a class="anchor" aria-label="anchor" href="#arg-summary-object"></a></dt>
-<dd><p>An <b>R</b> object of class <code>summary.rain_attr</code>, i.e., an output from applying <code>summary.rain_attr</code> to an <b>R</b> object of class <code>rain_attr</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
