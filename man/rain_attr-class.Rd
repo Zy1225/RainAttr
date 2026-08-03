@@ -18,7 +18,7 @@
 \usage{
 \method{coef}{rain_attr}(object, model = "downwind_lmm", ...)
 
-\method{print}{rain_attr}(object, ...)
+\method{print}{rain_attr}(x, ...)
 
 \method{residuals}{rain_attr}(
   object,
@@ -44,7 +44,7 @@
 )
 
 \method{plot}{rain_attr}(
-  object,
+  x,
   plot_type = c("bootstrap", "permutation"),
   plot_quantity = c("attr", "sate"),
   model = "downwind_lmm",
@@ -59,7 +59,7 @@
 
 \method{summary}{rain_attr}(object, ...)
 
-\method{print}{summary.rain_attr}(summary_object, ...)
+\method{print}{summary.rain_attr}(x, ...)
 }
 \arguments{
 \item{object}{An \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}.}
@@ -67,6 +67,10 @@
 \item{model}{An optional character string specifying which fitted model to focus on. Must be one of \code{"upwind_lmm"}, \code{"downwind_lmm"} (default), \code{"downwind_target_lmm"}, \code{"downwind_control_lmm"}, \code{"downwind_logistic"}, or \code{"downwind_propensity"}. See "Details" for more information.}
 
 \item{...}{Additional arguments passed to methods.}
+
+\item{x}{An \bold{R} object to be printed or plotted. For \code{print.rain_attr()} and
+\code{plot.rain_attr()}, an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}; for
+\code{print.summary.rain_attr()}, an \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}, i.e., an output from applying \code{\link{summary.rain_attr}} to an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}.}
 
 \item{residual_type}{An optional character string specifying the type of residuals. Must be one of \code{"response"} (default for LMMs), \code{"deviance"} (default for GLMs), \code{"working"}, or \code{"pearson"}. An additional choice for GLMs is \code{"partial"}, but this residual type can only be used with \code{\link{residuals.rain_attr}} but not \code{\link{plot.rain_attr}}.
 See \code{\link[lme4]{residuals.merMod}} and \code{\link{residuals.glm}} for definition of each residual type of LMMs and GLMs, respectively.}
@@ -89,8 +93,6 @@ See \code{\link[lme4]{residuals.merMod}} and \code{\link{residuals.glm}} for def
 \code{"model"} provides two diagnostic plots for the chosen \code{model}: a plot of residuals against fitted values, and a Q-Q plot of residuals.}
 
 \item{plot_quantity}{An optional character string or vector specifying the quantity whose bootstrap or permutation distribution is to be plotted. Only used when \code{plot_type} includes \code{"bootstrap"} or \code{"permutation"}.  Can be a single value: \code{"attr"} or \code{"sate"}, or a vector of length 2: \code{c("attr","sate")} (default). \code{"attr"} stands for the attribution estimates (\code{apo}, \code{apl}), while \code{"sate"} stands for the sample average treatment effect estimates (\code{sate.mb}, \code{sate.ipw}, \code{sate.ipw.l}, \code{sate.ipw.ma}, \code{sate.aipw}). See \code{\link{rain_attr}} for more details.}
-
-\item{summary_object}{An \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}, i.e., an output from applying \code{\link{summary.rain_attr}} to an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}.}
 }
 \description{
 Objects of class \code{rain_attr} represent results from the two-stage LMM-based

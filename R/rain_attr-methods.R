@@ -39,7 +39,7 @@ coef.rain_attr = function(object, model = "downwind_lmm", ...){
 
 #' @rdname rain_attr-class
 #' @export
-print.rain_attr <- function(object, ...) {
+print.rain_attr <- function(x, ...) {
   cat("Two Stage LMM Rainfall Enhancement Analysis Result\n")
   cat("======================================================================\n\n")
 
@@ -48,8 +48,8 @@ print.rain_attr <- function(object, ...) {
 
   # Attribution (hatattr) as %
   hatattr_values <- c(
-    apo = if(!is.null(object$hatattr$apo)) paste0(round(object$hatattr$apo * 100, 2), "%") else NA,
-    apl = if(!is.null(object$hatattr$apl)) paste0(round(object$hatattr$apl * 100, 2), "%") else NA
+    apo = if(!is.null(x$hatattr$apo)) paste0(round(x$hatattr$apo * 100, 2), "%") else NA,
+    apl = if(!is.null(x$hatattr$apl)) paste0(round(x$hatattr$apl * 100, 2), "%") else NA
   )
   cat("Attribution (%) Assuming Log-Rainfall being Modelled:\n")
   print(noquote(hatattr_values))
@@ -57,7 +57,7 @@ print.rain_attr <- function(object, ...) {
 
   # SATE estimates (hatsate)
   sate_names <- c("sate.mb", "sate.ipw", "sate.ipw.l", "sate.ipw.ma", "sate.aipw")
-  sate_values <- sapply(sate_names, function(nm) if(!is.null(object$hatsate[[nm]])) object$hatsate[[nm]] else NA)
+  sate_values <- sapply(sate_names, function(nm) if(!is.null(x$hatsate[[nm]])) x$hatsate[[nm]] else NA)
 
   cat("SATE Estimates (hatsate):\n")
   print(noquote(format(sate_values, digits = 4)))
@@ -65,13 +65,13 @@ print.rain_attr <- function(object, ...) {
   cat("======================================================================\n\n")
   # Indicate whether bootstrap or permutation was carried out
   cat("Inference:\n")
-  if (!is.null(object$bootstrap_result)) {
+  if (!is.null(x$bootstrap_result)) {
     cat("Bootstrap inference has been carried out. See summary() for detailed results.\n\n")
   } else {
     cat("Bootstrap inference has NOT been carried out.\n\n")
   }
 
-  if (!is.null(object$permutation_result)) {
+  if (!is.null(x$permutation_result)) {
     cat("Permutation inference has been carried out. See summary() for detailed results.\n\n")
   } else {
     cat("Permutation inference has NOT been carried out.\n\n")
@@ -79,15 +79,15 @@ print.rain_attr <- function(object, ...) {
 
   cat("======================================================================\n\n")
   # Upwind formula and stats
-  upwind_formula <- object$args$upwind_lmm_formula
-  upwind_fit <- object$all_fitted_models$upwind_lmm_fit
+  upwind_formula <- x$args$upwind_lmm_formula
+  upwind_fit <- x$all_fitted_models$upwind_lmm_fit
 
   cat("Upwind (First Stage) LMM Formula:\n")
   print(upwind_formula)
 
   cat('\n')
   cat("Data subset used: ")
-  cat(deparse(object$args$data),"[", deparse(object$args$upwind_subset), " & ", deparse(object$args$positive_subset), ", ]\n")
+  cat(deparse(x$args$data),"[", deparse(x$args$upwind_subset), " & ", deparse(x$args$positive_subset), ", ]\n")
 
 
   n_obs_up <- nobs(upwind_fit)
@@ -109,15 +109,15 @@ print.rain_attr <- function(object, ...) {
   cat("\n======================================================================\n\n")
 
   # Downwind formula and stats
-  downwind_formula <- object$args$downwind_lmm_formula
-  downwind_fit <- object$all_fitted_models$downwind_lmm_fit
+  downwind_formula <- x$args$downwind_lmm_formula
+  downwind_fit <- x$all_fitted_models$downwind_lmm_fit
 
   cat("Downwind (Second Stage) LMM Formula:\n")
   print(downwind_formula)
 
   cat('\n')
   cat("Data subset used: ")
-  cat(deparse(object$args$data),"[", deparse(object$args$downwind_subset), " & ", deparse(object$args$positive_subset), ", ]\n")
+  cat(deparse(x$args$data),"[", deparse(x$args$downwind_subset), " & ", deparse(x$args$positive_subset), ", ]\n")
 
 
   n_obs_down <- nobs(downwind_fit)
@@ -136,9 +136,8 @@ print.rain_attr <- function(object, ...) {
   fe_down <- lme4::fixef(downwind_fit)
   print(round(fe_down, 4))
 
-  invisible(object)
+  invisible(x)
 }
-
 
 
 #' @rdname rain_attr-class
@@ -303,7 +302,7 @@ predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
 #' @rdname rain_attr-class
 #' @export
 
-plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plot_quantity = c("attr", "sate"),
+plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_quantity = c("attr", "sate"),
                           model = 'downwind_lmm', residual_type = NULL, residual_scaled = TRUE,
                           re_include = TRUE, fixef_include = TRUE, allow.new.levels = FALSE, predict_type = "link",
                           ...) {
@@ -352,9 +351,9 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
       }
 
       if (pt == "bootstrap"){
-        plot_obj = object$bootstrap_plot_result
+        plot_obj = x$bootstrap_plot_result
       }else{
-        plot_obj = object$permutation_plot_result
+        plot_obj = x$permutation_plot_result
       }
 
       if (is.null(plot_obj)) {
@@ -407,12 +406,12 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
   if ('model' %in% plot_type) {
 
     model_map = list(
-      upwind_lmm = object$all_fitted_models$upwind_lmm_fit,
-      downwind_lmm = object$all_fitted_models$downwind_lmm_fit,
-      downwind_logistic = object$all_fitted_models$downwind_logistic_fit,
-      downwind_propensity = object$all_fitted_models$downwind_propensity_fit,
-      downwind_target_lmm = object$all_fitted_models$downwind_positive_target_lmm_fit,
-      downwind_control_lmm = object$all_fitted_models$downwind_positive_control_lmm_fit
+      upwind_lmm = x$all_fitted_models$upwind_lmm_fit,
+      downwind_lmm = x$all_fitted_models$downwind_lmm_fit,
+      downwind_logistic = x$all_fitted_models$downwind_logistic_fit,
+      downwind_propensity = x$all_fitted_models$downwind_propensity_fit,
+      downwind_target_lmm = x$all_fitted_models$downwind_positive_target_lmm_fit,
+      downwind_control_lmm = x$all_fitted_models$downwind_positive_control_lmm_fit
     )
 
     plot_title_map = list(
@@ -429,7 +428,7 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
     }
 
     if(model == 'downwind_logistic'){
-      if (is.null(object$all_fitted_models$downwind_logistic_fit)) {
+      if (is.null(x$all_fitted_models$downwind_logistic_fit)) {
         stop("No downwind_logistic_formula has been specified in the original call of rain_attr.
                Please rerun rain_attr with downwind_logistic_formula specified.")
       }
@@ -440,21 +439,21 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
 
 
     # Extract residuals and fitted values
-    res = residuals(object, model = model, residual_type = residual_type, residual_scaled = residual_scaled)
-    fit = predict(object, newdata = NULL, model = model, re_include = re_include, fixef_include = fixef_include, allow.new.levels = allow.new.levels, predict_type = predict_type)
+    res = residuals(x, model = model, residual_type = residual_type, residual_scaled = residual_scaled)
+    fit = predict(x, newdata = NULL, model = model, re_include = re_include, fixef_include = fixef_include, allow.new.levels = allow.new.levels, predict_type = predict_type)
 
 
 
     #
     if (model == "downwind_lmm") {
       downwind_positive_target = rlang::eval_tidy(
-        object$args$downwind_target_subset,
-        data = object$data[rlang::eval_tidy(object$args$downwind_subset, data = object$data) &
-                             rlang::eval_tidy(object$args$positive_subset, data = object$data), ]
+        x$args$downwind_target_subset,
+        data = x$data[rlang::eval_tidy(x$args$downwind_subset, data = x$data) &
+                        rlang::eval_tidy(x$args$positive_subset, data = x$data), ]
       )
 
-      control_label = as.character(object$args$downwind_control_subset)[3]
-      target_label = as.character(object$args$downwind_target_subset)[3]
+      control_label = as.character(x$args$downwind_control_subset)[3]
+      target_label = as.character(x$args$downwind_target_subset)[3]
 
       df = data.frame(
         Fitted = fit,
@@ -464,7 +463,7 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
 
 
 
-      legend_title = as.character(object$args$downwind_target_subset)[2]
+      legend_title = as.character(x$args$downwind_target_subset)[2]
 
 
       color_vals <- c(
@@ -601,8 +600,6 @@ plot.rain_attr = function(object, plot_type = c("bootstrap", "permutation"), plo
 
 #' @rdname rain_attr-class
 #' @export
-#'
-
 
 summary.rain_attr <- function(object, ...) {
   # Extract data name
@@ -735,7 +732,7 @@ summary.rain_attr <- function(object, ...) {
 #' @rdname rain_attr-class
 #' @export
 
-print.summary.rain_attr <- function(summary_object, ...) {
+print.summary.rain_attr <- function(x, ...) {
   cat("Summary of Two Stage LMM Rainfall Enhancement Analysis\n")
   cat("======================================================================\n\n")
 
@@ -752,7 +749,7 @@ print.summary.rain_attr <- function(summary_object, ...) {
   cat("Attribution Results (Assuming Log-Rainfall being Modelled):\n")
 
 
-  attr_tbl = summary_object$attr_table
+  attr_tbl = x$attr_table
 
   # Append stars to all P-Val columns
   pval_cols = grep("P-Val", colnames(attr_tbl))
@@ -766,7 +763,7 @@ print.summary.rain_attr <- function(summary_object, ...) {
   # SATE Results Table
   cat("SATE Results:\n")
 
-  sate_tbl <- summary_object$sate_table
+  sate_tbl <- x$sate_table
   pval_cols <- grep("P-Val", colnames(sate_tbl))
   for(col in pval_cols){
     stars <- signif_stars(as.numeric(sate_tbl[,col]))
@@ -780,42 +777,42 @@ print.summary.rain_attr <- function(summary_object, ...) {
   # Upwind LMM Results Table
   cat("Upwind (First Stage) LMM:\n")
   cat("Formula:\n")
-  print(summary_object$upwind_formula)
+  print(x$upwind_formula)
   cat('\n')
   cat("Data subset used: ")
-  cat(summary_object$data_name, "[", summary_object$upwind_subset_expr, ", ]\n")
+  cat(x$data_name, "[", x$upwind_subset_expr, ", ]\n")
   cat(sprintf("Number of observations: %d, Number of groups: %d\n\n",
-              summary_object$upwind_n_obs, summary_object$upwind_n_groups))
+              x$upwind_n_obs, x$upwind_n_groups))
 
   # Random effects
   cat("Random effects:\n")
-  print(summary_object$upwind_lmm_varcomp, row.names = FALSE)
+  print(x$upwind_lmm_varcomp, row.names = FALSE)
   cat("\n")
 
   # Fixed effects
   cat("Fixed effects:\n")
-  print(summary_object$upwind_lmm_fixef)
+  print(x$upwind_lmm_fixef)
   cat("\n======================================================================\n\n")
 
   # Downwind LMM Results Table
   cat("Downwind (Second Stage) LMM:\n")
   cat("Formula:\n")
-  print(summary_object$downwind_formula)
+  print(x$downwind_formula)
   cat('\n')
   cat("Data subset used: ")
-  cat(summary_object$data_name, "[", summary_object$downwind_subset_expr, ", ]\n")
+  cat(x$data_name, "[", x$downwind_subset_expr, ", ]\n")
   cat(sprintf("Number of observations: %d, Number of groups: %d\n\n",
-              summary_object$downwind_n_obs, summary_object$downwind_n_groups))
+              x$downwind_n_obs, x$downwind_n_groups))
 
   # Random effects
   cat("Random effects:\n")
-  print(summary_object$downwind_lmm_varcomp, row.names = FALSE)
+  print(x$downwind_lmm_varcomp, row.names = FALSE)
   cat("\n")
 
   # Fixed effects
   cat("Fixed effects:\n")
-  print(summary_object$downwind_lmm_fixef)
+  print(x$downwind_lmm_fixef)
 
-  invisible(summary_object)
+  invisible(x)
 
 }
