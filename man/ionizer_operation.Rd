@@ -9,7 +9,7 @@ A data frame with 740 rows (days) and 12 variables:
 \describe{
 \item{TrialDay}{Identifier for each day in the six-year trial}
 \item{Year}{Character variable indicating the year}
-\item{H1 -- H10}{Binary indicator variables for the operating status of the ionizers: 1 = ionizer active on that day, 0 = ionizer inactive, NA = ionizer not yet deployed}
+\item{H1, H2, H3, H4, H5, H6, H7, H8, H9, H10}{Binary indicator variables for the operating status of the ionizers: 1 = ionizer active on that day, 0 = ionizer inactive, NA = ionizer not yet deployed}
 
 }
 }

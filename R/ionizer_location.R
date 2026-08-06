@@ -9,7 +9,7 @@
 #' \describe{
 #'    \item{Ionizer}{Identifier for each ionizer}
 #'    \item{Latitude, Longitude}{Geographic coordinates of each ionizer}
-#'    \item{2013 -- 2018}{Binary indicator variables for the deployment status of each ionizer in each year: 1 = deployed, 0 = not yet deployed}
+#'    \item{2013, 2014, 2015, 2016, 2017, 2018}{Binary indicator variables for the deployment status of each ionizer in each year: 1 = deployed, 0 = not yet deployed}
 #'
 #' }
 #'
