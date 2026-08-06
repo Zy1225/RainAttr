@@ -408,10 +408,10 @@ end_time = Sys.time()
 
 #
 end_time - start_time
-#> Time difference of 4.905219 mins
+#> Time difference of 6.280349 mins
 ```
 
-The total computational time was 4.91 minutes.
+The total computational time was 6.28 minutes.
 
 In the above example, we use the default PREB1 bootstrap proposed by Tho
 et al. (2025); hence, it is not necessary to explicitly specify
@@ -1868,7 +1868,7 @@ table6_jrssa_lograin
 #> 2.5%     -0.008860096 -0.003942739 -0.005590821 0.06132309 0.06388347
 #> 50%       0.073431789  0.074376326  0.074798596 0.12429946 0.12635743
 #> 97.5%     0.158946827  0.154820201  0.162956335 0.18598148 0.18875737
-#> 99.5%     0.193719116  0.183986697  0.196055340 0.19986492 0.20251495
+#> 99.5%     0.193719116  0.183986697  0.196055339 0.19986492 0.20251495
 #> 99.9%     0.216288800  0.209864338  0.217144181 0.20163745 0.20482817
 ```
 

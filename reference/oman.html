@@ -50,23 +50,23 @@
 <dt>TrialDay</dt>
 <dd><p>Identifier for each day in the six-year trial</p></dd>
 
-<dt>Year...2013 – Year...2018</dt>
+<dt>Year...2013, Year...2014, Year...2015, Year...2016, Year...2017, Year...2018</dt>
 <dd><p>Binary indicator variables for each year in the trial period</p></dd>
 
-<dt>H1on – H10on</dt>
+<dt>H1on, H2on, H3on, H4on, H5on, H6on, H7on, H8on, H9on, H10on</dt>
 <dd><p>Binary indicator variables for the operating status of ionizers (1 = on, 0 = off), with NA indicating ionizers not yet deployed</p></dd>
 
 <dt>Gauge.ID, Gauge.Latitude, Gauge.Longitude, Gauge.Elevation</dt>
-<dd><p>Guage identifiers, location and elevation</p></dd>
+<dd><p>Gauge identifiers, location and elevation</p></dd>
 
 <dt>Elevated.Gauge</dt>
 <dd><p>Binary indicator variable for gauges located above 1km elevation (1 = elevated, 0 = not elevated)</p></dd>
 
 <dt>Gauge.Elevation...1km</dt>
-<dd><p>Gauge elevation for non-elevated gauges, computed as Gauge.Elevation × (1 - elevated_gauge)</p></dd>
+<dd><p>Gauge elevation for non-elevated gauges, computed as Gauge.Elevation × (1 - Elevated.Gauge)</p></dd>
 
 <dt>Gauge.Elevation...1km.1</dt>
-<dd><p>Gauge elevation for elevated gauges, computed as Gauge.Elevation × elevated_gauge</p></dd>
+<dd><p>Gauge elevation for elevated gauges, computed as Gauge.Elevation × Elevated.Gauge</p></dd>
 
 <dt>Rain.Gauge.Measurement</dt>
 <dd><p>Observed rainfall at the raw scale</p></dd>
@@ -83,7 +83,7 @@
 <dt>Rainfall.Measurement.Status</dt>
 <dd><p>Character variable indicating the gauge’s location relative to deployed ionizers based on the day’s wind direction, with possible values: "Upwind", "Downwind", "Out of Scope"</p></dd>
 
-<dt>Target.H.**</dt>
+<dt>Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10</dt>
 <dd><p>Binary indicator variables showing whether the gauge is downwind of the ionizer and the ionizer has been deployed and turned on on that day (1 = yes, 0 = no)</p></dd>
 
 <dt>Gauge.Day.Type</dt>
@@ -92,8 +92,20 @@
 - "Control" – downwind of all inactive ionizers (i.e., all Target.H.01 – Target.H.10 = 0)</p>
 <p>Observations that are "Upwind" or "Out of Scope" retain the same classification as Rainfall.Measurement.Status. Thus, the variable has four possible values: "Upwind", "Target", "Control", "Out of Scope".</p></dd>
 
-<dt>...</dt>
-<dd><p>Additional meteorological variables (e.g., wind-related measures, storm development indices, cloud base height, principal components derived from meteorological variables)</p></dd>
+<dt>PC1.Dry.Temperature, PC2.Dry.Temperature,PC1.Relative.Humidity, PC2..Relative.Humidity,PC1.Ground.Level.Pressure</dt>
+<dd><p>Principal component of meteorological variables</p></dd>
+
+<dt>Steering.Wind.Direction, Steering.Wind.Principal.Direction, Steering.Wind.Speed</dt>
+<dd><p>Wind-related measures</p></dd>
+
+<dt>Lifted.Index, Total.Totals</dt>
+<dd><p>Atmospheric instability indices</p></dd>
+
+<dt>LCL.Pressure</dt>
+<dd><p>A measure of cloud base height</p></dd>
+
+<dt>Precipitable.Water</dt>
+<dd><p>Amount of rainfall if a column of the atmosphere were to be precipitated</p></dd>
 
 
 </dl></div>

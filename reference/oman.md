@@ -22,18 +22,19 @@ A data frame with 122259 rows (gauge-day observations) and 55 variables:
 
   Identifier for each day in the six-year trial
 
-- Year...2013 – Year...2018:
+- Year...2013, Year...2014, Year...2015, Year...2016, Year...2017,
+  Year...2018:
 
   Binary indicator variables for each year in the trial period
 
-- H1on – H10on:
+- H1on, H2on, H3on, H4on, H5on, H6on, H7on, H8on, H9on, H10on:
 
   Binary indicator variables for the operating status of ionizers (1 =
   on, 0 = off), with NA indicating ionizers not yet deployed
 
 - Gauge.ID, Gauge.Latitude, Gauge.Longitude, Gauge.Elevation:
 
-  Guage identifiers, location and elevation
+  Gauge identifiers, location and elevation
 
 - Elevated.Gauge:
 
@@ -43,12 +44,12 @@ A data frame with 122259 rows (gauge-day observations) and 55 variables:
 - Gauge.Elevation...1km:
 
   Gauge elevation for non-elevated gauges, computed as Gauge.Elevation ×
-  (1 - elevated_gauge)
+  (1 - Elevated.Gauge)
 
 - Gauge.Elevation...1km.1:
 
   Gauge elevation for elevated gauges, computed as Gauge.Elevation ×
-  elevated_gauge
+  Elevated.Gauge
 
 - Rain.Gauge.Measurement:
 
@@ -74,7 +75,8 @@ A data frame with 122259 rows (gauge-day observations) and 55 variables:
   deployed ionizers based on the day’s wind direction, with possible
   values: "Upwind", "Downwind", "Out of Scope"
 
-- Target.H.\*\*:
+- Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05,
+  Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10:
 
   Binary indicator variables showing whether the gauge is downwind of
   the ionizer and the ionizer has been deployed and turned on on that
@@ -91,11 +93,28 @@ A data frame with 122259 rows (gauge-day observations) and 55 variables:
   classification as Rainfall.Measurement.Status. Thus, the variable has
   four possible values: "Upwind", "Target", "Control", "Out of Scope".
 
-- ...:
+- PC1.Dry.Temperature, PC2.Dry.Temperature,PC1.Relative.Humidity,
+  PC2..Relative.Humidity,PC1.Ground.Level.Pressure:
 
-  Additional meteorological variables (e.g., wind-related measures,
-  storm development indices, cloud base height, principal components
-  derived from meteorological variables)
+  Principal component of meteorological variables
+
+- Steering.Wind.Direction, Steering.Wind.Principal.Direction,
+  Steering.Wind.Speed:
+
+  Wind-related measures
+
+- Lifted.Index, Total.Totals:
+
+  Atmospheric instability indices
+
+- LCL.Pressure:
+
+  A measure of cloud base height
+
+- Precipitable.Water:
+
+  Amount of rainfall if a column of the atmosphere were to be
+  precipitated
 
 ## References
 

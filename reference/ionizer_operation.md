@@ -22,7 +22,7 @@ A data frame with 740 rows (days) and 12 variables:
 
   Character variable indicating the year
 
-- H1 – H10:
+- H1, H2, H3, H4, H5, H6, H7, H8, H9, H10:
 
   Binary indicator variables for the operating status of the ionizers: 1
   = ionizer active on that day, 0 = ionizer inactive, NA = ionizer not

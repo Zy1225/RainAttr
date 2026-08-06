@@ -22,7 +22,7 @@ A data frame with 10 rows (ionizers) and 9 variables:
 
   Geographic coordinates of each ionizer
 
-- 2013 – 2018:
+- 2013, 2014, 2015, 2016, 2017, 2018:
 
   Binary indicator variables for the deployment status of each ionizer
   in each year: 1 = deployed, 0 = not yet deployed
