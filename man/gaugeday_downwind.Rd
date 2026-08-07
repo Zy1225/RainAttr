@@ -7,7 +7,7 @@
 \format{
 A binary matrix with 122259 rows (corresponding to gauge-days in \code{\link{oman}} dataset) and 10 variables:
 \describe{
-\item{H1 -- H10}{Binary indicators for each ionizer, showing whether a gauge-day observation is downwind of that ionizer: 1 = downwind; 0 = not downwind; NA = ionizer not yet deployed}
+\item{H1, H2, H3, H4, H5, H6, H7, H8, H9, H10}{Binary indicators for each ionizer, showing whether a gauge-day observation is downwind of that ionizer: 1 = downwind; 0 = not downwind; NA = ionizer not yet deployed}
 }
 }
 \usage{
