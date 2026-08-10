@@ -455,7 +455,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
   }
 
   y_vec = downwind_positive_data[downwind_positive_useful_row,rain_col_name]
-  x_z_mat = model.matrix(downwind_lmm_fit, data = downwind_positive_data, type = 'fixed')[downwind_positive_useful_row,]
+  x_z_mat = stats::model.matrix(downwind_lmm_fit, data = downwind_positive_data, type = 'fixed')[downwind_positive_useful_row,]
 
   if(is.null(hatalphabeta)){
     hatalpha_downwind = lme4::fixef(downwind_lmm_fit)[c('(Intercept)',x_downwind_name)]
@@ -469,17 +469,17 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
 
   if(attr_type == 'ChambersEtAl'){
     if(is.null(hatu)){
-      hatu = predict(downwind_lmm_fit, newdata = downwind_positive_data, random.only = TRUE)
+      hatu = stats::predict(downwind_lmm_fit, newdata = downwind_positive_data, random.only = TRUE)
     }
 
     #compute log_hatw = (1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t, for PDR (i,t) or PDR Target (i,t)
     #Depends on if there is offset term on LHS of formula(downwind_lmm_fit)
-    if(length(formula.tools::lhs.vars(formula(downwind_lmm_fit))) == 1){
+    if(length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))) == 1){
       log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row])
     }
 
-    if(length(formula.tools::lhs.vars(formula(downwind_lmm_fit))) > 1){
-      all_offset_terms = formula.tools::lhs.vars(formula(downwind_lmm_fit))[2:length(formula.tools::lhs.vars(formula(downwind_lmm_fit)))]
+    if(length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))) > 1){
+      all_offset_terms = formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))[2:length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit)))]
       if(length(all_offset_terms) > 1){
         log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + apply(downwind_positive_data[,all_offset_terms],1,sum)
       }
@@ -501,7 +501,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
 
 
     #compute m = Var{(1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t} / Var{z_it %*% hatbeta}, where the Var is across PDR (i,t) or PDR Target (i,t).
-    m = (var(log_hatw))/var(log_hatd)
+    m = (stats::var(log_hatw))/stats::var(log_hatd)
 
     #compute lambda based on the formula in Ray's ISR paper
     lambda = 1 + (
@@ -520,17 +520,17 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
 
   if(attr_type == 'ChambersEtAl_No_Winsorize'){
     if(is.null(hatu)){
-      hatu = predict(downwind_lmm_fit, newdata = downwind_positive_data, random.only = TRUE)
+      hatu = stats::predict(downwind_lmm_fit, newdata = downwind_positive_data, random.only = TRUE)
     }
 
     #compute log_hatw = (1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t, for PDR (i,t) or PDR Target (i,t)
     #Depends on if there is offset term on LHS of formula(downwind_lmm_fit)
-    if(length(formula.tools::lhs.vars(formula(downwind_lmm_fit))) == 1){
+    if(length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))) == 1){
       log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row])
     }
 
-    if(length(formula.tools::lhs.vars(formula(downwind_lmm_fit))) > 1){
-      all_offset_terms = formula.tools::lhs.vars(formula(downwind_lmm_fit))[2:length(formula.tools::lhs.vars(formula(downwind_lmm_fit)))]
+    if(length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))) > 1){
+      all_offset_terms = formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))[2:length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit)))]
       if(length(all_offset_terms) > 1){
         log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + apply(downwind_positive_data[,all_offset_terms],1,sum)
       }
@@ -551,7 +551,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
     mu = mean( y_vec / exp(log_haty_naive) )
 
     #compute m = Var{(1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t} / Var{z_it %*% hatbeta}, where the Var is across PDR (i,t) or PDR Target (i,t).
-    m = (var(log_hatw))/var(log_hatd)
+    m = (stats::var(log_hatw))/stats::var(log_hatd)
 
     #compute lambda based on the formula in Ray's ISR paper
     lambda = 1 + (
@@ -573,7 +573,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
     log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
 
     #Sigma_full is the full covariance matrix of (hatintercept, hatalpha, hatbeta)
-    Sigma_full = as.matrix(vcov(downwind_lmm_fit))
+    Sigma_full = as.matrix(stats::vcov(downwind_lmm_fit))
 
     #Sigma_beta = covariance matrix of only hatbeta
     Sigma_beta = Sigma_full[- which(rownames(Sigma_full) %in% c('(Intercept)', x_downwind_name)), -  which(rownames(Sigma_full) %in% c('(Intercept)',x_downwind_name))]
@@ -647,7 +647,7 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
   hatw_0 = (1/(1-hatpi))/( sum( (1/ (1-hatpi)  ) * (1-as.numeric(downwind_propensity_fit$y))  )   )
 
 
-  x_z_mat = model.matrix(downwind_lmm_fit, data = downwind_positive_data, type = 'fixed')
+  x_z_mat = stats::model.matrix(downwind_lmm_fit, data = downwind_positive_data, type = 'fixed')
   z_mat = x_z_mat[,-which(colnames(x_z_mat) %in%  c('(Intercept)',x_downwind_name) )]
 
 

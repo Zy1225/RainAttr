@@ -254,7 +254,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
   #Pre-compute hat{P}_{it} which will be used later on to simulate zero vs non-zero rainfall events
   if(bootstrap_zero){
-    init_downwind_positive_prob = predict(ori_fitted_models$downwind_logistic_fit,type = 'response')
+    init_downwind_positive_prob = stats::predict(ori_fitted_models$downwind_logistic_fit,type = 'response')
     if(!is.null(positive_prob_threshold)){
       downwind_positive_prob = init_downwind_positive_prob
       downwind_positive_prob[downwind_positive_prob < positive_prob_threshold] = 0
@@ -265,7 +265,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
   }
 
 
-  r_vec = lme4::getME(ori_fitted_models$downwind_lmm_fit, 'y')  - predict(ori_fitted_models$downwind_lmm_fit, re.form = NA)
+  r_vec = lme4::getME(ori_fitted_models$downwind_lmm_fit, 'y')  - stats::predict(ori_fitted_models$downwind_lmm_fit, re.form = NA)
   group_name = names(lme4::getME(ori_fitted_models$downwind_lmm_fit, "flist"))
   ori_downwind_positive_group = ori_data[downwind & ori_positive , group_name]
   ori_downwind_positive_group_label = unique(ori_downwind_positive_group)
@@ -346,12 +346,12 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
                                                dimnames = list(NULL, c(names(lme4::fixef(ori_fitted_models$downwind_lmm_fit)), paste0('VarComponent_',as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'grp'] ) )))
   if(bootstrap_zero){
     bootstrap_downwind_logistic_param_matrix = matrix(data = NA, nrow = B_bootstrap,
-                                                      ncol = length(coef(ori_fitted_models$downwind_logistic_fit)),
-                                                      dimnames = list(NULL, names(coef(ori_fitted_models$downwind_logistic_fit))))
+                                                      ncol = length(stats::coef(ori_fitted_models$downwind_logistic_fit)),
+                                                      dimnames = list(NULL, names(stats::coef(ori_fitted_models$downwind_logistic_fit))))
 
     bootstrap_downwind_propensity_param_matrix = matrix(data = NA, nrow = B_bootstrap,
-                                                        ncol = length(coef(ori_fitted_models$downwind_propensity_fit)),
-                                                        dimnames = list(NULL, names(coef(ori_fitted_models$downwind_propensity_fit))))
+                                                        ncol = length(stats::coef(ori_fitted_models$downwind_propensity_fit)),
+                                                        dimnames = list(NULL, names(stats::coef(ori_fitted_models$downwind_propensity_fit))))
   }
 
   bootstrap_downwind_positive_target_lmm_param_matrix = matrix(data = NA, nrow = B_bootstrap,
@@ -375,9 +375,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       tryCatch({
 
         if(bootstrap_zero){
-          b_downwind_positive = (runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
-          b_downwind_logistic_fit = glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, family = 'binomial')
-          bootstrap_downwind_logistic_param_matrix[b,] = coef(b_downwind_logistic_fit)
+          b_downwind_positive = (stats::runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
+          b_downwind_logistic_fit = stats::glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, family = 'binomial')
+          bootstrap_downwind_logistic_param_matrix[b,] = stats::coef(b_downwind_logistic_fit)
         }else{
           b_downwind_positive = ori_positive[downwind]
         }
@@ -388,7 +388,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
         b_downwind_positive_group_label = unique(b_downwind_positive_group)
         b_D_groups =  length(b_downwind_positive_group_label)
 
-        b_fitted = predict(ori_fitted_models$downwind_lmm_fit, newdata = b_downwind_positive_data, re.form = NA)
+        b_fitted = stats::predict(ori_fitted_models$downwind_lmm_fit, newdata = b_downwind_positive_data, re.form = NA)
 
         b_y = rep(NA, b_num_downwind_positive)
 
@@ -444,12 +444,12 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
 
         if(winsorize_individual_rain){
-          b_raw_y[b_raw_y> individual_rain_interval[2]] = individual_rain_interval[1] + (individual_rain_interval[2] - individual_rain_interval[1]) * runif(n=sum(b_raw_y> individual_rain_interval[2]))
+          b_raw_y[b_raw_y> individual_rain_interval[2]] = individual_rain_interval[1] + (individual_rain_interval[2] - individual_rain_interval[1]) * stats::runif(n=sum(b_raw_y> individual_rain_interval[2]))
         }
 
         if(winsorize_total_rain){
           if(sum(b_raw_y)< total_rain_interval[1] | sum(b_raw_y)> total_rain_interval[2]){
-            b_raw_y = b_raw_y*(runif(n=1,min=total_rain_interval[1], max=total_rain_interval[2]))/sum(b_raw_y)
+            b_raw_y = b_raw_y*(stats::runif(n=1,min=total_rain_interval[1], max=total_rain_interval[2]))/sum(b_raw_y)
           }
         }
 
@@ -515,7 +515,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
         b_hatsate = sate_est(b_downwind_positive_data, b_downwind_positive_target, b_downwind_positive_control, downwind_propensity_formula, downwind_separate_formula,
                              x_downwind_name, downwind_lmm_fit = b_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
-        if(bootstrap_zero){bootstrap_downwind_propensity_param_matrix[b,] = coef(b_hatsate$fitted_models$downwind_propensity_fit)}
+        if(bootstrap_zero){bootstrap_downwind_propensity_param_matrix[b,] = stats::coef(b_hatsate$fitted_models$downwind_propensity_fit)}
         bootstrap_downwind_positive_target_lmm_param_matrix[b,] = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_target_lmm_fit, add.dropped = TRUE),
                                                                     as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])
         bootstrap_downwind_positive_control_lmm_param_matrix[b,] = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_control_lmm_fit, add.dropped = TRUE),
@@ -551,9 +551,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
     results = foreach::foreach(b = 1:B_bootstrap, .packages = c("lme4","rlang","formula.tools"), .errorhandling = 'remove') %dopar% {
       if(bootstrap_zero){
-        b_downwind_positive = (runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
-        b_downwind_logistic_fit = glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, family = 'binomial')
-        downwind_logistic_param_b = coef(b_downwind_logistic_fit)
+        b_downwind_positive = (stats::runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
+        b_downwind_logistic_fit = stats::glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, family = 'binomial')
+        downwind_logistic_param_b = stats::coef(b_downwind_logistic_fit)
       }else{
         b_downwind_positive = ori_positive[downwind]
       }
@@ -564,7 +564,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       b_downwind_positive_group_label = unique(b_downwind_positive_group)
       b_D_groups =  length(b_downwind_positive_group_label)
 
-      b_fitted = predict(ori_fitted_models$downwind_lmm_fit, newdata = b_downwind_positive_data, re.form = NA)
+      b_fitted = stats::predict(ori_fitted_models$downwind_lmm_fit, newdata = b_downwind_positive_data, re.form = NA)
 
       b_y = rep(NA, b_num_downwind_positive)
 
@@ -616,12 +616,12 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       }
 
       if(winsorize_individual_rain){
-        b_raw_y[b_raw_y>175] <- 100+75*runif(n=sum(b_raw_y>175))
+        b_raw_y[b_raw_y>175] <- 100+75*stats::runif(n=sum(b_raw_y>175))
       }
 
       if(winsorize_total_rain){
         if(sum(b_raw_y)<6000 | sum(b_raw_y)>60000){
-          b_raw_y <- b_raw_y*(runif(n=1,min=6000,max=60000))/sum(b_raw_y)
+          b_raw_y <- b_raw_y*(stats::runif(n=1,min=6000,max=60000))/sum(b_raw_y)
         }
       }
 
@@ -653,7 +653,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
       b_hatsate = sate_est(b_downwind_positive_data, b_downwind_positive_target, b_downwind_positive_control, downwind_propensity_formula, downwind_separate_formula,
                            x_downwind_name, downwind_lmm_fit = b_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
-      if(bootstrap_zero){downwind_propensity_param_b = coef(b_hatsate$fitted_models$downwind_propensity_fit)}
+      if(bootstrap_zero){downwind_propensity_param_b = stats::coef(b_hatsate$fitted_models$downwind_propensity_fit)}
       downwind_positive_target_lmm_param_b = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_target_lmm_fit, add.dropped = TRUE),
                                                as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])
       downwind_positive_control_lmm_param_b = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_control_lmm_fit, add.dropped = TRUE),
@@ -741,10 +741,10 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
               nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) )]), byrow = TRUE)
 
     if(bootstrap_zero){
-      bootstrap_downwind_logistic_param_matrix = bootstrap_downwind_logistic_param_matrix + matrix(data = rep( coef(ori_fitted_models$downwind_logistic_fit) - apply(bootstrap_downwind_logistic_param_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+      bootstrap_downwind_logistic_param_matrix = bootstrap_downwind_logistic_param_matrix + matrix(data = rep( stats::coef(ori_fitted_models$downwind_logistic_fit) - apply(bootstrap_downwind_logistic_param_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
                                                                                                    nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_logistic_param_matrix), byrow = TRUE)
 
-      bootstrap_downwind_propensity_param_matrix = bootstrap_downwind_propensity_param_matrix + matrix(data = rep( coef(ori_fitted_models$downwind_propensity_fit) - apply(bootstrap_downwind_propensity_param_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+      bootstrap_downwind_propensity_param_matrix = bootstrap_downwind_propensity_param_matrix + matrix(data = rep( stats::coef(ori_fitted_models$downwind_propensity_fit) - apply(bootstrap_downwind_propensity_param_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
                                                                                                        nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_propensity_param_matrix), byrow = TRUE)
     }
 
@@ -806,7 +806,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 
   L.mat.b <- log(bootstrapped_var_components)
   mu.me <- apply(L.mat.b,2,mean)
-  C.mat.b <- cov(L.mat.b)
+  C.mat.b <- stats::cov(L.mat.b)
   su.se <- sqrt(diag(C.mat.b))
 
   temp <- eigen(solve(C.mat.b),symmetric=T)
@@ -913,7 +913,7 @@ bootstrap_CI = function(bootstrap_result, level){
   if(is.null(bootstrap_result)){
     return(NULL)
   }else{
-    return(t(apply(bootstrap_result,2, function(x){quantile(x, probs = c( (1-level)/2, 1 - (1-level)/2  ), na.rm = T)})))
+    return(t(apply(bootstrap_result,2, function(x){stats::quantile(x, probs = c( (1-level)/2, 1 - (1-level)/2  ), na.rm = T)})))
   }
 }
 

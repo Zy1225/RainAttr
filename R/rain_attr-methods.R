@@ -30,7 +30,7 @@ coef.rain_attr = function(object, model = "downwind_lmm", ...){
       ranef_coef = lme4::ranef(selected_model)[[1]]
     )
   }else{
-    output = coef(selected_model)
+    output = stats::coef(selected_model)
   }
 
   return(output)
