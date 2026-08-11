@@ -202,12 +202,12 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     stop("instr_pred_name cannot be found in downwind_lmm_formula")
   }
 
-  if(formula.tools::lhs(as.formula(gsub("[()]", "", downwind_propensity_formula))) != substitute(downwind_target_subset)){
+  if(formula.tools::lhs(stats::as.formula(gsub("[()]", "", downwind_propensity_formula))) != substitute(downwind_target_subset)){
     stop("The definition of Target provided in  downwind_target_subset is not consistent with the LHS of downwind_propensity_formula")
   }
 
   if(!is.null(downwind_logistic_formula)){
-    if(formula.tools::lhs(as.formula(gsub("[()]", "", downwind_logistic_formula))) != substitute(positive_subset)){
+    if(formula.tools::lhs(stats::as.formula(gsub("[()]", "", downwind_logistic_formula))) != substitute(positive_subset)){
       stop("The definition of Positive Rainfall provided in  positive_subset is not consistent with the LHS of downwind_logistic_formula")
     }
   }else{
@@ -740,7 +740,7 @@ remove_fixed_terms <- function(input_formula, vars_to_remove){
   lhs_str = paste(deparse(formula.tools::lhs(input_formula)), collapse = "")
 
   # Build new input_formula
-  return(as.formula(paste(lhs_str, "~", new_rhs_str)))
+  return(stats::as.formula(paste(lhs_str, "~", new_rhs_str)))
 }
 
 
