@@ -703,17 +703,17 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
   }
 
   if(instr_pred_type == 'Unconditional'){
-    data = cbind(data, predict(upwind_lmm_fit, data, re.form = NA))
+    data = cbind(data, stats::predict(upwind_lmm_fit, data, re.form = NA))
   }
   if(instr_pred_type == 'Conditional'){
-    data = cbind(data, predict(upwind_lmm_fit, data, re.form = NULL, allow.new.levels = T))
+    data = cbind(data, stats::predict(upwind_lmm_fit, data, re.form = NULL, allow.new.levels = T))
   }
   colnames(data)[ncol(data)] = instr_pred_name
   downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
   if(is.null(downwind_logistic_formula)){
     downwind_logistic_fit = NULL
   }else{
-    downwind_logistic_fit = glm(downwind_logistic_formula, data = data[downwind,], family = 'binomial')
+    downwind_logistic_fit = stats::glm(downwind_logistic_formula, data = data[downwind,], family = 'binomial')
   }
   return(list(
     upwind_lmm_fit = upwind_lmm_fit,

@@ -165,7 +165,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
     test_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
     z_downwind_name = setdiff(names(lme4::fixef(test_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
     perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
-    perm_downwind_propensity_formula = update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
+    perm_downwind_propensity_formula = stats::update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
 
 
 
@@ -243,7 +243,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
     test_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
     z_downwind_name = setdiff(names(lme4::fixef(test_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
     perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
-    perm_downwind_propensity_formula = update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
+    perm_downwind_propensity_formula = stats::update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
 
     permutation_cl = parallel::makeCluster(permutation_parallel_num_worker)
     parallel::clusterExport(permutation_cl, varlist = c('attr_est', 'sate_est'), envir = asNamespace("RainAttr"))
