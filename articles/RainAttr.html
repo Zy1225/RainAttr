@@ -461,8 +461,8 @@ each with 500 replicates parallelized over 4 workers:</p>
 <span></span>
 <span><span class="co">#</span></span>
 <span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 7.064493 mins</span></span></code></pre></div>
-<p>The total computational time was 7.06 minutes.</p>
+<span><span class="co">#&gt; Time difference of 6.130353 mins</span></span></code></pre></div>
+<p>The total computational time was 6.13 minutes.</p>
 <p>In the above example, we use the default PREB1 bootstrap proposed by
 <span class="citation">Tho et al. (2025)</span>; hence, it is not
 necessary to explicitly specify
@@ -836,8 +836,40 @@ contour lines added using <code>elev_contour = TRUE</code>:</p>
 <span>              elev_resolution <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>              positive_subset <span class="op">=</span> <span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; The <span style="color: #0000BB;">rnaturalearthhires</span> package needs to be installed.</span></span>
+<span><span class="co">#&gt; Installing the <span style="color: #0000BB;">rnaturalearthhires</span> package.</span></span>
+<span><span class="co">#&gt;  </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; → Package library at <span style="color: #0000BB;">/home/runner/work/_temp/Library</span>.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; → Will <span style="font-style: italic;">install</span> 1 package.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; → The package (0 B) is cached.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">+ </span><span style="color: #0000BB;">rnaturalearthhires</span>   1.0.0.9000 [bld][cmp] (GitHub: e4736f6)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No downloads are needed, 1 pkg is cached</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Got <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 (source) (21.38 MB)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Packaging <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Packaged <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(1.6s)</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Building <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Built <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(22.9s)</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Installed <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) <span style="color: #9E9E9E;">(1.1s)</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> 1 pkg: added 1, dld 1 (NA B) <span style="color: #B2B2B2;">[33.2s]</span></span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Mosaicing &amp; Projecting</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Clipping DEM to bbox</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Note: Elevation units are in meters.</span></span>
 <span><span class="va">annual_map</span></span></code></pre></div>
 <p><img src="RainAttr_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" alt="" width="100%"></p>
@@ -1588,7 +1620,7 @@ reproduced using the code below.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jrssa</span><span class="op">$</span><span class="va">all_fitted_models</span><span class="op">$</span><span class="va">downwind_propensity_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; glm(formula = downwind_propensity_formula, family = binomial, </span></span>
+<span><span class="co">#&gt; stats::glm(formula = downwind_propensity_formula, family = "binomial", </span></span>
 <span><span class="co">#&gt;     data = downwind_positive_data)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>

@@ -408,10 +408,10 @@ end_time = Sys.time()
 
 #
 end_time - start_time
-#> Time difference of 7.064493 mins
+#> Time difference of 6.130353 mins
 ```
 
-The total computational time was 7.06 minutes.
+The total computational time was 6.13 minutes.
 
 In the above example, we use the default PREB1 bootstrap proposed by Tho
 et al. (2025); hence, it is not necessary to explicitly specify
@@ -832,8 +832,40 @@ annual_map = eda(eda_type = "map_static",
               elev_resolution = 2,
               positive_subset = Rain.Gauge.Measurement > 0
 )
+#> The rnaturalearthhires package needs to be installed.
+#> Installing the rnaturalearthhires package.
+#>  
+#> 
+#> → Package library at /home/runner/work/_temp/Library.
+#> 
+#> → Will install 1 package.
+#> 
+#> → The package (0 B) is cached.
+#> 
+#> + rnaturalearthhires   1.0.0.9000 [bld][cmp] (GitHub: e4736f6)
+#> 
+#>   
+#> 
+#> ℹ No downloads are needed, 1 pkg is cached
+#> 
+#> ✔ Got rnaturalearthhires 1.0.0.9000 (source) (21.38 MB)
+#> 
+#> ℹ Packaging rnaturalearthhires 1.0.0.9000
+#> 
+#> ✔ Packaged rnaturalearthhires 1.0.0.9000 (1.6s)
+#> 
+#> ℹ Building rnaturalearthhires 1.0.0.9000
+#> 
+#> ✔ Built rnaturalearthhires 1.0.0.9000 (22.9s)
+#> 
+#> ✔ Installed rnaturalearthhires 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) (1.1s)
+#> 
+#> ✔ 1 pkg: added 1, dld 1 (NA B) [33.2s]
+#> 
 #> Mosaicing & Projecting
+#> 
 #> Clipping DEM to bbox
+#> 
 #> Note: Elevation units are in meters.
 annual_map
 ```
@@ -1636,7 +1668,7 @@ Table 1 is identical to:
 summary(jrssa$all_fitted_models$downwind_propensity_fit)
 #> 
 #> Call:
-#> glm(formula = downwind_propensity_formula, family = binomial, 
+#> stats::glm(formula = downwind_propensity_formula, family = "binomial", 
 #>     data = downwind_positive_data)
 #> 
 #> Coefficients:
