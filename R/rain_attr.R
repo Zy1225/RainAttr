@@ -640,8 +640,8 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
   #When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{hat{q}_i}
   #Note that when the instr_pred or natural_pred is used as an offset term, the sate.ipw is computed using LogRain - natural_pred, instead of LogRain only
 
-  downwind_propensity_fit = glm(downwind_propensity_formula, family = binomial, data = downwind_positive_data)
-  hatpi = predict(downwind_propensity_fit, type = "response")
+  downwind_propensity_fit = stats::glm(downwind_propensity_formula, family = "binomial", data = downwind_positive_data)
+  hatpi = stats::predict(downwind_propensity_fit, type = "response")
 
   hatw_1 = (1/hatpi)/( sum( (1/hatpi) * as.numeric(downwind_propensity_fit$y) )   )
   hatw_0 = (1/(1-hatpi))/( sum( (1/ (1-hatpi)  ) * (1-as.numeric(downwind_propensity_fit$y))  )   )
@@ -669,8 +669,8 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
   #Fit separate LMM to downwind_positive_target and downwind_positive_control
   downwind_positive_target_lmm_fit = lme4::lmer(downwind_separate_formula, data = downwind_positive_data[downwind_positive_target,])
   downwind_positive_control_lmm_fit = lme4::lmer(downwind_separate_formula, data = downwind_positive_data[downwind_positive_control,])
-  hatm_1 = predict(downwind_positive_target_lmm_fit, newdata = downwind_positive_data, re.form = NA)
-  hatm_0 = predict(downwind_positive_control_lmm_fit, newdata = downwind_positive_data, re.form = NA)
+  hatm_1 = stats::predict(downwind_positive_target_lmm_fit, newdata = downwind_positive_data, re.form = NA)
+  hatm_0 = stats::predict(downwind_positive_control_lmm_fit, newdata = downwind_positive_data, re.form = NA)
   sate.ipw.ma = mean(hatm_1) - mean(hatm_0) + sum(hatw_1 * as.numeric(downwind_propensity_fit$y) * (lme4::getME(downwind_lmm_fit, 'y') - hatm_1)  ) - sum( hatw_0 * (1 - as.numeric(downwind_propensity_fit$y) ) * (lme4::getME(downwind_lmm_fit, 'y'  ) - hatm_0)  )
 
   #TODO: Need to check when this function is used to compute estimated sate.aipw within each bootstrap run and we are using natural_pred as offset term, should we still follow the equation (7) in JRSSA paper,

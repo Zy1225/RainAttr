@@ -90,7 +90,7 @@ print.rain_attr <- function(x, ...) {
   cat(deparse(x$args$data),"[", deparse(x$args$upwind_subset), " & ", deparse(x$args$positive_subset), ", ]\n")
 
 
-  n_obs_up <- nobs(upwind_fit)
+  n_obs_up <- stats::nobs(upwind_fit)
   n_groups_up <- length(unique(lme4::getME(upwind_fit, "flist")[[1]]))
   cat(sprintf("Number of observations: %d, ", n_obs_up))
   cat(sprintf("Number of groups: %d\n\n", n_groups_up))
@@ -120,7 +120,7 @@ print.rain_attr <- function(x, ...) {
   cat(deparse(x$args$data),"[", deparse(x$args$downwind_subset), " & ", deparse(x$args$positive_subset), ", ]\n")
 
 
-  n_obs_down <- nobs(downwind_fit)
+  n_obs_down <- stats::nobs(downwind_fit)
   n_groups_down <- length(unique(lme4::getME(downwind_fit, "flist")[[1]]))
   cat(sprintf("Number of observations: %d, ", n_obs_down))
   cat(sprintf("Number of groups: %d\n\n", n_groups_down))
@@ -175,7 +175,7 @@ residuals.rain_attr <- function(object, model = "downwind_lmm",
     if (!residual_type %in% valid_types) {
       stop(paste("For LMM models, residual_type must be one of:", paste(valid_types, collapse = ", ")))
     }
-    res <- resid(selected_model, type = residual_type, scaled = residual_scaled)
+    res <- stats::residuals(selected_model, type = residual_type, scaled = residual_scaled)
   }
 
   if (inherits(selected_model, "glm")) {
@@ -185,7 +185,7 @@ residuals.rain_attr <- function(object, model = "downwind_lmm",
     if (!residual_type %in% valid_types) {
       stop(paste("For GLM models, residual_type must be one of:", paste(valid_types, collapse = ", ")))
     }
-    res <- residuals(selected_model, type = residual_type)
+    res <- stats::residuals(selected_model, type = residual_type)
 
   }
 
@@ -274,12 +274,12 @@ predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
   # Predictions for lme4::merMod
   if (inherits(selected_model, "merMod")) {
     if(re_include){
-      fit = predict(selected_model, newdata = newdata,
+      fit = stats::predict(selected_model, newdata = newdata,
                     re.form = NULL,
                     random.only = !fixef_include,
                     allow.new.levels = allow.new.levels, ...)
     }else{
-      fit = predict(selected_model, newdata = newdata,
+      fit = stats::predict(selected_model, newdata = newdata,
                     re.form = NA,
                     random.only = !fixef_include,
                     allow.new.levels = allow.new.levels, ...)
@@ -292,7 +292,7 @@ predict.rain_attr = function(object, newdata = NULL, model = "downwind_lmm",
       stop(paste("Invalid predict_type. Choose one of:", paste(c("link", "response", "terms"), collapse = ", ")))
     }
 
-    fit = predict(selected_model, newdata = newdata,
+    fit = stats::predict(selected_model, newdata = newdata,
                   type = predict_type, ...)
   }
 
@@ -699,22 +699,22 @@ summary.rain_attr <- function(object, ...) {
     #upwind
     upwind_subset_expr = upwind_subset_expr,
     upwind_formula = object$args$upwind_lmm_formula,
-    upwind_n_obs = nobs(upwind_fit),
+    upwind_n_obs = stats::nobs(upwind_fit),
     upwind_n_groups = length(unique(lme4::getME(upwind_fit, "flist")[[1]])),
     upwind_summary = summary(upwind_fit),
-    upwind_fitted = predict(upwind_fit, re.form = NULL), #including random effects
-    upwind_residuals = residuals(upwind_fit, type = 'response', scaled = TRUE),  #including random effects
+    upwind_fitted = stats::predict(upwind_fit, re.form = NULL), #including random effects
+    upwind_residuals = stats::residuals(upwind_fit, type = 'response', scaled = TRUE),  #including random effects
     upwind_lmm_fixef = upwind_lmm_fixef,
     upwind_lmm_varcomp = upwind_lmm_varcomp,
 
     #downwind
     downwind_subset_expr = downwind_subset_expr,
     downwind_formula = object$args$downwind_lmm_formula,
-    downwind_n_obs= nobs(downwind_fit),
+    downwind_n_obs= stats::nobs(downwind_fit),
     downwind_n_groups = length(unique(lme4::getME(downwind_fit, "flist")[[1]])),
     downwind_summary = summary(downwind_fit),
-    downwind_fitted = predict(downwind_fit, re.form = NULL),  #including random effects
-    downwind_residuals = residuals(downwind_fit, type = 'response', scaled = TRUE),  #including random effects
+    downwind_fitted = stats::predict(downwind_fit, re.form = NULL),  #including random effects
+    downwind_residuals = stats::residuals(downwind_fit, type = 'response', scaled = TRUE),  #including random effects
     downwind_lmm_fixef = downwind_lmm_fixef,
     downwind_lmm_varcomp = downwind_lmm_varcomp,
 
