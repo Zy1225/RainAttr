@@ -310,12 +310,12 @@ eda = function(eda_type,
                              deparse(original_args$positive_subset), ")")
 
     # Create histograms
-    p1 <- ggplot2::ggplot(data.frame(size = upwind_sizes), ggplot2::aes(x = size)) +
+    p1 <- ggplot2::ggplot(data.frame(size = upwind_sizes), ggplot2::aes(x = .data[["size"]])) +
       ggplot2::geom_histogram(binwidth = 1, fill = 'grey', color='black') +
       ggplot2::labs(title = upwind_title, x = "Group Size", y = "Frequency") +
       ggplot2::theme_bw()
 
-    p2 <- ggplot2::ggplot(data.frame(size = downwind_sizes), ggplot2::aes(x = size)) +
+    p2 <- ggplot2::ggplot(data.frame(size = downwind_sizes), ggplot2::aes(x = .data[["size"]])) +
       ggplot2::geom_histogram(binwidth = 1, fill = 'grey', color='black') +
       ggplot2::labs(title = downwind_title, x = "Group Size", y = "Frequency") +
       ggplot2::theme_bw()
@@ -363,7 +363,7 @@ eda = function(eda_type,
     qqline_intercept_upwind = q_sample_upwind[1] - qqline_slope_upwind * q_theory_upwind[1]
 
 
-    p1 = ggplot2::ggplot(qq_df_upwind, ggplot2::aes(x = Theoretical, y = Sample)) +
+    p1 = ggplot2::ggplot(qq_df_upwind, ggplot2::aes(x = .data[["Theoretical"]], y = .data[["Sample"]])) +
       ggplot2::geom_point() +
       ggplot2::geom_abline(intercept = qqline_intercept_upwind, slope = qqline_slope_upwind, linetype = "dashed", color = "red") +
       ggplot2::labs(title = paste0("Normal Q-Q Plot for ", rain_label, " of\n (",
@@ -385,7 +385,7 @@ eda = function(eda_type,
 
     legend_title = as.character(original_args$downwind_target_subset)[2]
 
-    p2 = ggplot2::ggplot(qq_df_downwind, ggplot2::aes(x = Theoretical, y = Sample, color = Group, shape = Group)) +
+    p2 = ggplot2::ggplot(qq_df_downwind, ggplot2::aes(x = .data[["Theoretical"]], y = .data[["Sample"]], color = .data[["Group"]], shape = .data[["Group"]])) +
       ggplot2::geom_point() +
       ggplot2::geom_abline(intercept = qqline_intercept_downwind, slope = qqline_slope_downwind, linetype = "dashed", color = "red") +
       ggplot2::labs(title = paste0("Normal Q-Q Plot for ", rain_label, "of \n(",
@@ -451,8 +451,8 @@ eda = function(eda_type,
     final_df_avg = rbind(upwind_df_avg, target_df_avg, control_df_avg)
     final_df_avg$type = factor(final_df_avg$type, levels = c('target','control','upwind'))
 
-    output_plot = ggplot2::ggplot(final_df_avg, ggplot2::aes(x = .data[[day_column_name]], y = .data[[rain_col_name]], group = type,
-                                                             color = type)) +
+    output_plot = ggplot2::ggplot(final_df_avg, ggplot2::aes(x = .data[[day_column_name]], y = .data[[rain_col_name]], group = .data[["type"]],
+                                                             color = .data[["type"]])) +
       ggplot2::geom_line() +
       ggplot2::geom_point() + ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = 'free') +
       ggplot2::labs(title = paste0('Time Series Plots of ', rain_label, ' Averaged Across\nDifferent Types of Observations Satisfying ',
@@ -754,9 +754,9 @@ eda = function(eda_type,
       output_plot = output_plot + ggplot2::geom_contour(
         data = elev_df_land,
         ggplot2::aes(
-          x = x,
-          y = y,
-          z = elev
+          x = .data[["x"]],
+          y = .data[["y"]],
+          z = .data[["elev"]]
         ),
         linewidth = 0.1,
         color = "black",
@@ -946,9 +946,9 @@ eda = function(eda_type,
             output_plot = output_plot + ggplot2::geom_contour(
               data = elev_df_land,
               ggplot2::aes(
-                x = x,
-                y = y,
-                z = elev
+                x = .data[["x"]],
+                y = .data[["y"]],
+                z = .data[["elev"]]
               ),
               linewidth = 0.1,
               color = "black",
@@ -995,9 +995,9 @@ eda = function(eda_type,
             output_plot = output_plot + ggplot2::geom_contour(
               data = elev_df_land,
               ggplot2::aes(
-                x = x,
-                y = y,
-                z = elev
+                x = .data[["x"]],
+                y = .data[["y"]],
+                z = .data[["elev"]]
               ),
               linewidth = 0.1,
               color = "black",
@@ -1062,9 +1062,9 @@ eda = function(eda_type,
             output_plot = output_plot + ggplot2::geom_contour(
               data = elev_df_land,
               ggplot2::aes(
-                x = x,
-                y = y,
-                z = elev
+                x = .data[["x"]],
+                y = .data[["y"]],
+                z = .data[["elev"]]
               ),
               linewidth = 0.1,
               color = "black",
@@ -1105,9 +1105,9 @@ eda = function(eda_type,
             output_plot = output_plot + ggplot2::geom_contour(
               data = elev_df_land,
               ggplot2::aes(
-                x = x,
-                y = y,
-                z = elev
+                x = .data[["x"]],
+                y = .data[["y"]],
+                z = .data[["elev"]]
               ),
               linewidth = 0.1,
               color = "black",
@@ -1193,9 +1193,9 @@ eda = function(eda_type,
             output_plot = output_plot + ggplot2::geom_contour(
               data = elev_df_land,
               ggplot2::aes(
-                x = x,
-                y = y,
-                z = elev
+                x = .data[["x"]],
+                y = .data[["y"]],
+                z = .data[["elev"]]
               ),
               linewidth = 0.1,
               color = "black",
@@ -1237,9 +1237,9 @@ eda = function(eda_type,
             output_plot = output_plot + ggplot2::geom_contour(
               data = elev_df_land,
               ggplot2::aes(
-                x = x,
-                y = y,
-                z = elev
+                x = .data[["x"]],
+                y = .data[["y"]],
+                z = .data[["elev"]]
               ),
               linewidth = 0.1,
               color = "black",
@@ -1299,9 +1299,9 @@ eda = function(eda_type,
             output_plot = output_plot + ggplot2::geom_contour(
               data = elev_df_land,
               ggplot2::aes(
-                x = x,
-                y = y,
-                z = elev
+                x = .data[["x"]],
+                y = .data[["y"]],
+                z = .data[["elev"]]
               ),
               linewidth = 0.1,
               color = "black",
@@ -1337,9 +1337,9 @@ eda = function(eda_type,
             output_plot = output_plot + ggplot2::geom_contour(
               data = elev_df_land,
               ggplot2::aes(
-                x = x,
-                y = y,
-                z = elev
+                x = .data[["x"]],
+                y = .data[["y"]],
+                z = .data[["elev"]]
               ),
               linewidth = 0.1,
               color = "black",
@@ -1367,5 +1367,5 @@ eda = function(eda_type,
 }
 
 
-
+utils::globalVariables(".data")
 

@@ -477,7 +477,7 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
       )
 
       # Residuals vs Fitted
-      p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals, color = Group, shape = Group)) +
+      p1 = ggplot2::ggplot(df, ggplot2::aes(x = .data[["Fitted"]], y = .data[["Residuals"]], color = .data[["Group"]], shape = .data[["Group"]])) +
         ggplot2::geom_point() +
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Residuals vs Fitted for", plot_title),
@@ -501,7 +501,7 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
       qqline_intercept = q_sample[1] - qqline_slope * q_theory[1]
 
 
-      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample, color = Group, shape = Group)) +
+      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = .data[["Theoretical"]], y = .data[["Sample"]], color = .data[["Group"]], shape = .data[["Group"]])) +
         ggplot2::geom_point() +
         ggplot2::geom_abline(intercept = qqline_intercept, slope = qqline_slope, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals"),
@@ -523,7 +523,7 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
 
 
       #Residuals vs Fitted
-      p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals)) +
+      p1 = ggplot2::ggplot(df, ggplot2::aes(x = .data[["Fitted"]], y = .data[["Residuals"]])) +
         ggplot2::geom_point() +
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Residuals vs Fitted for", plot_title),
@@ -544,7 +544,7 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
       qqline_slope = diff(q_sample) / diff(q_theory)
       qqline_intercept = q_sample[1] - qqline_slope * q_theory[1]
 
-      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample)) +
+      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = .data[["Theoretical"]], y = .data[["Sample"]])) +
         ggplot2::geom_point() +
         ggplot2::geom_abline(intercept = qqline_intercept, slope = qqline_slope, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals")) +
@@ -561,7 +561,7 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
 
 
       #Residuals vs Fitted
-      p1 = ggplot2::ggplot(df, ggplot2::aes(x = Fitted, y = Residuals)) +
+      p1 = ggplot2::ggplot(df, ggplot2::aes(x = .data[["Fitted"]], y = .data[["Residuals"]])) +
         ggplot2::geom_point() +
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Residuals vs Fitted for", plot_title),
@@ -582,7 +582,7 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
       qqline_slope = diff(q_sample) / diff(q_theory)
       qqline_intercept = q_sample[1] - qqline_slope * q_theory[1]
 
-      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = Theoretical, y = Sample)) +
+      p2 = ggplot2::ggplot(qq_df, ggplot2::aes(x = .data[["Theoretical"]], y = .data[["Sample"]])) +
         ggplot2::geom_point() +
         ggplot2::geom_abline(intercept = qqline_intercept, slope = qqline_slope, linetype = "dashed", color = "red") +
         ggplot2::labs(title = paste("Normal Q-Q Plot for", plot_title, "Residuals")) +
