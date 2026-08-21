@@ -354,11 +354,11 @@ eda = function(eda_type,
 
     # QQplots of raw/log rainfall for Upwind+Positive / Downwind+Positive
 
-    qq_vals_upwind = qqnorm(rain_values[upwind & positive], plot.it = FALSE)
+    qq_vals_upwind = stats::qqnorm(rain_values[upwind & positive], plot.it = FALSE)
     qq_df_upwind = data.frame(Theoretical = qq_vals_upwind$x, Sample = qq_vals_upwind$y)
 
-    q_sample_upwind = quantile(rain_values[upwind & positive], probs = c(0.25, 0.75))
-    q_theory_upwind = qnorm(c(0.25, 0.75))
+    q_sample_upwind = stats::quantile(rain_values[upwind & positive], probs = c(0.25, 0.75))
+    q_theory_upwind = stats::qnorm(c(0.25, 0.75))
     qqline_slope_upwind = diff(q_sample_upwind) / diff(q_theory_upwind)
     qqline_intercept_upwind = q_sample_upwind[1] - qqline_slope_upwind * q_theory_upwind[1]
 
@@ -373,13 +373,13 @@ eda = function(eda_type,
       ggplot2::theme_bw()
 
 
-    qq_vals_downwind = qqnorm(rain_values[downwind & positive], plot.it = FALSE)
+    qq_vals_downwind = stats::qqnorm(rain_values[downwind & positive], plot.it = FALSE)
     qq_df_downwind = data.frame(Theoretical = qq_vals_downwind$x, Sample = qq_vals_downwind$y,
                                 Group = factor(ifelse(target[downwind & positive], "Target", "Control"))
     )
 
-    q_sample_downwind = quantile(rain_values[downwind & positive], probs = c(0.25, 0.75))
-    q_theory_downwind = qnorm(c(0.25, 0.75))
+    q_sample_downwind = stats::quantile(rain_values[downwind & positive], probs = c(0.25, 0.75))
+    q_theory_downwind = stats::qnorm(c(0.25, 0.75))
     qqline_slope_downwind = diff(q_sample_downwind) / diff(q_theory_downwind)
     qqline_intercept_downwind = q_sample_downwind[1] - qqline_slope_downwind * q_theory_downwind[1]
 
@@ -430,19 +430,19 @@ eda = function(eda_type,
 
 
     upwind_df = data[upwind & positive, c(day_column_name, year_column_name, rain_col_name)]
-    upwind_df_avg = aggregate(as.formula(
+    upwind_df_avg = stats::aggregate(stats::as.formula(
       paste(rain_col_name, "~", paste(c(day_column_name, year_column_name), collapse = " + "))
     ), data = upwind_df, FUN = mean, na.rm = TRUE)
     upwind_df_avg = cbind(upwind_df_avg, type = 'upwind')
 
     target_df = data[target & positive, c(day_column_name, year_column_name, rain_col_name)]
-    target_df_avg = aggregate(as.formula(
+    target_df_avg = stats::aggregate(stats::as.formula(
       paste(rain_col_name, "~", paste(c(day_column_name, year_column_name), collapse = " + "))
     ), data = target_df, FUN = mean, na.rm = TRUE)
     target_df_avg = cbind(target_df_avg, type = 'target')
 
     control_df = data[control & positive, c(day_column_name, year_column_name, rain_col_name)]
-    control_df_avg = aggregate(as.formula(
+    control_df_avg = stats::aggregate(stats::as.formula(
       paste(rain_col_name, "~", paste(c(day_column_name, year_column_name), collapse = " + "))
     ), data = control_df, FUN = mean, na.rm = TRUE)
     control_df_avg = cbind(control_df_avg, type = 'control')
@@ -494,7 +494,7 @@ eda = function(eda_type,
                             ggplot2::aes(color = .data[[gauge_id_column_name]]), alpha = 0.8) +
         ggplot2::scale_color_manual(
           values = c("Other" = "grey80",
-                     setNames(viridis::viridis(length(ts_focus_gauge), option = "D"),
+                     stats::setNames(viridis::viridis(length(ts_focus_gauge), option = "D"),
                               ts_focus_gauge))
         ) +
         ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = 'free') +
@@ -548,7 +548,7 @@ eda = function(eda_type,
                             ggplot2::aes(color = .data[[gauge_id_column_name]]), alpha = 0.8) +
         ggplot2::scale_color_manual(
           values = c("Other" = "grey80",
-                     setNames(viridis::viridis(length(ts_focus_gauge), option = "D"),
+                     stats::setNames(viridis::viridis(length(ts_focus_gauge), option = "D"),
                               ts_focus_gauge))
         ) +
         ggplot2::facet_wrap(ggplot2::vars(.data[[year_column_name]]), scales = "free") +
@@ -598,7 +598,7 @@ eda = function(eda_type,
     }
 
     positive_df = data[positive, c(longlat_column_names, year_column_name, rain_col_name)]
-    positive_df_avg = aggregate(as.formula(
+    positive_df_avg = stats::aggregate(stats::as.formula(
       paste(rain_col_name, "~", paste(c(longlat_column_names, year_column_name), collapse = " + "))
     ), data = positive_df, FUN = mean, na.rm = TRUE)
 
@@ -609,7 +609,7 @@ eda = function(eda_type,
 
 
     if(!is.null(ionizer_location_df)){
-      ionizer_long = reshape(
+      ionizer_long = stats::reshape(
         ionizer_location_df,
         varying = setdiff(colnames(ionizer_location_df), c(ionizer_id_column_name, ionizer_longlat_column_names)),
         v.names = "Deployed",
@@ -797,7 +797,7 @@ eda = function(eda_type,
     data_df = data[, c(longlat_column_names, day_column_name, year_column_name, rain_col_name, 'alpha', wind_direction_column_name, wind_speed_column_name)]
 
     if(!is.null(ionizer_location_df)){
-      ionizer_long = reshape(
+      ionizer_long = stats::reshape(
         ionizer_location_df,
         varying = setdiff(colnames(ionizer_location_df), c(ionizer_id_column_name, ionizer_longlat_column_names)),
         v.names = "Deployed",

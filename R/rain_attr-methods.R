@@ -439,8 +439,8 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
 
 
     # Extract residuals and fitted values
-    res = residuals(x, model = model, residual_type = residual_type, residual_scaled = residual_scaled)
-    fit = predict(x, newdata = NULL, model = model, re_include = re_include, fixef_include = fixef_include, allow.new.levels = allow.new.levels, predict_type = predict_type)
+    res = stats::residuals(x, model = model, residual_type = residual_type, residual_scaled = residual_scaled)
+    fit = stats::predict(x, newdata = NULL, model = model, re_include = re_include, fixef_include = fixef_include, allow.new.levels = allow.new.levels, predict_type = predict_type)
 
 
 
@@ -467,13 +467,13 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
 
 
       color_vals <- c(
-        setNames("#1f77b4", target_label),
-        setNames("#ff7f0e", control_label)
+        stats::setNames("#1f77b4", target_label),
+        stats::setNames("#ff7f0e", control_label)
       )
 
       shape_vals <- c(
-        setNames(16, target_label),
-        setNames(17, control_label)
+        stats::setNames(16, target_label),
+        stats::setNames(17, control_label)
       )
 
       # Residuals vs Fitted
@@ -492,11 +492,11 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
                        axis.title.y = ggplot2::element_text(size = 8))
 
       # QQ plot
-      qq_vals = qqnorm(res, plot.it = FALSE)
+      qq_vals = stats::qqnorm(res, plot.it = FALSE)
       qq_df = data.frame(Theoretical = qq_vals$x, Sample = qq_vals$y, Group = df$Group)
 
-      q_sample = quantile(res, probs = c(0.25, 0.75))
-      q_theory = qnorm(c(0.25, 0.75))
+      q_sample = stats::quantile(res, probs = c(0.25, 0.75))
+      q_theory = stats::qnorm(c(0.25, 0.75))
       qqline_slope = diff(q_sample) / diff(q_theory)
       qqline_intercept = q_sample[1] - qqline_slope * q_theory[1]
 
@@ -536,11 +536,11 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
 
 
       # QQ plot
-      qq_vals = qqnorm(res, plot.it = FALSE)
+      qq_vals = stats::qqnorm(res, plot.it = FALSE)
       qq_df = data.frame(Theoretical = qq_vals$x, Sample = qq_vals$y)
 
-      q_sample = quantile(res, probs = c(0.25, 0.75))
-      q_theory = qnorm(c(0.25, 0.75))
+      q_sample = stats::quantile(res, probs = c(0.25, 0.75))
+      q_theory = stats::qnorm(c(0.25, 0.75))
       qqline_slope = diff(q_sample) / diff(q_theory)
       qqline_intercept = q_sample[1] - qqline_slope * q_theory[1]
 
@@ -574,11 +574,11 @@ plot.rain_attr = function(x, plot_type = c("bootstrap", "permutation"), plot_qua
 
 
       # QQ plot
-      qq_vals = qqnorm(res, plot.it = FALSE)
+      qq_vals = stats::qqnorm(res, plot.it = FALSE)
       qq_df = data.frame(Theoretical = qq_vals$x, Sample = qq_vals$y)
 
-      q_sample = quantile(res, probs = c(0.25, 0.75))
-      q_theory = qnorm(c(0.25, 0.75))
+      q_sample = stats::quantile(res, probs = c(0.25, 0.75))
+      q_theory = stats::qnorm(c(0.25, 0.75))
       qqline_slope = diff(q_sample) / diff(q_theory)
       qqline_intercept = q_sample[1] - qqline_slope * q_theory[1]
 
