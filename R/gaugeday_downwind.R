@@ -17,3 +17,5 @@
 #'}
 #'
 "gaugeday_downwind"
+
+utils::globalVariables("gaugeday_downwind")

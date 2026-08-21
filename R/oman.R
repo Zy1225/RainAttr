@@ -41,3 +41,5 @@
 #'
 #'
 "oman"
+
+utils::globalVariables("oman")

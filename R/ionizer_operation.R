@@ -21,3 +21,5 @@
 #'
 #'
 "ionizer_operation"
+
+utils::globalVariables("ionizer_operation")
