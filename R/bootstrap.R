@@ -248,6 +248,12 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
                               ori_attr_est, ori_sate_est){
 
   if(!bootstrap_type %in% c('REB0','REB1','REB2','PREB0','PREB1','PREB2','MREB1')){
+    stop(
+      paste0(
+        "bootstrap_type should be one of ",
+        "'REB0', 'REB1', 'REB2', 'PREB0', 'PREB1', 'PREB2', or 'MREB1'."
+      )
+    )
   }
 
 
