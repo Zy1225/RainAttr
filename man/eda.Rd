@@ -157,3 +157,48 @@ Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not 
 }
 }
 }
+\examples{
+# Summarize numbers of observations and unique trial days
+obs_summary <- eda(
+  eda_type = "num_obs_days",
+  data = oman,
+  day_column_name = "TrialDay",
+  upwind_subset = Gauge.Day.Type == "Upwind",
+  downwind_subset = Gauge.Day.Type \%in\% c("Target", "Control"),
+  downwind_target_subset = Gauge.Day.Type == "Target",
+  downwind_control_subset = Gauge.Day.Type == "Control",
+  positive_subset = Rain.Gauge.Measurement > 0
+)
+obs_summary
+
+# Normal Q-Q plots of positive log-rainfall
+qq_plots <- eda(
+  eda_type = "qq_rain",
+  data = oman,
+  rain_col_name = "Rain.Gauge.Measurement",
+  use_raw = FALSE,
+  upwind_subset = Gauge.Day.Type == "Upwind",
+  downwind_subset = Gauge.Day.Type \%in\% c("Target", "Control"),
+  downwind_target_subset = Gauge.Day.Type == "Target",
+  downwind_control_subset = Gauge.Day.Type == "Control",
+  positive_subset = Rain.Gauge.Measurement > 0
+)
+qq_plots$upwind_positive_qq
+qq_plots$downwind_positive_qq
+
+# Time series of average positive log-rainfall by observation type
+ts_plot <- eda(
+  eda_type = "ts_by_type",
+  data = oman,
+  rain_col_name = "Rain.Gauge.Measurement",
+  day_column_name = "TrialDay",
+  year_column_name = "Year",
+  use_raw = FALSE,
+  upwind_subset = Gauge.Day.Type == "Upwind",
+  downwind_target_subset = Gauge.Day.Type == "Target",
+  downwind_control_subset = Gauge.Day.Type == "Control",
+  positive_subset = Rain.Gauge.Measurement > 0
+)
+ts_plot
+
+}

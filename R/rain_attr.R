@@ -176,6 +176,54 @@
 #' \item{data}{A data frame containing the original supplied \code{data}, with an additional column containing the fitted values generated from the upwind (first stage) LMM.}
 #'
 #'}
+#' @examples
+#' result <- rain_attr(
+#'   data = oman,
+#'   upwind_lmm_formula =
+#'     LogRain ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals +
+#'     PC2.Dry.Temperature + PC1.Relative.Humidity +
+#'     PC1.Ground.Level.Pressure + (1 | TrialDay),
+#'   instr_pred_name = "natural_pred",
+#'   instr_pred_type = "Conditional",
+#'   downwind_lmm_formula =
+#'     LogRain - natural_pred ~ Gauge.Elevation +
+#'     Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 +
+#'     Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 +
+#'     Target.H.09 + Target.H.10 +
+#'     Gauge.Elevation:Target.H.01 +
+#'     Gauge.Elevation:Target.H.02 +
+#'     (1 | TrialDay),
+#'   downwind_logistic_formula = NULL,
+#'   downwind_propensity_formula =
+#'     (Gauge.Day.Type == "Target") ~ Total.Totals +
+#'     PC1.Dry.Temperature + PC1.Relative.Humidity +
+#'     PC1.Ground.Level.Pressure,
+#'   rain_col_name = "Rain.Gauge.Measurement",
+#'   upwind_subset = Gauge.Day.Type == "Upwind",
+#'   downwind_subset = Gauge.Day.Type %in% c("Target", "Control"),
+#'   downwind_target_subset = Gauge.Day.Type == "Target",
+#'   downwind_control_subset = Gauge.Day.Type == "Control",
+#'   positive_subset = Rain.Gauge.Measurement > 0,
+#'   attr_type = "ThoEtAl",
+#'   x_downwind_name = "Gauge.Elevation",
+#'   bootstrap = FALSE,
+#'   permutation = FALSE
+#' )
+#'
+#' # Print and summarize the fitted analysis
+#' print(result)
+#' summary(result)
+#'
+#' # Extract quantities from the fitted downwind LMM
+#' coef(result)$fixef_coef
+#' head(coef(result)$ranef_coef)
+#' head(residuals(result))
+#' head(fitted(result))
+#' varcomp(result)
+#' head(predict(result))
+#'
+#' # Model diagnostic plots for the downwind LMM
+#' plot(result, plot_type = "model")
 #'
 #'@references
 #'\itemize{
