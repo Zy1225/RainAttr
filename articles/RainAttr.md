@@ -325,28 +325,32 @@ number of bootstrap replicates and permutation replicates to be 500.
 
 ``` r
 
-# Use 2 workers for R Check or pkgdown build, 4 workers on GitHub Actions, and 6 workers locally
+# Use 2 workers for CRAN Check or pkgdown build, 4 workers on GitHub Actions, and 6 workers locally
 in_github_actions <- identical(
   Sys.getenv("GITHUB_ACTIONS"),
   "true"
 )
 
-in_r_check <- nzchar(Sys.getenv("_R_CHECK_LIMIT_CORES_"))
+in_cran_check <- nzchar(Sys.getenv("_R_CHECK_LIMIT_CORES_"))
 
 in_pkgdown <- identical(
   Sys.getenv("IN_PKGDOWN"),
   "true"
 )
 
-n_workers <- if (in_r_check) {
-  2L
+n_workers <- if (in_cran_check) {
+  2
 } else if (in_github_actions) {
-  4L
+  4
 } else if (in_pkgdown) {
-  2L
+  2
 } else {
-  6L
+  6
 }
+
+# Reduce number of bootstrap and permutation replicates in CRAN Check to save computational time
+B_bootstrap <- if (in_cran_check) 6 else 500
+B_permutation <- if (in_cran_check) 6 else 500
 ```
 
 A useful feature of the package for implementing bootstrap and
@@ -390,7 +394,7 @@ boot_perm_result = rain_attr(
   bootstrap = TRUE,
 
   #Specification of various option for bootstrap, e.g., bootstrap_opt(bootstrap_type = 'PREB1'), currently support bootstrap_type = 'PREB0', 'PREB1', 'PREB2', 'REB0', 'REB1', 'REB2', 'MREB1'
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500, 
+  bootstrap_option = bootstrap_opt(B_bootstrap = B_bootstrap, 
                                    bootstrap_seed = 123, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = n_workers),
@@ -399,7 +403,7 @@ boot_perm_result = rain_attr(
   permutation = TRUE,
 
   #Specification of various option for permutation,  e.g., whether to permute the operating states between ionizers, between days, between gaugedays
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = B_permutation,
                                        permutation_seed = 999,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = n_workers)
@@ -408,10 +412,10 @@ end_time = Sys.time()
 
 #
 end_time - start_time
-#> Time difference of 6.130353 mins
+#> Time difference of 5.07815 mins
 ```
 
-The total computational time was 6.13 minutes.
+The total computational time was 5.08 minutes.
 
 In the above example, we use the default PREB1 bootstrap proposed by Tho
 et al. (2025); hence, it is not necessary to explicitly specify
@@ -852,15 +856,15 @@ annual_map = eda(eda_type = "map_static",
 #> 
 #> ℹ Packaging rnaturalearthhires 1.0.0.9000
 #> 
-#> ✔ Packaged rnaturalearthhires 1.0.0.9000 (1.6s)
+#> ✔ Packaged rnaturalearthhires 1.0.0.9000 (1.3s)
 #> 
 #> ℹ Building rnaturalearthhires 1.0.0.9000
 #> 
-#> ✔ Built rnaturalearthhires 1.0.0.9000 (22.9s)
+#> ✔ Built rnaturalearthhires 1.0.0.9000 (21.3s)
 #> 
-#> ✔ Installed rnaturalearthhires 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) (1.1s)
+#> ✔ Installed rnaturalearthhires 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) (95ms)
 #> 
-#> ✔ 1 pkg: added 1, dld 1 (NA B) [33.2s]
+#> ✔ 1 pkg: added 1, dld 1 (NA B) [30.6s]
 #> 
 #> Mosaicing & Projecting
 #> 
@@ -995,13 +999,13 @@ headline = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Gauge.Elevation', 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+  bootstrap_option = bootstrap_opt(B_bootstrap = B_bootstrap,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 1, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = n_workers),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = B_permutation,
                                        permutation_seed = 321,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = n_workers)
@@ -1103,9 +1107,9 @@ with a bootstrap p-value of less than 0.0001. In addition, they also
 reported a permutation p-value of 0.0007. Our bootstrap and permutation
 results for `apl` presented below differ for several reasons:
 
-- The inherent of the bootstrap and permutation procedure, as well as
-  the smaller number of bootstrap and permutation replicates used here
-  (`bootstrap_opt(B_bootstrap = 500)` and
+- The inherent randomness of the bootstrap and permutation procedure, as
+  well as the smaller number of bootstrap and permutation replicates
+  used here (`bootstrap_opt(B_bootstrap = 500)` and
   `permutation_opt(B_permutation = 500)`) to reduce computational cost
 
 - More importantly, the original implementation of the `apl` estimator
@@ -1171,13 +1175,13 @@ table6_2013_2018 = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018' , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+  bootstrap_option = bootstrap_opt(B_bootstrap = B_bootstrap,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 11, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = n_workers),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = B_permutation,
                                        permutation_seed = 3211,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = n_workers)
@@ -1306,13 +1310,13 @@ table6_2013_2015 = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Year...2013' , 'Year...2014'  , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+  bootstrap_option = bootstrap_opt(B_bootstrap = B_bootstrap,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 199, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = n_workers),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = B_permutation,
                                        permutation_seed = 3210,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = n_workers)
@@ -1429,13 +1433,13 @@ table6_2016_2018 = rain_attr(
   attr_type = 'ChambersEtAl',
   x_downwind_name = c('Year...2016' , 'Year...2018'  , 'Gauge.Elevation...1km' , 'Gauge.Elevation...1km.1' , 'natural_pred'),
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+  bootstrap_option = bootstrap_opt(B_bootstrap = B_bootstrap,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 91, 
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = n_workers),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = B_permutation,
                                        permutation_seed = 9321,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = n_workers)
@@ -1648,13 +1652,13 @@ jrssa = rain_attr(
   x_downwind_name = c('Year...2013' , 'Year...2014' , 'Year...2016' , 'Year...2017' , 'Year...2018', 'Gauge.Elevation...1km', 'Gauge.Elevation...1km.1', 'natural_pred'),
   target_only = FALSE,
   bootstrap = TRUE,
-  bootstrap_option = bootstrap_opt(B_bootstrap = 500,
+  bootstrap_option = bootstrap_opt(B_bootstrap = B_bootstrap,
                                    bootstrap_type = 'REB2',
                                    bootstrap_seed = 191,
                                    bootstrap_parallel = TRUE,
                                    bootstrap_parallel_num_worker = n_workers),
   permutation = TRUE,
-  permutation_option = permutation_opt(B_permutation = 500,
+  permutation_option = permutation_opt(B_permutation = B_permutation,
                                        permutation_seed = 19321,
                                        permutation_parallel = TRUE,
                                        permutation_parallel_num_worker = n_workers)
@@ -1900,7 +1904,7 @@ table6_jrssa_lograin
 #> 2.5%     -0.008860096 -0.003942739 -0.005590821 0.06132309 0.06388347
 #> 50%       0.073431789  0.074376326  0.074798596 0.12429946 0.12635743
 #> 97.5%     0.158946827  0.154820201  0.162956335 0.18598148 0.18875737
-#> 99.5%     0.193719116  0.183986697  0.196055339 0.19986492 0.20251495
+#> 99.5%     0.193719116  0.183986697  0.196055340 0.19986492 0.20251495
 #> 99.9%     0.216288800  0.209864338  0.217144181 0.20163745 0.20482817
 ```
 

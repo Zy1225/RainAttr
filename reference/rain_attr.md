@@ -547,3 +547,243 @@ estimates) and generate their respective plots.
 
 - Tho, Z. Y., Chambers, R., and Welsh, A. H. (2026) Bias-Adjusted
   Attribution Estimation for Rainfall Enhancement Trials.
+
+## Examples
+
+``` r
+result <- rain_attr(
+  data = oman,
+  upwind_lmm_formula =
+    LogRain ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals +
+    PC2.Dry.Temperature + PC1.Relative.Humidity +
+    PC1.Ground.Level.Pressure + (1 | TrialDay),
+  instr_pred_name = "natural_pred",
+  instr_pred_type = "Conditional",
+  downwind_lmm_formula =
+    LogRain - natural_pred ~ Gauge.Elevation +
+    Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 +
+    Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 +
+    Target.H.09 + Target.H.10 +
+    Gauge.Elevation:Target.H.01 +
+    Gauge.Elevation:Target.H.02 +
+    (1 | TrialDay),
+  downwind_logistic_formula = NULL,
+  downwind_propensity_formula =
+    (Gauge.Day.Type == "Target") ~ Total.Totals +
+    PC1.Dry.Temperature + PC1.Relative.Humidity +
+    PC1.Ground.Level.Pressure,
+  rain_col_name = "Rain.Gauge.Measurement",
+  upwind_subset = Gauge.Day.Type == "Upwind",
+  downwind_subset = Gauge.Day.Type %in% c("Target", "Control"),
+  downwind_target_subset = Gauge.Day.Type == "Target",
+  downwind_control_subset = Gauge.Day.Type == "Control",
+  positive_subset = Rain.Gauge.Measurement > 0,
+  attr_type = "ThoEtAl",
+  x_downwind_name = "Gauge.Elevation",
+  bootstrap = FALSE,
+  permutation = FALSE
+)
+
+# Print and summarize the fitted analysis
+print(result)
+#> Two Stage LMM Rainfall Enhancement Analysis Result
+#> ======================================================================
+#> 
+#> Point Estimates:
+#> Attribution (%) Assuming Log-Rainfall being Modelled:
+#>   apo   apl 
+#> 6.27% 6.69% 
+#> 
+#> SATE Estimates (hatsate):
+#>     sate.mb    sate.ipw  sate.ipw.l sate.ipw.ma   sate.aipw 
+#>     0.11531     0.07513     0.11324     0.08135     0.07706 
+#> ======================================================================
+#> 
+#> Inference:
+#> Bootstrap inference has NOT been carried out.
+#> 
+#> Permutation inference has NOT been carried out.
+#> 
+#> ======================================================================
+#> 
+#> Upwind (First Stage) LMM Formula:
+#> LogRain ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals + 
+#>     PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + 
+#>     (1 | TrialDay)
+#> 
+#> Data subset used: oman [ Gauge.Day.Type == "Upwind"  &  Rain.Gauge.Measurement > 0 , ]
+#> Number of observations: 1545, Number of groups: 292
+#> 
+#> Random effects:
+#>  Groups   Name        Std.Dev.
+#>  TrialDay (Intercept) 0.64489 
+#>  Residual             1.26504 
+#> 
+#> Fixed effects:
+#>               (Intercept)           Gauge.Elevation       Steering.Wind.Speed 
+#>                   -1.4397                    0.4340                   -0.0964 
+#>              Total.Totals       PC2.Dry.Temperature     PC1.Relative.Humidity 
+#>                    0.0327                    0.1448                    0.1779 
+#> PC1.Ground.Level.Pressure 
+#>                   -0.0523 
+#> 
+#> ======================================================================
+#> 
+#> Downwind (Second Stage) LMM Formula:
+#> LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + 
+#>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
+#>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + 
+#>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+#> 
+#> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
+#> Number of observations: 4168, Number of groups: 488
+#> 
+#> Random effects:
+#>  Groups   Name        Std.Dev.
+#>  TrialDay (Intercept) 0.54789 
+#>  Residual             1.35989 
+#> 
+#> Fixed effects:
+#>                 (Intercept)             Gauge.Elevation 
+#>                      0.3078                     -0.1958 
+#>                 Target.H.01                 Target.H.02 
+#>                      0.3157                      0.2398 
+#>                 Target.H.03                 Target.H.04 
+#>                      0.2368                     -0.1401 
+#>                 Target.H.05                 Target.H.06 
+#>                      0.4180                     -0.2002 
+#>                 Target.H.07                 Target.H.08 
+#>                      0.2309                      0.0786 
+#>                 Target.H.09                 Target.H.10 
+#>                      0.5648                      0.0527 
+#> Gauge.Elevation:Target.H.01 Gauge.Elevation:Target.H.02 
+#>                     -0.1335                     -0.1978 
+summary(result)
+#> Summary of Two Stage LMM Rainfall Enhancement Analysis
+#> ======================================================================
+#> 
+#> Attribution Results (Assuming Log-Rainfall being Modelled):
+#>     Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val
+#> apo    6.27%               NA              NA                NA
+#> apl    6.69%               NA              NA                NA
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> SATE Results:
+#>             Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val
+#> sate.mb       0.1153               NA              NA                NA
+#> sate.ipw      0.0751               NA              NA                NA
+#> sate.ipw.l    0.1132               NA              NA                NA
+#> sate.ipw.ma   0.0813               NA              NA                NA
+#> sate.aipw     0.0771               NA              NA                NA
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> 
+#> ======================================================================
+#> 
+#> Upwind (First Stage) LMM:
+#> Formula:
+#> LogRain ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals + 
+#>     PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + 
+#>     (1 | TrialDay)
+#> 
+#> Data subset used: oman [ Gauge.Day.Type == "Upwind"  &  Rain.Gauge.Measurement > 0 , ]
+#> Number of observations: 1545, Number of groups: 292
+#> 
+#> Random effects:
+#>    Groups        Name  Variance
+#>  TrialDay (Intercept) 0.4158771
+#>  Residual             1.6003327
+#> 
+#> Fixed effects:
+#>                           Estimate Std. Error t value
+#> (Intercept)                -1.4397     0.3988 -3.6104
+#> Gauge.Elevation             0.4340     0.0740  5.8631
+#> Steering.Wind.Speed        -0.0964     0.0204 -4.7277
+#> Total.Totals                0.0327     0.0083  3.9204
+#> PC2.Dry.Temperature         0.1448     0.0527  2.7454
+#> PC1.Relative.Humidity       0.1779     0.0223  7.9681
+#> PC1.Ground.Level.Pressure  -0.0523     0.0201 -2.6041
+#> 
+#> ======================================================================
+#> 
+#> Downwind (Second Stage) LMM:
+#> Formula:
+#> LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + 
+#>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
+#>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + 
+#>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+#> 
+#> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
+#> Number of observations: 4168, Number of groups: 488
+#> 
+#> Random effects:
+#>    Groups        Name  Variance
+#>  TrialDay (Intercept) 0.3001795
+#>  Residual             1.8492958
+#> 
+#> Fixed effects:
+#>                             Estimate Std. Error t value
+#> (Intercept)                   0.3078     0.0626  4.9154
+#> Gauge.Elevation              -0.1958     0.0606 -3.2293
+#> Target.H.01                   0.3157     0.1362  2.3172
+#> Target.H.02                   0.2398     0.1237  1.9389
+#> Target.H.03                   0.2368     0.0925  2.5604
+#> Target.H.04                  -0.1401     0.0890 -1.5738
+#> Target.H.05                   0.4180     0.1319  3.1685
+#> Target.H.06                  -0.2002     0.1493 -1.3413
+#> Target.H.07                   0.2309     0.1876  1.2312
+#> Target.H.08                   0.0786     0.1276  0.6163
+#> Target.H.09                   0.5648     0.3062  1.8448
+#> Target.H.10                   0.0527     0.1677  0.3141
+#> Gauge.Elevation:Target.H.01  -0.1335     0.1437 -0.9287
+#> Gauge.Elevation:Target.H.02  -0.1978     0.1196 -1.6539
+
+# Extract quantities from the fitted downwind LMM
+coef(result)$fixef_coef
+#>                 (Intercept)             Gauge.Elevation 
+#>                  0.30782064                 -0.19576293 
+#>                 Target.H.01                 Target.H.02 
+#>                  0.31568597                  0.23977373 
+#>                 Target.H.03                 Target.H.04 
+#>                  0.23675150                 -0.14009800 
+#>                 Target.H.05                 Target.H.06 
+#>                  0.41804072                 -0.20023955 
+#>                 Target.H.07                 Target.H.08 
+#>                  0.23091236                  0.07861614 
+#>                 Target.H.09                 Target.H.10 
+#>                  0.56479275                  0.05267170 
+#> Gauge.Elevation:Target.H.01 Gauge.Elevation:Target.H.02 
+#>                 -0.13348185                 -0.19775235 
+head(coef(result)$ranef_coef)
+#>          (Intercept)
+#> 2013135 -0.191334499
+#> 2013149  0.231232226
+#> 2013150  0.841928530
+#> 2013151  0.382101947
+#> 2013152 -0.221780948
+#> 2013157 -0.001806244
+head(residuals(result))
+#>          28        1690        1691        1709        1815        1833 
+#> -0.86679304 -0.01061205  1.39145159 -0.33329984 -0.20167918  1.54411995 
+head(fitted(result))
+#>        28      1690      1691      1709      1815      1833 
+#> 0.2336375 0.4155265 0.4233570 0.3881196 0.9763032 1.0005778 
+varcomp(result)
+#>                       TrialDay Residual
+#> upwind_lmm           0.4158771 1.600333
+#> downwind_lmm         0.3001795 1.849296
+#> downwind_target_lmm  0.3821506 1.811551
+#> downwind_control_lmm 0.3577615 1.781349
+head(predict(result))
+#>        28      1690      1691      1709      1815      1833 
+#> 0.2336375 0.4155265 0.4233570 0.3881196 0.9763032 1.0005778 
+
+# Model diagnostic plots for the downwind LMM
+plot(result, plot_type = "model")
+#> Registered S3 method overwritten by 'car':
+#>   method           from
+#>   na.action.merMod lme4
+
+```

@@ -146,7 +146,7 @@ The data frame must contain columns specified by <code>ionizer_id_column_name</c
 
 
 <dt id="arg-elev-contour">elev_contour<a class="anchor" aria-label="anchor" href="#arg-elev-contour"></a></dt>
-<dd><p>An optional logical. If <code>TRUE</code>, elevation contour lines (obtained from Amazon Web Services Terrain Tiles) are added to the spatial plots. If <code>FALSE</code> (default), elevation contour lines are not included.</p></dd>
+<dd><p>An optional logical. If <code>TRUE</code> (default), elevation contour lines (obtained from Amazon Web Services Terrain Tiles) are added to the spatial plots. If <code>FALSE</code>, elevation contour lines are not included.</p></dd>
 
 
 <dt id="arg-elev-resolution">elev_resolution<a class="anchor" aria-label="anchor" href="#arg-elev-resolution"></a></dt>
@@ -251,6 +251,80 @@ Requires the <span class="pkg">maps</span> package to draw map borders when <cod
 
 </dl></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Summarize numbers of observations and unique trial days</span></span></span>
+<span class="r-in"><span><span class="va">obs_summary</span> <span class="op">&lt;-</span> <span class="fu">eda</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  eda_type <span class="op">=</span> <span class="st">"num_obs_days"</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">oman</span>,</span></span>
+<span class="r-in"><span>  day_column_name <span class="op">=</span> <span class="st">"TrialDay"</span>,</span></span>
+<span class="r-in"><span>  upwind_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Upwind"</span>,</span></span>
+<span class="r-in"><span>  downwind_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Target"</span>, <span class="st">"Control"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  downwind_target_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Target"</span>,</span></span>
+<span class="r-in"><span>  downwind_control_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Control"</span>,</span></span>
+<span class="r-in"><span>  positive_subset <span class="op">=</span> <span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">obs_summary</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $num_obs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                            Rain.Gauge.Measurement &gt; 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Upwind"                                       1545</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type %in% c("Target", "Control")                       4168</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Target"                                       2176</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Control"                                      1992</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                            !(Rain.Gauge.Measurement &gt; 0)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Upwind"                                         29440</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type %in% c("Target", "Control")                         39108</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Target"                                         20939</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Control"                                        18169</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $num_unique_days</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                            Rain.Gauge.Measurement &gt; 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Upwind"                                        292</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type %in% c("Target", "Control")                        488</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Target"                                        407</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Control"                                       404</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                            !(Rain.Gauge.Measurement &gt; 0)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Upwind"                                           740</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type %in% c("Target", "Control")                           740</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Target"                                           739</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Day.Type == "Control"                                          740</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Normal Q-Q plots of positive log-rainfall</span></span></span>
+<span class="r-in"><span><span class="va">qq_plots</span> <span class="op">&lt;-</span> <span class="fu">eda</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  eda_type <span class="op">=</span> <span class="st">"qq_rain"</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">oman</span>,</span></span>
+<span class="r-in"><span>  rain_col_name <span class="op">=</span> <span class="st">"Rain.Gauge.Measurement"</span>,</span></span>
+<span class="r-in"><span>  use_raw <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  upwind_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Upwind"</span>,</span></span>
+<span class="r-in"><span>  downwind_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Target"</span>, <span class="st">"Control"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  downwind_target_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Target"</span>,</span></span>
+<span class="r-in"><span>  downwind_control_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Control"</span>,</span></span>
+<span class="r-in"><span>  positive_subset <span class="op">=</span> <span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">qq_plots</span><span class="op">$</span><span class="va">upwind_positive_qq</span></span></span>
+<span class="r-plt img"><img src="eda-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="va">qq_plots</span><span class="op">$</span><span class="va">downwind_positive_qq</span></span></span>
+<span class="r-plt img"><img src="eda-2.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Time series of average positive log-rainfall by observation type</span></span></span>
+<span class="r-in"><span><span class="va">ts_plot</span> <span class="op">&lt;-</span> <span class="fu">eda</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  eda_type <span class="op">=</span> <span class="st">"ts_by_type"</span>,</span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">oman</span>,</span></span>
+<span class="r-in"><span>  rain_col_name <span class="op">=</span> <span class="st">"Rain.Gauge.Measurement"</span>,</span></span>
+<span class="r-in"><span>  day_column_name <span class="op">=</span> <span class="st">"TrialDay"</span>,</span></span>
+<span class="r-in"><span>  year_column_name <span class="op">=</span> <span class="st">"Year"</span>,</span></span>
+<span class="r-in"><span>  use_raw <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  upwind_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Upwind"</span>,</span></span>
+<span class="r-in"><span>  downwind_target_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Target"</span>,</span></span>
+<span class="r-in"><span>  downwind_control_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Control"</span>,</span></span>
+<span class="r-in"><span>  positive_subset <span class="op">=</span> <span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ts_plot</span></span></span>
+<span class="r-plt img"><img src="eda-3.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

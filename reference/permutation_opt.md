@@ -163,8 +163,10 @@ for more details on the permutation-based procedure
 # Nudging a Pseudo-Science Towards a Science—The Role of Statistics
 # in a Rainfall Enhancement Trial in Oman. \emph{International Statistical Review}, 90: 346–373,
 # as well as Chambers et al. (2022b) Weighting, Informativeness and Causal Inference,
-# with an Application to Rainfall Enhancement. \emph{Journal of the Royal Statistical Society Series A: Statistics in Society}, 185: 1584–1612.
-# Specifically: permute_between_ionizer = TRUE, permute_all_ionizers_between_day = FALSE, and permute_between_gaugeday = TRUE
+# with an Application to Rainfall Enhancement.
+# \emph{Journal of the Royal Statistical Society Series A: Statistics in Society}, 185: 1584–1612.
+# Specifically: permute_between_ionizer = TRUE, permute_all_ionizers_between_day = FALSE,
+# and permute_between_gaugeday = TRUE
 perm_options = permutation_opt()
 str(perm_options)
 #> List of 12
@@ -196,7 +198,8 @@ str(perm_options)
 #>  $ permutation_parallel              : logi FALSE
 #>  $ permutation_parallel_num_worker   : num 3
 
-#Permutation option with parallelization over (parallel::detectCores() - 1) number of workers and seed = 1 for reproducibility
+#Permutation option with parallelization over (parallel::detectCores() - 1) number of workers
+# and seed = 1 for reproducibility
 perm_options_parallel = permutation_opt(
   permutation_seed = 1,
   permutation_parallel = TRUE,

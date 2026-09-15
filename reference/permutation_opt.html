@@ -137,8 +137,10 @@ It is important to ensure that</p><ul><li><p>The row order of <code>gaugeday_dow
 <span class="r-in"><span><span class="co"># Nudging a Pseudo-Science Towards a Science—The Role of Statistics</span></span></span>
 <span class="r-in"><span><span class="co"># in a Rainfall Enhancement Trial in Oman. \emph{International Statistical Review}, 90: 346–373,</span></span></span>
 <span class="r-in"><span><span class="co"># as well as Chambers et al. (2022b) Weighting, Informativeness and Causal Inference,</span></span></span>
-<span class="r-in"><span><span class="co"># with an Application to Rainfall Enhancement. \emph{Journal of the Royal Statistical Society Series A: Statistics in Society}, 185: 1584–1612.</span></span></span>
-<span class="r-in"><span><span class="co"># Specifically: permute_between_ionizer = TRUE, permute_all_ionizers_between_day = FALSE, and permute_between_gaugeday = TRUE</span></span></span>
+<span class="r-in"><span><span class="co"># with an Application to Rainfall Enhancement.</span></span></span>
+<span class="r-in"><span><span class="co"># \emph{Journal of the Royal Statistical Society Series A: Statistics in Society}, 185: 1584–1612.</span></span></span>
+<span class="r-in"><span><span class="co"># Specifically: permute_between_ionizer = TRUE, permute_all_ionizers_between_day = FALSE,</span></span></span>
+<span class="r-in"><span><span class="co"># and permute_between_gaugeday = TRUE</span></span></span>
 <span class="r-in"><span><span class="va">perm_options</span> <span class="op">=</span> <span class="fu">permutation_opt</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">perm_options</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 12</span>
@@ -170,7 +172,8 @@ It is important to ensure that</p><ul><li><p>The row order of <code>gaugeday_dow
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ permutation_parallel              : logi FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ permutation_parallel_num_worker   : num 3</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">#Permutation option with parallelization over (parallel::detectCores() - 1) number of workers and seed = 1 for reproducibility</span></span></span>
+<span class="r-in"><span><span class="co">#Permutation option with parallelization over (parallel::detectCores() - 1) number of workers</span></span></span>
+<span class="r-in"><span><span class="co"># and seed = 1 for reproducibility</span></span></span>
 <span class="r-in"><span><span class="va">perm_options_parallel</span> <span class="op">=</span> <span class="fu">permutation_opt</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  permutation_seed <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>  permutation_parallel <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>

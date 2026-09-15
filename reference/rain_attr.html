@@ -298,6 +298,246 @@ These permutation distributions are used to compute permutation p-values (propor
 <li><p>Tho, Z. Y., Chambers, R., and Welsh, A. H. (2026) Bias-Adjusted Attribution Estimation for Rainfall Enhancement Trials.</p></li>
 </ul></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">rain_attr</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  data <span class="op">=</span> <span class="va">oman</span>,</span></span>
+<span class="r-in"><span>  upwind_lmm_formula <span class="op">=</span></span></span>
+<span class="r-in"><span>    <span class="va">LogRain</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span> <span class="op">+</span> <span class="va">Steering.Wind.Speed</span> <span class="op">+</span> <span class="va">Total.Totals</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="va">PC2.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="va">PC1.Ground.Level.Pressure</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">TrialDay</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  instr_pred_name <span class="op">=</span> <span class="st">"natural_pred"</span>,</span></span>
+<span class="r-in"><span>  instr_pred_type <span class="op">=</span> <span class="st">"Conditional"</span>,</span></span>
+<span class="r-in"><span>  downwind_lmm_formula <span class="op">=</span></span></span>
+<span class="r-in"><span>    <span class="va">LogRain</span> <span class="op">-</span> <span class="va">natural_pred</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">TrialDay</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  downwind_logistic_formula <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>  downwind_propensity_formula <span class="op">=</span></span></span>
+<span class="r-in"><span>    <span class="op">(</span><span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Target"</span><span class="op">)</span> <span class="op">~</span> <span class="va">Total.Totals</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="va">PC1.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="va">PC1.Ground.Level.Pressure</span>,</span></span>
+<span class="r-in"><span>  rain_col_name <span class="op">=</span> <span class="st">"Rain.Gauge.Measurement"</span>,</span></span>
+<span class="r-in"><span>  upwind_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Upwind"</span>,</span></span>
+<span class="r-in"><span>  downwind_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Target"</span>, <span class="st">"Control"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  downwind_target_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Target"</span>,</span></span>
+<span class="r-in"><span>  downwind_control_subset <span class="op">=</span> <span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">"Control"</span>,</span></span>
+<span class="r-in"><span>  positive_subset <span class="op">=</span> <span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  attr_type <span class="op">=</span> <span class="st">"ThoEtAl"</span>,</span></span>
+<span class="r-in"><span>  x_downwind_name <span class="op">=</span> <span class="st">"Gauge.Elevation"</span>,</span></span>
+<span class="r-in"><span>  bootstrap <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  permutation <span class="op">=</span> <span class="cn">FALSE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Print and summarize the fitted analysis</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Two Stage LMM Rainfall Enhancement Analysis Result</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ======================================================================</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Point Estimates:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Attribution (%) Assuming Log-Rainfall being Modelled:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   apo   apl </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6.27% 6.69% </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SATE Estimates (hatsate):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     sate.mb    sate.ipw  sate.ipw.l sate.ipw.ma   sate.aipw </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     0.11531     0.07513     0.11324     0.08135     0.07706 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ======================================================================</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Inference:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Bootstrap inference has NOT been carried out.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Permutation inference has NOT been carried out.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ======================================================================</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Upwind (First Stage) LMM Formula:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LogRain ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     (1 | TrialDay)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Data subset used: oman [ Gauge.Day.Type == "Upwind"  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 1545, Number of groups: 292</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Groups   Name        Std.Dev.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  TrialDay (Intercept) 0.64489 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Residual             1.26504 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               (Intercept)           Gauge.Elevation       Steering.Wind.Speed </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   -1.4397                    0.4340                   -0.0964 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              Total.Totals       PC2.Dry.Temperature     PC1.Relative.Humidity </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    0.0327                    0.1448                    0.1779 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> PC1.Ground.Level.Pressure </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                   -0.0523 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ======================================================================</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Downwind (Second Stage) LMM Formula:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 4168, Number of groups: 488</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Groups   Name        Std.Dev.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  TrialDay (Intercept) 0.54789 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Residual             1.35989 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 (Intercept)             Gauge.Elevation </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      0.3078                     -0.1958 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 Target.H.01                 Target.H.02 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      0.3157                      0.2398 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 Target.H.03                 Target.H.04 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      0.2368                     -0.1401 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 Target.H.05                 Target.H.06 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      0.4180                     -0.2002 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 Target.H.07                 Target.H.08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      0.2309                      0.0786 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 Target.H.09                 Target.H.10 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      0.5648                      0.0527 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Elevation:Target.H.01 Gauge.Elevation:Target.H.02 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                     -0.1335                     -0.1978 </span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Summary of Two Stage LMM Rainfall Enhancement Analysis</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ======================================================================</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Attribution Results (Assuming Log-Rainfall being Modelled):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> apo    6.27%               NA              NA                NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> apl    6.69%               NA              NA                NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SATE Results:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sate.mb       0.1153               NA              NA                NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sate.ipw      0.0751               NA              NA                NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sate.ipw.l    0.1132               NA              NA                NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sate.ipw.ma   0.0813               NA              NA                NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sate.aipw     0.0771               NA              NA                NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ======================================================================</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Upwind (First Stage) LMM:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Formula:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LogRain ~ Gauge.Elevation + Steering.Wind.Speed + Total.Totals + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     (1 | TrialDay)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Data subset used: oman [ Gauge.Day.Type == "Upwind"  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 1545, Number of groups: 292</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Groups        Name  Variance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  TrialDay (Intercept) 0.4158771</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Residual             1.6003327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                           Estimate Std. Error t value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)                -1.4397     0.3988 -3.6104</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Elevation             0.4340     0.0740  5.8631</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Steering.Wind.Speed        -0.0964     0.0204 -4.7277</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Total.Totals                0.0327     0.0083  3.9204</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> PC2.Dry.Temperature         0.1448     0.0527  2.7454</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> PC1.Relative.Humidity       0.1779     0.0223  7.9681</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> PC1.Ground.Level.Pressure  -0.0523     0.0201 -2.6041</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ======================================================================</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Downwind (Second Stage) LMM:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Formula:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 4168, Number of groups: 488</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Random effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Groups        Name  Variance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  TrialDay (Intercept) 0.3001795</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Residual             1.8492958</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed effects:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                             Estimate Std. Error t value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)                   0.3078     0.0626  4.9154</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Elevation              -0.1958     0.0606 -3.2293</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Target.H.01                   0.3157     0.1362  2.3172</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Target.H.02                   0.2398     0.1237  1.9389</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Target.H.03                   0.2368     0.0925  2.5604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Target.H.04                  -0.1401     0.0890 -1.5738</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Target.H.05                   0.4180     0.1319  3.1685</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Target.H.06                  -0.2002     0.1493 -1.3413</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Target.H.07                   0.2309     0.1876  1.2312</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Target.H.08                   0.0786     0.1276  0.6163</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Target.H.09                   0.5648     0.3062  1.8448</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Target.H.10                   0.0527     0.1677  0.3141</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Elevation:Target.H.01  -0.1335     0.1437 -0.9287</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Elevation:Target.H.02  -0.1978     0.1196 -1.6539</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Extract quantities from the fitted downwind LMM</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span><span class="op">$</span><span class="va">fixef_coef</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 (Intercept)             Gauge.Elevation </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  0.30782064                 -0.19576293 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 Target.H.01                 Target.H.02 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  0.31568597                  0.23977373 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 Target.H.03                 Target.H.04 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  0.23675150                 -0.14009800 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 Target.H.05                 Target.H.06 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  0.41804072                 -0.20023955 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 Target.H.07                 Target.H.08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  0.23091236                  0.07861614 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 Target.H.09                 Target.H.10 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                  0.56479275                  0.05267170 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Gauge.Elevation:Target.H.01 Gauge.Elevation:Target.H.02 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 -0.13348185                 -0.19775235 </span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span><span class="op">$</span><span class="va">ranef_coef</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          (Intercept)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2013135 -0.191334499</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2013149  0.231232226</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2013150  0.841928530</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2013151  0.382101947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2013152 -0.221780948</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2013157 -0.001806244</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          28        1690        1691        1709        1815        1833 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.86679304 -0.01061205  1.39145159 -0.33329984 -0.20167918  1.54411995 </span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        28      1690      1691      1709      1815      1833 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.2336375 0.4155265 0.4233570 0.3881196 0.9763032 1.0005778 </span>
+<span class="r-in"><span><span class="fu"><a href="rain_attr-class.html">varcomp</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       TrialDay Residual</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> upwind_lmm           0.4158771 1.600333</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> downwind_lmm         0.3001795 1.849296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> downwind_target_lmm  0.3821506 1.811551</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> downwind_control_lmm 0.3577615 1.781349</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        28      1690      1691      1709      1815      1833 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.2336375 0.4155265 0.4233570 0.3881196 0.9763032 1.0005778 </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Model diagnostic plots for the downwind LMM</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span>, plot_type <span class="op">=</span> <span class="st">"model"</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Registered S3 method overwritten by 'car':</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   method           from</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   na.action.merMod lme4</span>
+<span class="r-plt img"><img src="rain_attr-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

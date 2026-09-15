@@ -136,9 +136,9 @@ eda(
 
 - elev_contour:
 
-  An optional logical. If `TRUE`, elevation contour lines (obtained from
-  Amazon Web Services Terrain Tiles) are added to the spatial plots. If
-  `FALSE` (default), elevation contour lines are not included.
+  An optional logical. If `TRUE` (default), elevation contour lines
+  (obtained from Amazon Web Services Terrain Tiles) are added to the
+  spatial plots. If `FALSE`, elevation contour lines are not included.
 
 - elev_resolution:
 
@@ -367,3 +367,77 @@ parentheses:
   Tiles) when `elev_contour = TRUE`. When `animate_filename` is
   supplied, the resulting gif_image of the animated map will be saved to
   the location specified by `animate_filename`.
+
+## Examples
+
+``` r
+# Summarize numbers of observations and unique trial days
+obs_summary <- eda(
+  eda_type = "num_obs_days",
+  data = oman,
+  day_column_name = "TrialDay",
+  upwind_subset = Gauge.Day.Type == "Upwind",
+  downwind_subset = Gauge.Day.Type %in% c("Target", "Control"),
+  downwind_target_subset = Gauge.Day.Type == "Target",
+  downwind_control_subset = Gauge.Day.Type == "Control",
+  positive_subset = Rain.Gauge.Measurement > 0
+)
+obs_summary
+#> $num_obs
+#>                                            Rain.Gauge.Measurement > 0
+#> Gauge.Day.Type == "Upwind"                                       1545
+#> Gauge.Day.Type %in% c("Target", "Control")                       4168
+#> Gauge.Day.Type == "Target"                                       2176
+#> Gauge.Day.Type == "Control"                                      1992
+#>                                            !(Rain.Gauge.Measurement > 0)
+#> Gauge.Day.Type == "Upwind"                                         29440
+#> Gauge.Day.Type %in% c("Target", "Control")                         39108
+#> Gauge.Day.Type == "Target"                                         20939
+#> Gauge.Day.Type == "Control"                                        18169
+#> 
+#> $num_unique_days
+#>                                            Rain.Gauge.Measurement > 0
+#> Gauge.Day.Type == "Upwind"                                        292
+#> Gauge.Day.Type %in% c("Target", "Control")                        488
+#> Gauge.Day.Type == "Target"                                        407
+#> Gauge.Day.Type == "Control"                                       404
+#>                                            !(Rain.Gauge.Measurement > 0)
+#> Gauge.Day.Type == "Upwind"                                           740
+#> Gauge.Day.Type %in% c("Target", "Control")                           740
+#> Gauge.Day.Type == "Target"                                           739
+#> Gauge.Day.Type == "Control"                                          740
+#> 
+
+# Normal Q-Q plots of positive log-rainfall
+qq_plots <- eda(
+  eda_type = "qq_rain",
+  data = oman,
+  rain_col_name = "Rain.Gauge.Measurement",
+  use_raw = FALSE,
+  upwind_subset = Gauge.Day.Type == "Upwind",
+  downwind_subset = Gauge.Day.Type %in% c("Target", "Control"),
+  downwind_target_subset = Gauge.Day.Type == "Target",
+  downwind_control_subset = Gauge.Day.Type == "Control",
+  positive_subset = Rain.Gauge.Measurement > 0
+)
+qq_plots$upwind_positive_qq
+
+qq_plots$downwind_positive_qq
+
+
+# Time series of average positive log-rainfall by observation type
+ts_plot <- eda(
+  eda_type = "ts_by_type",
+  data = oman,
+  rain_col_name = "Rain.Gauge.Measurement",
+  day_column_name = "TrialDay",
+  year_column_name = "Year",
+  use_raw = FALSE,
+  upwind_subset = Gauge.Day.Type == "Upwind",
+  downwind_target_subset = Gauge.Day.Type == "Target",
+  downwind_control_subset = Gauge.Day.Type == "Control",
+  positive_subset = Rain.Gauge.Measurement > 0
+)
+ts_plot
+
+```
