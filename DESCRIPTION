@@ -4,7 +4,7 @@ Version: 0.0.0.9000
 Date: 2026-07-24
 Authors@R: 
     c(person("Zhi Yang", "Tho", , "zhiyang.tho@anu.edu.au", role = c("aut", "cre")),
-      person("Raymond", "Chambers ", , "Raymond.Chambers@anu.edu.au", role = "aut"),
+      person("Raymond", "Chambers", , "Raymond.Chambers@anu.edu.au", role = "aut"),
       person("A. H.", "Welsh", , "Alan.Welsh@anu.edu.au", role = "aut"))
 Description: This package performs analyses on attribution and sample average treatment effect based on fitting a two-stage linear mixed model to rainfall enhancement trial data.
 License: GPL (>= 3)
@@ -21,8 +21,10 @@ Suggests:
     knitr,
     maps,
     rmarkdown,
-    rnaturalearth
+    rnaturalearth,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
+Config/testthat/edition: 3
 Imports: 
     doParallel,
     doRNG,
