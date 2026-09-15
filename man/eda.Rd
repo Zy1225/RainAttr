@@ -73,7 +73,7 @@ The data frame must contain columns specified by \code{ionizer_id_column_name} a
 
 \item{ionizer_longlat_column_names}{An optional character vector of length 2 specifying the column names of longitude and latitude in \code{ionizer_location_df}, for plotting ionizers. This must be supplied if \code{ionizer_location_df} is supplied.}
 
-\item{elev_contour}{An optional logical. If \code{TRUE}, elevation contour lines (obtained from Amazon Web Services Terrain Tiles) are added to the spatial plots. If \code{FALSE} (default), elevation contour lines are not included.}
+\item{elev_contour}{An optional logical. If \code{TRUE} (default), elevation contour lines (obtained from Amazon Web Services Terrain Tiles) are added to the spatial plots. If \code{FALSE}, elevation contour lines are not included.}
 
 \item{elev_resolution}{An optional integer between 1 and 14, specifying the resolution of the elevation data obtained from Amazon Web Services Terrain Tiles via \code{\link[elevatr]{get_elev_raster}}. Defaults to 2. Higher values indicate higher resolution; see the \code{z} argument in \code{\link[elevatr]{get_elev_raster}} for more details.}
 

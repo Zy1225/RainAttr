@@ -24,7 +24,7 @@
 #' The data frame must contain columns specified by \code{ionizer_id_column_name} and \code{ionizer_longlat_column_names}. It should also include additional columns whose names correspond to the years in \code{unique(data[[year_column_name]])}, with binary values indicating whether each ionizer has been deployed in each year.
 #' @param ionizer_id_column_name An optional character string that refers to the column name of ionizer identifiers in \code{ionizer_location_df}. This must be supplied if \code{ionizer_location_df} is supplied.
 #' @param ionizer_longlat_column_names An optional character vector of length 2 specifying the column names of longitude and latitude in \code{ionizer_location_df}, for plotting ionizers. This must be supplied if \code{ionizer_location_df} is supplied.
-#' @param elev_contour An optional logical. If \code{TRUE}, elevation contour lines (obtained from Amazon Web Services Terrain Tiles) are added to the spatial plots. If \code{FALSE} (default), elevation contour lines are not included.
+#' @param elev_contour An optional logical. If \code{TRUE} (default), elevation contour lines (obtained from Amazon Web Services Terrain Tiles) are added to the spatial plots. If \code{FALSE}, elevation contour lines are not included.
 #' @param elev_resolution An optional integer between 1 and 14, specifying the resolution of the elevation data obtained from Amazon Web Services Terrain Tiles via \code{\link[elevatr]{get_elev_raster}}. Defaults to 2. Higher values indicate higher resolution; see the \code{z} argument in \code{\link[elevatr]{get_elev_raster}} for more details.
 #' @param focus_year An optional vector specifying years to filter for animated maps. If \code{focus_year} is not supplied, all years are included.
 #' @param fps An optional numeric specifying frames per second for animated maps. Default is \code{10}.
@@ -183,6 +183,26 @@ eda = function(eda_type,
         missing(longlat_column_names) || missing(long_lim) || missing(lat_lim)) {
       stop("When eda_type = 'map_dynamic', you must supply: data, rain_col_name, day_column_name, year_column_name, use_raw, longlat_column_names, long_lim, lat_lim.")
     }
+  }
+
+  if (eda_type %in% c("map_static", "map_dynamic") &&
+      is.null(input_sf) &&
+      !requireNamespace("maps", quietly = TRUE)) {
+    stop(
+      "When eda_type = '", eda_type,
+      "' and input_sf is not supplied, the 'maps' package is required ",
+      "to draw the default map borders. ",
+      "Please install it with install.packages('maps')."
+    )
+  }
+
+  if (eda_type == "map_dynamic" &&
+      !requireNamespace("gifski", quietly = TRUE)) {
+    stop(
+      "When eda_type = 'map_dynamic', the 'gifski' package is required ",
+      "to render the animated map. ",
+      "Please install it with install.packages('gifski')."
+    )
   }
 
 
