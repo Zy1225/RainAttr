@@ -54,7 +54,8 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{winsorize_individual_rain}{Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed the upper bound specified by \code{individual_rain_interval} are replaced with random draws from a uniform distribution over \code{[individual_rain_interval[1], individual_rain_interval[2]]}.
 (User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
 
-\item{individual_rain_interval}{Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \code{winsorize_individual_rain = TRUE}.
+\item{individual_rain_interval}{Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \ifelse{latex}{
+  \out{\texttt{winsorize\_\discretionary{}{}{}individual\_\discretionary{}{}{}rain = TRUE}}}{\code{winsorize_individual_rain = TRUE}}.
 (User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
 
 \item{winsorize_total_rain}{Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are proportionally rescaled so that the total equals a random number drawn uniformly from
@@ -70,7 +71,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{bootstrap_parallel}{Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
 (User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
 
-\item{bootstrap_parallel_num_worker}{An integer specifying the number of parallel workers to use when \code{bootstrap_parallel = TRUE}.
+\item{bootstrap_parallel_num_worker}{An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}parallel = TRUE}}}{\code{bootstrap_parallel = TRUE}}.
 (User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
 
 \item{ori_data}{A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
@@ -82,7 +83,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{ori_positive}{A logical vector indicating which observation in \code{ori_data} has positive rainfall.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{rain_col_name}{A character string specifying the column name of the raw scale rainfall in \code{ori_data}.
+\item{rain_col_name}{A character string specifying the column name of the raw scale rainfall in \ifelse{latex}{\out{\texttt{ori\_\discretionary{}{}{}data}}}{\code{ori_data}}.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{downwind_target_expr}{A quosure (created using \code{rlang::enquo()}) representing a logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were exposed to treatment (operating ionizers).
@@ -100,7 +101,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{attr_type}{A character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{x_downwind_name}{A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
+\item{x_downwind_name}{A character vector containing variable names from the right hand side of \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}lmm\_\discretionary{}{}{}formula}}}{\code{downwind_lmm_formula}}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{target_only}{Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
@@ -122,7 +123,7 @@ A list containing
 \item{hatsate}{Matrix of bootstrap samples for SATE estimates.}
 \item{downwind_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) LMM.}
 \item{downwind_logistic_param}{Matrix of bootstrap samples for regression coefficient estimates of downwind logistic model fitted to the rainfall event indicators. This is \code{NULL} if \code{bootstrap_zero = FALSE}.}
-\item{downwind_propensity_param}{Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators. This is \code{NULL} if \code{bootstrap_zero = FALSE}.}
+\item{downwind_propensity_param}{Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators. This is \code{NULL} if \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}zero = FALSE}}}{\code{bootstrap_zero = FALSE}}.}
 \item{downwind_positive_target_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.}
 \item{downwind_positive_control_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.}
 \item{downwind_LogRain}{Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}.}
@@ -138,7 +139,7 @@ directly. Instead, bootstrap inference should be performed by calling \code{\lin
 
 \strong{First-Level Bootstrap} \cr
 The first-level is an optional level that is only carried out when \code{bootstrap_zero = TRUE}. This level generates bootstrap samples of binary rainfall event indicator \eqn{L_{ij}^*} via \eqn{P(L_{ij}^* = 1) = \hat{\gamma}_{ij} } for the subset of observations from \code{ori_data} satisfying \code{downwind}, where \eqn{\hat{\gamma}_{ij}} are the predicted probabilities from the downwind logistic model fitted to the original binary rainfall event indicators \eqn{L_{ij}} i.e., \eqn{\hat{\gamma}_{ij}} = \code{predict(ori_fitted_models$downwind_logistic_fit,type = "response")}.
-It is worth noting that if \code{positive_prob_threshold} is supplied, then \eqn{\hat{\gamma}_{ij}} that are less than \code{positive_prob_threshold} are set to be zeros before being used to generate \eqn{L_{ij}^*}.
+It is worth noting that if \code{positive_prob_threshold} is supplied, then \eqn{\hat{\gamma}_{ij}} that are less than \ifelse{latex}{\out{\texttt{positive\_\discretionary{}{}{}prob\_\discretionary{}{}{}threshold}}}{\code{positive_prob_threshold}} are set to be zeros before being used to generate \eqn{L_{ij}^*}.
 When \code{bootstrap_zero = FALSE}, the first-level bootstrap is not carried out and thus \eqn{L_{ij}^* = L_{ij}}.
 
 \strong{Second-Level Bootstrap} \cr
@@ -209,9 +210,9 @@ After obtaining the bootstrapped \eqn{y_{ij}^*} that are assumed to be log-rainf
 Let \eqn{Rain_{ij}^* = \exp(y_{ij}^*)} be the bootstrapped raw rainfall.
 When \code{discretize_rain = TRUE}, bootstrap samples that satisfy \eqn{ Rain_{ij}^* \in (0, 0.3] } are replaced by 0.2, \eqn{ Rain_{ij}^* \in (0.3, 0.5] } are replaced by 0.4, \eqn{ Rain_{ij}^* \in (0.5, 0.7] } are replaced by 0.6, and \eqn{ Rain_{ij}^* \in (0.7, 0.9] } are replaced by 0.8.
 
-When \code{winsorize_individual_rain = TRUE}, bootstrap samples that satisfy \eqn{Rain_{ij}^* >  } \code{individual_rain_interval[2]} are replaced by random numbers drawn from a uniform distribution over the interval \eqn{[}\code{individual_rain_interval[1]}, \code{individual_rain_interval[2]}\eqn{]}.
+When \code{winsorize_individual_rain = TRUE}, bootstrap samples that satisfy \eqn{Rain_{ij}^* >  } \ifelse{latex}{\out{\texttt{individual\_\discretionary{}{}{}rain\_\discretionary{}{}{}interval[2]}}}{\code{individual_rain_interval[2]}} are replaced by random numbers drawn from a uniform distribution over the interval \eqn{[}\code{individual_rain_interval[1]}, \code{individual_rain_interval[2]}\eqn{]}.
 
-When \code{winsorize_total_rain = TRUE}, if \eqn{ \sum_{(i,j)} Rain_{ij}^* \notin [} \code{total_rain_interval[1]}, \code{total_rain_interval[2]} \eqn{]} where the summation is over the subset of observations in \code{ori_data} satisfying \code{downwind} and \eqn{L_{ij}^* = 1}, then all bootstrap samples of \eqn{Rain_{ij}^*} are rescaled by a common factor of \code{runif(n = 1, min = total_rain_interval[1], max = total_rain_interval[2])} \eqn{ / \sum_{(i,j)} Rain_{ij}^*  }.
+When \code{winsorize_total_rain = TRUE}, if \eqn{ \sum_{(i,j)} Rain_{ij}^* \notin [} \code{total_rain_interval[1]}, \ifelse{latex}{\out{\texttt{total\_\discretionary{}{}{}rain\_\discretionary{}{}{}interval[2]}}}{\code{total_rain_interval[2]}} \eqn{]} where the summation is over the subset of observations in \code{ori_data} satisfying \code{downwind} and \eqn{L_{ij}^* = 1}, then all bootstrap samples of \eqn{Rain_{ij}^*} are rescaled by a common factor of \code{runif(n = 1, min = total_rain_interval[1], max = total_rain_interval[2])} \eqn{ / \sum_{(i,j)} Rain_{ij}^*  }.
 
 The final adjusted \eqn{Rain_{ij}^*} are converted back to the log-scale based on the formula \eqn{y_{ij}^* = \log(Rain_{ij}^*)}. Therefore, these adjustments should only be used when modelling log-transformed rainfall in the two-stage LMM approach, but not raw rainfall.
 If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \code{downwind_lmm_formula = LogRain - Offset}, the above adjustments could still be used as the function would use the relationship \eqn{Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )} and \eqn{y_{ij}^* = \log(Rain_{ij}^*) + Offset_{ij} }.
@@ -230,7 +231,7 @@ By repeatedly generating bootstrap samples, fitting models and computing attribu
 \item{Fixed effect coefficients and random effect variance estimates of downwind LMM, downwind treatment-only LMM, and downwind control-only LMM.}
 \item{Log-transformed rainfall \eqn{\log(Rain_{ij}^*)}}
 \item{Regression coefficient estimates of downwind logistic model fitted to the bootstrapped rainfall event indicators, only when \code{bootstrap_zero = TRUE}}
-\item{Regression coefficient estimates of downwind propensity score model, only when \code{bootstrap_zero = TRUE}}
+\item{Regression coefficient estimates of downwind propensity score model, only when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}zero = TRUE}}}{\code{bootstrap_zero = TRUE}}}
 }
 
 \strong{Parallel Bootstrap Execution} \cr

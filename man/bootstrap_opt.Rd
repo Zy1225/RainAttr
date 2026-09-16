@@ -36,7 +36,7 @@ Default is "PREB1".}
 
 \item{winsorize_individual_rain}{Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed the upper bound specified by \code{individual_rain_interval} are replaced with random draws from a uniform distribution over \code{[individual_rain_interval[1], individual_rain_interval[2]]}. Default is \code{TRUE}.}
 
-\item{individual_rain_interval}{Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \code{winsorize_individual_rain = TRUE}. Default is \code{c(100,175)}.}
+\item{individual_rain_interval}{Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \ifelse{latex}{\out{\texttt{winsorize\_\discretionary{}{}{}individual\_\discretionary{}{}{}rain = TRUE}}}{\code{winsorize_individual_rain = TRUE}}. Default is \code{c(100,175)}.}
 
 \item{winsorize_total_rain}{Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are proportionally rescaled so that the total equals a random number drawn uniformly from
 \code{[total_rain_interval[1], total_rain_interval[2]]} whenever the total bootstrapped rainfall falls outside this interval. Default is \code{TRUE}.}
@@ -47,7 +47,7 @@ Default is "PREB1".}
 
 \item{bootstrap_parallel}{Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.}
 
-\item{bootstrap_parallel_num_worker}{An integer specifying the number of parallel workers to use when \code{bootstrap_parallel = TRUE}. Default is \code{parallel::detectCores() - 1}.}
+\item{bootstrap_parallel_num_worker}{An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}parallel = TRUE}}}{\code{bootstrap_parallel = TRUE}}. Default is \code{parallel::detectCores() - 1}.}
 
 \item{CI_level}{A numeric value between 0 and 1 specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.}
 }
@@ -63,7 +63,8 @@ This function is used to configure and store all settings needed for performing 
 \examples{
 #Create default bootstrap options to account for highly unbalanced clustered data
 # Specifically: bootstrap_type = 'PREB1' as proposed by Tho et al. (2025)
-# Adjusted Random Effect Block Bootstraps for Highly Unbalanced Clustered Data. arXiv:2510.07770.
+# Adjusted Random Effect Block Bootstraps for Highly Unbalanced Clustered Data.
+# arXiv:2510.07770.
 boot_options = bootstrap_opt()
 str(boot_options)
 

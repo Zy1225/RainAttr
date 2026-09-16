@@ -39,8 +39,8 @@ eda(
 \arguments{
 \item{eda_type}{A character string specifying the type of EDA to perform. Must be one of
 \code{"num_obs_days"}, \code{"num_obs_days_by_year"}, \code{"hist_day_group_sizes"},
-\code{"qq_rain"}, \code{"ts_by_type"}, \code{"ts_by_gauge"},
-\code{"ts_by_gauge_interactive"}, \code{"map_static"}, \code{"map_dynamic"}.}
+\ifelse{latex}{\out{\texttt{"qq\_\discretionary{}{}{}rain"}}}{\code{"qq_rain"}}, \code{"ts_by_type"}, \code{"ts_by_gauge"},
+\code{"ts_by_gauge_interactive"}, \ifelse{latex}{\out{\texttt{"map\_\discretionary{}{}{}static"}}}{\code{"map_static"}}, \code{"map_dynamic"}.}
 
 \item{data}{A data frame containing the rainfall enhancement trial data.}
 
