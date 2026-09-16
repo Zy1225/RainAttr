@@ -25,7 +25,9 @@
 #' \describe{
 #' \item{\code{ChambersEtAl}}{Attribution is estimated based on the approach of Chambers et al. (2022a), to adjust for back-transformation bias due to the modelling of log-transformed rainfall:
 #'     \deqn{
-#'     \code{apo} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij}, \quad
+#'     \code{apo} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij},
+#'     }
+#'     \deqn{
 #'     \code{apl} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij} \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\},
 #'     }
 #'     where the summation is either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}), \eqn{Rain_{ij}} is the observed raw rainfall (contained in the column specified by \code{rain_col_name}),
@@ -47,6 +49,8 @@
 #' \item{\code{ChambersEtAl_No_Winsorize}}{Similar to \code{ChambersEtAl}, but without the winsorizing step, i.e., \eqn{\max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\}} is replaced by \eqn{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta})}:
 #'     \deqn{
 #'     \code{apo} = \sum_{(i,j)} Rain_{ij} \{ 1 - \lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}) \} /  \sum_{(i,j)}Rain_{ij}, \quad
+#'     }
+#'     \deqn{
 #'     \code{apl} = \sum_{(i,j)} Rain_{ij} \{ 1 - \lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}) \} /  \sum_{(i,j)}Rain_{ij} \lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}),
 #'     }
 #'     where \eqn{\lambda} is the same as in \code{ChambersEtAl}.
@@ -55,6 +59,8 @@
 #' \item{\code{ThoEtAl}}{Attribution is estimated based on an alternative adjustment proposed by Tho et al. (2026), using the estimated covariance matrix \eqn{\hat{\Sigma}} of \eqn{\hat{\beta}}.
 #'     \deqn{
 #'     \code{apo} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} - 0.5 z_{ij}^\top \hat{\Sigma} z_{ij} ) \}/ \sum_{(i,j)}Rain_{ij}, \quad
+#'     }
+#'     \deqn{
 #'     \code{apl} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} - 0.5 z_{ij}^\top \hat{\Sigma} z_{ij} ) \} /  \sum_{(i,j)}Rain_{ij} \exp(-z_{ij}^\top \hat{\beta} - 0.5 z_{ij}^\top \hat{\Sigma} z_{ij} ).
 #'     }
 #' }
@@ -62,7 +68,8 @@
 #' \item{\code{No}}{Attribution is estimated based on no adjustment.
 #'     \deqn{
 #'     \code{apo} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} ) \}/ \sum_{(i,j)}Rain_{ij}, \quad
-#'     \code{apl} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} ) \} /  \sum_{(i,j)}Rain_{ij} \exp(-z_{ij}^\top \hat{\beta} ).
+#'     }
+#'     \deqn{\code{apl} = \sum_{(i,j)} Rain_{ij} \{ 1 - \exp(z_{ij}^\top \hat{\beta} ) \} /  \sum_{(i,j)}Rain_{ij} \exp(-z_{ij}^\top \hat{\beta} ).
 #'     }
 #' }
 #' All attribution estimates above implicitly assume that the upwind (first stage) and downwind (second stage) LMMs are modelling the log-transformed rainfall instead of the raw rainfall.
