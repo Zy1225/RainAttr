@@ -20,8 +20,8 @@
 #' }
 #'
 #' \strong{Attribution} \cr
-#' Two attribution estimates, namely \code{apo} and \code{apl} are computed based on the estimated fixed effect coefficients \eqn{\hat{\alpha}}, \eqn{\hat{\beta}} and EBLUPs \eqn{\hat{u}_i} from the fitted downwind (second stage) LMM. \code{apo} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total amount of observed downwind rainfall., while \code{apl} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total expected amount of downwind rainfall without the effect of ionizer (treatment).
-#' This function allows for three different ways of estimating \code{apo} and \code{apl} as specified by the argument \code{attr_type}:
+#' Two attribution estimates, namely \code{apo} and \code{apl} are computed based on the estimated fixed effect coefficients \eqn{\hat{\alpha}}, \eqn{\hat{\beta}} and EBLUPs \eqn{\hat{u}_i} from the fitted downwind (second stage) LMM. \code{apo} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total amount of observed downwind rainfall, while \code{apl} represents the total increase or decrease in downwind rainfall attributed to the ionizer (treatment) as a proportion of the total expected amount of downwind rainfall without the effect of ionizer (treatment).
+#' This function allows for four different ways of estimating \code{apo} and \code{apl} as specified by the argument \code{attr_type}:
 #' \describe{
 #' \item{\code{ChambersEtAl}}{Attribution is estimated based on the approach of Chambers et al. (2022a), to adjust for back-transformation bias due to the modelling of log-transformed rainfall:
 #'     \deqn{
@@ -107,7 +107,7 @@
 #' It is worth noting that the entire bootstrap procedure (including rainfall resampling, model fitting, and parameter estimation) can be run in parallel by setting \code{bootstrap_option$bootstrap_parallel = TRUE}, using \code{bootstrap_option$bootstrap_parallel_num_worker} workers.
 #'
 #' Finally, this function enables permutation-based inference on the attribution and SATE, by setting \code{permutation = TRUE} and supplying the relevant permutation options using \code{\link{permutation_opt}()}.
-#' For full details of the permutation-based procedure, please see \code{\link{permutation_ionizer}}. In short, the permutation-based procedure involves randomly permuting the operating schedules of the ionizers (treatment) and re-estimating the attribution and SATE based on the permuted data, from which permutations distributions of attribution and SATE estimates are formed.
+#' For full details of the permutation-based procedure, please see \code{\link{permutation_ionizer}}. In short, the permutation-based procedure involves randomly permuting the operating schedules of the ionizers (treatment) and re-estimating the attribution and SATE based on the permuted data, from which permutation distributions of attribution and SATE estimates are formed.
 #' These permutation distributions are used to compute permutation p-values (proportion of permuted estimates that are greater than the observed estimates) and generate their respective plots.
 #'
 #'
@@ -149,27 +149,34 @@
 #'  - downwind_positive_target_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.
 #'  - downwind_positive_control_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.
 #'  - downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}.
+#'
+#'  This is \code{NULL} when \code{bootstrap = FALSE}.
 #' }
 #'
-#' \item{bootstrap_CI_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding bootstrap percentile confidence intervals.}
-#' \item{bootstrap_p_value_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding proportion of bootstrap samples that are less than zero.}
-#' \item{bootstrap_plot_result}{A list of matrices with two elements:
+#' \item{bootstrap_CI_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding bootstrap percentile confidence intervals. This is \code{NULL} when \code{bootstrap = FALSE}.}
+#' \item{bootstrap_p_value_result}{A list of numeric vectors with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding proportion of bootstrap samples that are less than zero. This is \code{NULL} when \code{bootstrap = FALSE}.}
+#' \item{bootstrap_plot_result}{A list with two elements:
 #'
 #' - hatattr: A list of \code{ggplot} objects, each showing the bootstrap distribution of attribution estimates. Each plot includes a dotted vertical line at zero and a solid vertical line at the original estimate based on the observed data.
 #' - hatsate: A list of \code{ggplot} objects, each showing the bootstrap distribution of SATE estimates. Each plot includes a dotted vertical line at zero and a solid vertical line at the original estimate based on the observed data.
+#' This is \code{NULL} when \code{bootstrap = FALSE}.
 #' }
 #'
-#' \item{permutation_result}{A list of matrices with the two elements:
+#' \item{permutation_result}{A list of matrices with two elements:
 #'
 #' - hatattr: Matrix of permutation samples for attribution estimates.
 #' - hatsate: Matrix of permutation samples for SATE estimates.
+#'
+#' This is \code{NULL} when \code{permutation = FALSE}.
 #' }
 #'
-#' \item{permutation_p_value_result}{A list of matrices with same element names as in \code{permutation_result}, containing the corresponding proportion of permutation samples that are greater than or equal to the original estimate based on the observed data.}
-#' \item{permutation_plot_result}{A list of matrices with two elements:
+#' \item{permutation_p_value_result}{A list of numeric vectors with same element names as in \code{permutation_result}, containing the corresponding proportion of permutation samples that are greater than or equal to the original estimate based on the observed data. This is \code{NULL} when \code{permutation = FALSE}.}
+#' \item{permutation_plot_result}{A list with two elements:
 #'
 #' - hatattr: A list of \code{ggplot} objects, each showing the permutation distribution of attribution estimates. Each plot includes a solid vertical line at the original estimate based on the observed data.
 #' - hatsate: A list of \code{ggplot} objects, each showing the permutation distribution of SATE estimates. Each plot includes a solid vertical line at the original estimate based on the observed data.
+#'
+#' This is \code{NULL} when \code{permutation = FALSE}.
 #' }
 #'
 #' \item{args}{A list of the original function arguments.}

@@ -23,7 +23,7 @@
 #' @section S3 Methods:
 #' \describe{
 #'   \item{\code{coef}}{Computes the fixed effect coefficients and the empirical best linear unbiased predictors (EBLUPs) of random intercepts if the selected \code{model} is one of the LMMs, or the regression coefficients if the selected \code{model} is one of the GLMs. }
-#'   \item{\code{print}}{Print the point estimates of attributions and SATE and indicate whether bootstrap and permutation has been performed. Also print the model formula, data subset, number of observations, number of days (groups), and point estimates of fixed effect coefficients for the upwind (first stage) and downwind (second stage) LMMs.}
+#'   \item{\code{print}}{Print the point estimates of attributions and SATE and indicate whether bootstrap and permutation have been performed. Also print the model formula, data subset, number of observations, number of days (groups), and point estimates of fixed effect coefficients for the upwind (first stage) and downwind (second stage) LMMs.}
 #'   \item{\code{residuals}}{Compute residuals of the selected \code{model}. Residual type is controlled by \code{residual_type}, while scaling (only for LMMs) is controlled by \code{residual_scaled}.}
 #'   \item{\code{fitted}}{Compute fitted values of the selected \code{model}. For more flexible access to fitted values, use \code{\link{predict.rain_attr}}. }
 #'   \item{\code{varcomp}}{Compute the random intercept variance and error variance estimates for each of the four LMMs.}
@@ -36,7 +36,7 @@
 #'   Moreover, the validity of GLMs does not require normally distributed residuals.}
 #'   \item{\code{summary}}{Returns a list of summary statistics of the two-stage LMM approach, which is an \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}. For details of this list, see the "Value from \code{summary.rain_attr}" section below. }
 #'   \item{\code{print.summary}}{Print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values if bootstrap and permutation has been performed.
-#'   Also print the model formula, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard error and t-values computed from \code{\link[lme4]{summary.merMod}}.}
+#'   Also print the model formula, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard errors and t-values computed from \code{\link[lme4]{summary.merMod}}.}
 #'}
 #'
 #' @param x An \bold{R} object to be printed or plotted. For `print.rain_attr()` and
@@ -72,7 +72,7 @@
 #'   \item{\code{upwind_n_groups}, \code{downwind_n_groups}}{Number of unique days (groups) used for fitting the upwind and downwind LMMs.}
 #'   \item{\code{upwind_summary}, \code{downwind_summary}}{Objects of class \code{\link[lme4:merMod-class]{summary.merMod}} containing summaries of the fitted upwind and downwind LMMs.}
 #'   \item{\code{upwind_fitted}, \code{downwind_fitted}}{Fitted values of the upwind and downwind LMMs, which include both the fixed effects and the predicted random intercepts.}
-#'   \item{\code{upwind_residuals}, \code{downwind_residuals}}{Scaled residuals of the upwind and downwind LMMs, which take the general form of (observed - fitted)/\eqn{\hat{\sigma}_e}, where the fitted values are either \code{upwind_fitted} or \code{downwind_fitted} and \eqn{\hat{\sigma}_e} denote the corresponding estimated error variance. }
+#'   \item{\code{upwind_residuals}, \code{downwind_residuals}}{Scaled residuals of the upwind and downwind LMMs, which take the general form of (observed - fitted)/\eqn{\hat{\sigma}_e}, where the fitted values are either \code{upwind_fitted} or \code{downwind_fitted} and \eqn{\hat{\sigma}_e} denote the corresponding residual standard deviation. }
 #'   \item{\code{upwind_lmm_fixef}, \code{downwind_lmm_fixef}}{Matrices of fixed effect coefficients for the upwind and downwind LMMs, along with their corresponding standard error estimates and t-value computed from \code{\link[lme4]{summary.merMod}}.}
 #'   \item{\code{upwind_lmm_varcomp}, \code{downwind_lmm_varcomp}}{Data frames containing the estimated variance components for the upwind and downwind LMMs.}
 #' }

@@ -91,7 +91,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{downwind_control_expr}{A quosure (created using \code{rlang::enquo()}) representing a logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were not exposed to treatment (operating ionizers).
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{ori_fitted_models}{A list containing the models fitted to the \code{ori_data}, including the upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) target-only LMM, downwind (second stage) logistic model for rainfall event indicator, and downwind (second stage) propensity score model.
+\item{ori_fitted_models}{A list containing the models fitted to the \code{ori_data}, including the upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, downwind (second stage) logistic model for rainfall event indicator, and downwind (second stage) propensity score model.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{downwind_lmm_formula}{A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
@@ -201,7 +201,7 @@ Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{REB0} with
 }
 
 The random effect block (REB0, REB1, REB2) bootstraps proposed in Chambers and Chandra (2013) were originally designed to handle balanced clustered data, while the proportional REB (PREB0, PREB1, PREB2) bootstraps and the MREB1 bootstrap proposed by Tho et al. (2025) are generalizations of the REB bootstraps to accommodate highly unbalanced clustered data.
-Therefore, it is recommended to use either \code{bootstrap_type = "PREB1"} or \code{bootstrap_type = "MREB1"}, especially when \eqn{n_i}'s are highly unbalanced. Users are refered to Tho et al. (2025) for more discussion on the comparison among these bootstrap methods.
+Therefore, it is recommended to use either \code{bootstrap_type = "PREB1"} or \code{bootstrap_type = "MREB1"}, especially when \eqn{n_i}'s are highly unbalanced. Users are referred to Tho et al. (2025) for more discussion on the comparison among these bootstrap methods.
 
 \strong{Adjustment of Bootstrapped Rainfall} \cr
 After obtaining the bootstrapped \eqn{y_{ij}^*} that are assumed to be log-rainfall, it is possible to perform some adjustment to the bootstrap samples to ensure that they are similar to the observed data.
