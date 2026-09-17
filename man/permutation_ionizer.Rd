@@ -88,7 +88,7 @@ The row order of this data frame must match that of \code{gaugeday_downwind_inpu
 \item{target_only}{Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{rain_col_name}{A character string specifying the column name of the raw scale rainfall in \code{ori_data}.
+\item{rain_col_name}{A character string specifying the column name of the raw scale rainfall in \ifelse{latex}{\out{\texttt{ori\_\discretionary{}{}{}data}}}{\code{ori_data}}.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 }
 \value{

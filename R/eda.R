@@ -58,7 +58,7 @@
 #'   \emph{Required arguments:} \code{data}, \code{day_column_name}, \code{upwind_subset}, \code{downwind_subset}, \ifelse{latex}{\out{\texttt{positive\_\discretionary{}{}{}subset}}}{\code{positive_subset}}
 #'
 #'   \emph{Behaviour:} Plots histograms of group sizes for days in \code{upwind_subset} and \code{downwind_subset} with positive rainfall.
-#'     The group size for a given day and type (\code{upwind_subset}, \code{downwind_subset}) is defined as the number of gauges satisfying that type and having positive rainfall on that day.
+#'     The group size for a given day and type (\code{upwind_subset}, \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}subset}}}{\code{downwind_subset}}) is defined as the number of gauges satisfying that type and having positive rainfall on that day.
 #'   }
 #'   \item{`qq_rain`}{\if{latex}{\out{\mbox{}\newline}}
 #'   \emph{Required arguments:} \code{data}, \code{rain_col_name}, \code{use_raw}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset}

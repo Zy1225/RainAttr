@@ -28,8 +28,8 @@ rain_attr(
 )
 }
 \arguments{
-\item{data}{A data frame containing the variables named in \code{upwind_lmm_formula}, \code{downwind_lmm_formula}, \code{downwind_logistic_formula} (if specified), and \code{downwind_propensity_formula}.
-It should also contain variables named in \code{rain_col_name}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, and \code{downwind_control_subset}.}
+\item{data}{A data frame containing the variables named in \code{upwind_lmm_formula}, \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}lmm\_\discretionary{}{}{}formula}}}{\code{downwind_lmm_formula}}, \code{downwind_logistic_formula} (if specified), and \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}propensity\_\discretionary{}{}{}formula}}}{\code{downwind_propensity_formula}}.
+It should also contain variables named in \code{rain_col_name}, \ifelse{latex}{\out{\texttt{upwind\_\discretionary{}{}{}subset}}}{\code{upwind_subset}}, \code{downwind_subset}, \code{downwind_target_subset}, and \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}control\_\discretionary{}{}{}subset}}}{\code{downwind_control_subset}}.}
 
 \item{upwind_lmm_formula}{A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the upwind (first stage) LMM.}
 
@@ -39,13 +39,13 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 
 \item{downwind_lmm_formula}{A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM. This formula should contain the variable name specified in \code{instr_pred_name}.}
 
-\item{downwind_logistic_formula}{An optional two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a logistic model to the indicators of rainfall event. This only needs to be specified when \code{bootstrap = TRUE} and \code{bootstrap_option$bootstrap_zero = TRUE}.}
+\item{downwind_logistic_formula}{An optional two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a logistic model to the indicators of rainfall event. This only needs to be specified when \code{bootstrap = TRUE} and \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}option\$\discretionary{}{}{}bootstrap\_\discretionary{}{}{}zero = TRUE}}}{\code{bootstrap_option$bootstrap_zero = TRUE}}.}
 
 \item{downwind_propensity_formula}{A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.}
 
 \item{rain_col_name}{A character string that refers to the column name of the raw scale rainfall in \code{data}.}
 
-\item{upwind_subset}{A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == "Upwind"}.}
+\item{upwind_subset}{A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \ifelse{latex}{\out{\texttt{Gauge.\discretionary{}{}{}Day.\discretionary{}{}{}Type == "Upwind"}}}{\code{Gauge.Day.Type == "Upwind"}}.}
 
 \item{downwind_subset}{A logical expression used to extract the relevant subset of observations from \code{data} to be used in the downwind (second stage) LMM fitting. For example, \code{Gauge.Day.Type \%in\% c("Target","Control")}.}
 
@@ -57,7 +57,7 @@ It should also contain variables named in \code{rain_col_name}, \code{upwind_sub
 
 \item{attr_type}{An optional character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"} (default), or \code{"No"}. See "Details" for more information.}
 
-\item{x_downwind_name}{A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.}
+\item{x_downwind_name}{A character vector containing variable names from the right hand side of \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}lmm\_\discretionary{}{}{}formula}}}{\code{downwind_lmm_formula}}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.}
 
 \item{target_only}{An optional logical. If \code{TRUE} the attribution estimates are computed based on only treated observations. If \code{FALSE} the attribution estimates are computed based on both treated and control observations.}
 
@@ -91,7 +91,7 @@ This is \code{NULL} when \code{bootstrap = FALSE}.
 }
 
 \item{bootstrap_CI_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding bootstrap percentile confidence intervals. This is \code{NULL} when \code{bootstrap = FALSE}.}
-\item{bootstrap_p_value_result}{A list of numeric vectors with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding proportion of bootstrap samples that are less than zero. This is \code{NULL} when \code{bootstrap = FALSE}.}
+\item{bootstrap_p_value_result}{A list of numeric vectors with same element names as in \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}result}}}{\code{bootstrap_result}} (excluding \code{downwind_LogRain}), containing the corresponding proportion of bootstrap samples that are less than zero. This is \code{NULL} when \code{bootstrap = FALSE}.}
 \item{bootstrap_plot_result}{A list with two elements:
 \itemize{
 \item hatattr: A list of \code{ggplot} objects, each showing the bootstrap distribution of attribution estimates. Each plot includes a dotted vertical line at zero and a solid vertical line at the original estimate based on the observed data.
@@ -109,7 +109,7 @@ This is \code{NULL} when \code{bootstrap = FALSE}.
 This is \code{NULL} when \code{permutation = FALSE}.
 }
 
-\item{permutation_p_value_result}{A list of numeric vectors with same element names as in \code{permutation_result}, containing the corresponding proportion of permutation samples that are greater than or equal to the original estimate based on the observed data. This is \code{NULL} when \code{permutation = FALSE}.}
+\item{permutation_p_value_result}{A list of numeric vectors with same element names as in \ifelse{latex}{\out{\texttt{permutation\_\discretionary{}{}{}result}}}{\code{permutation_result}}, containing the corresponding proportion of permutation samples that are greater than or equal to the original estimate based on the observed data. This is \code{NULL} when \code{permutation = FALSE}.}
 \item{permutation_plot_result}{A list with two elements:
 \itemize{
 \item hatattr: A list of \code{ggplot} objects, each showing the permutation distribution of attribution estimates. Each plot includes a solid vertical line at the original estimate based on the observed data.
@@ -138,8 +138,8 @@ where \eqn{i} indexes day (group) and \eqn{j} indexes gauge (unit within group),
 }
 The fitted values obtained from the upwind (first stage) LMM can either be:
 \itemize{
-\item Included as a covariate on the right-hand side of \code{downwind_lmm_formula}, e.g., \code{instr_pred_name = "natural_pred"} and \code{downwind_lmm_formula = LogRain ~ natural_pred + ...}, or
-\item Included as an offset term by subtracting it from the response on the left-hand side, e.g., \code{instr_pred_name = "natural_pred"} and \code{downwind_lmm_formula = LogRain - natural_pred ~ ...}.
+\item Included as a covariate on the right-hand side of \code{downwind_lmm_formula}, e.g., \ifelse{latex}{\out{\texttt{instr\_\discretionary{}{}{}pred\_\discretionary{}{}{}name = "natural\_\discretionary{}{}{}pred"}}}{\code{instr_pred_name = "natural_pred"}} and \code{downwind_lmm_formula = LogRain ~ natural_pred + ...}, or
+\item Included as an offset term by subtracting it from the response on the left-hand side, e.g., \code{instr_pred_name = "natural_pred"} and \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}lmm\_\discretionary{}{}{}formula = LogRain - natural\_\discretionary{}{}{}pred \textasciitilde{} ...}}}{\code{downwind_lmm_formula = LogRain - natural_pred ~ ...}}.
 }
 
 \strong{Attribution} \cr
@@ -153,15 +153,15 @@ This function allows for four different ways of estimating \code{apo} and \code{
 \deqn{
     \code{apl} = \sum_{(i,j)} Rain_{ij} [ 1 - \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\} ] /  \sum_{(i,j)}Rain_{ij} \max\{\lambda^{-1} \exp(-z_{ij}^\top \hat{\beta}), 0.5\},
     }
-where the summation is either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}), \eqn{Rain_{ij}} is the observed raw rainfall (contained in the column specified by \code{rain_col_name}),
+where the summation is either across all observations satisfying \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}subset \& positive\_\discretionary{}{}{}subset}}}{\code{downwind_subset & positive_subset}} (when \code{target_only = FALSE}), or across all observations satisfying \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}target\_\discretionary{}{}{}subset \& positive\_\discretionary{}{}{}subset}}}{\code{downwind_target_subset & positive_subset}} (when \code{target_only = TRUE}), \eqn{Rain_{ij}} is the observed raw rainfall (contained in the column specified by \code{rain_col_name}),
 \deqn{
     \lambda = 1 + \frac{\sqrt{ (1+m)^2 + 4(\mu - 1)m  } - (1+m)}{2m}, m = \frac{\hat{V}( x_{ij}^\top \hat{\alpha}  + \hat{u}_i ) }{\hat{V}(z_{ij}^\top \hat{\beta})},
     }
-with \eqn{\hat{V}(\cdot)} denoting the empirical variance either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}), and
+with \eqn{\hat{V}(\cdot)} denoting the empirical variance either across all observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or across all observations satisfying \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}target\_\discretionary{}{}{}subset \& positive\_\discretionary{}{}{}subset}}}{\code{downwind_target_subset & positive_subset}} (when \code{target_only = TRUE}), and
 \deqn{
     \mu = \frac{1}{N} \sum_{(i,j)} \frac{Rain_{ij}}{\exp( x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i )},
     }
-and \eqn{N} is either the total number of observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or the total number of observations satisfying \code{downwind_target_subset & positive_subset} (when \code{target_only = TRUE}).
+and \eqn{N} is either the total number of observations satisfying \code{downwind_subset & positive_subset} (when \code{target_only = FALSE}), or the total number of observations satisfying \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}target\_\discretionary{}{}{}subset \& positive\_\discretionary{}{}{}subset}}}{\code{downwind_target_subset & positive_subset}} (when \code{target_only = TRUE}).
 When an offset term is included on the LHS of \code{downwind_lmm_formula}, the expressions of \eqn{m} and \eqn{\mu} become
 \deqn{
     m = \frac{\hat{V}( offset_{ij} + x_{ij}^\top \hat{\alpha}  + \hat{u}_i ) }{\hat{V}(z_{ij}^\top \hat{\beta})}, \mu = \frac{1}{N} \sum_{(i,j)} \frac{Rain_{ij}}{\exp( offset_{ij} + x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + \hat{u}_i )}.
@@ -200,7 +200,7 @@ These attribution estimates should therefore only be interpreted and used when t
 }
 
 \strong{SATE} \cr
-The computation of SATE estimates involves fitting a downwind (second stage) propensity score model using \code{glm(downwind_propensity_formula, family = "binomial")} to the subset of observations from \code{data} satisfying \code{downwind_subset & positive_subset}, with the response being an indicator \eqn{I_{ij}} for whether each observation is exposed to the ionizer (treatment), i.e., \eqn{I_{ij} = 1} if it satisfies \code{downwind_target_subset & positive_subset}, and \eqn{I_{ij} = 0} if it satisfies \code{downwind_control_subset & positive_subset}.
+The computation of SATE estimates involves fitting a downwind (second stage) propensity score model using \code{glm(downwind_propensity_formula, family = "binomial")} to the subset of observations from \code{data} satisfying \code{downwind_subset & positive_subset}, with the response being an indicator \eqn{I_{ij}} for whether each observation is exposed to the ionizer (treatment), i.e., \eqn{I_{ij} = 1} if it satisfies \code{downwind_target_subset & positive_subset}, and \eqn{I_{ij} = 0} if it satisfies \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}control\_\discretionary{}{}{}subset \& positive\_\discretionary{}{}{}subset}}}{\code{downwind_control_subset & positive_subset}}.
 The estimated propensity scores (i.e., fitted values) from this fitted propensity score model, denoted as \eqn{\hat{\pi}_{ij}}, are then used to compute the inverse propensity weights (IPW) \eqn{\hat{w}_{ij,1} = \hat{\pi}_{ij}^{-1} / \sum_{(k,l)}  (\hat{\pi}_{kl}^{-1} I_{kl}) } and \eqn{ \hat{w}_{ij,0} = (1 - \hat{\pi}_{ij})^{-1} / \sum_{(k,l)} \{ (1- \hat{\pi}_{kl})^{-1} (1- I_{kl}) \} }, where the summation is over all observations from \code{data} satisfying \code{downwind_subset & positive_subset}.
 These IPW weights are then used, together with the estimation results of the downwind (second stage) LMM, to obtain the following five types of SATE estimates discussed in Chambers et al. (2022b):
 \itemize{
@@ -232,7 +232,7 @@ For full details of the bootstrap procedure, please see \code{\link{bootstrap_do
 \item{Second level generates bootstrap samples of positive rainfall for the subset of observations not only satisfying \code{downwind_subset} but also with the first-level bootstrapped rainfall event indicator being equal to one. When \code{bootstrap_opt(bootstrap_zero = FALSE)}, then this level generates bootstrap samples of positive rainfall for the subset of observations satisfying \code{downwind_subset & positive_subset}.
 This is done using one of the semiparametric bootstrap methods of Chambers & Chandra (2013) and Tho et al. (2025), which involves the use of marginal residuals from the fitted downwind (second stage) LMM.   }
 }
-The above attribution and SATE estimates are then computed based on each bootstrap sample of the positive rainfall, forming their respective bootstrap distributions. This function also provides bootstrap distributions of parameters associated with the downwind LMM (\code{downwind_lmm_formula}), downwind logistic model (\code{downwind_logistic_formula}), downwind propensity score model (\code{downwind_propensity_formula}), downwind treatment-only LMM, and downwind control-only LMM.
+The above attribution and SATE estimates are then computed based on each bootstrap sample of the positive rainfall, forming their respective bootstrap distributions. This function also provides bootstrap distributions of parameters associated with the downwind LMM (\code{downwind_lmm_formula}), downwind logistic model (\code{downwind_logistic_formula}), downwind propensity score model (\ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}propensity\_\discretionary{}{}{}formula}}}{\code{downwind_propensity_formula}}), downwind treatment-only LMM, and downwind control-only LMM.
 These bootstrap distributions are then used to compute bootstrap p-values (proportion of bootstrapped estimates that are negative), form bootstrap percentile confidence intervals (with confidence level specified in \code{bootstrap_option$CI_level}), and generate their respective plots.
 It is worth noting that the entire bootstrap procedure (including rainfall resampling, model fitting, and parameter estimation) can be run in parallel by setting \code{bootstrap_option$bootstrap_parallel = TRUE}, using \code{bootstrap_option$bootstrap_parallel_num_worker} workers.
 

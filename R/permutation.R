@@ -48,7 +48,7 @@
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param rain_col_name A character string specifying the column name of the raw scale rainfall in \code{ori_data}.
+#' @param rain_col_name A character string specifying the column name of the raw scale rainfall in \ifelse{latex}{\out{\texttt{ori\_\discretionary{}{}{}data}}}{\code{ori_data}}.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #'
 #' @return A list with two components:
@@ -354,19 +354,19 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 #' @param permute_all_ionizers_between_day Logical. If \code{TRUE}, for each year, a random permutation is performed among the daily operation schedules of all trial days within that year. Default is \code{FALSE}.
 #' @param permute_between_gaugeday Logical. If \code{TRUE}, for each year, a random permutation is performed among the gauge-day level operation schedule of all gauge-days within that year. Default is \code{TRUE}.
 #' @param ionizer_operation_input A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on, 0 indicates that it is off, and NA indicates that it is not deployed yet.
-#' Additionally, this data frame must include two columns with names specified by \code{ionizer_operation_day_column_name} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
+#' Additionally, this data frame must include two columns with names specified by \ifelse{latex}{\out{\texttt{ionizer\_\discretionary{}{}{}operation\_\discretionary{}{}{}day\_\discretionary{}{}{}column\_\discretionary{}{}{}name}}}{\code{ionizer_operation_day_column_name}} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
 #' Each day must appear only once in this data frame (no duplicated day entries).
 #' The ionizer columns must appear in the same order as specified by \code{data_target_column_names} and must be consistent with the column order in \code{gaugeday_downwind_input}. Default is \code{ionizer_operation}.
 #' @param gaugeday_downwind_input A binary matrix indicating which gauge-day observations (row) are downwind of which ionizers (column), where 1 indicates that the gauge is downwind of the ionizer on that day, 0 indicates that the gauge is not downwind of the ionizer, and NA indicates that the ionizer has not been deployed yet.
-#'   The row order of this matrix must match that of the original dataset supplied to \code{\link{rain_attr}}. The column order must correspond to the ionizer columns in \code{ionizer_operation_input} (excluding the day and year columns) and be in the same order as specified by \code{data_target_column_names}. Default is \code{gaugeday_downwind}.
+#'   The row order of this matrix must match that of the original dataset supplied to \code{\link{rain_attr}}. The column order must correspond to the ionizer columns in \ifelse{latex}{\out{\texttt{ionizer\_\discretionary{}{}{}operation\_\discretionary{}{}{}input}}}{\code{ionizer_operation_input}} (excluding the day and year columns) and be in the same order as specified by \code{data_target_column_names}. Default is \code{gaugeday_downwind}.
 #' @param data_target_column_names A character vector specifying the column names of the original dataset supplied to \code{\link{rain_attr}}, corresponding to the binary target indicators used in the downwind (second stage) LMM fitting.
 #'   The order of names in this vector must match the column order of the corresponding ionizers in \code{ionizer_operation_input} (excluding the day and year columns) and in \code{gaugeday_downwind_input}. Default is:
-#'   \code{c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10")}.
+#'   \ifelse{latex}{\out{\texttt{c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.\discretionary{}{}{}H.\discretionary{}{}{}09", "Target.H.10")}}}{\code{c("Target.H.01", "Target.H.02", "Target.H.03", "Target.H.04", "Target.H.05", "Target.H.06", "Target.H.07", "Target.H.08", "Target.H.09", "Target.H.10")}}.
 #' @param ionizer_operation_year_column_name A character string specifying the column name of \code{ionizer_operation_input} containing the year of each day. Default is \code{'Year'}.
 #' @param ionizer_operation_day_column_name A character string specifying the column name of \code{ionizer_operation_input} containing the day of each observation. The same column name should also be found in the original dataset supplied to \code{\link{rain_attr}}. Default is \code{'TrialDay'}.
 #' @param permutation_seed An integer specifying the random seed for the permutation-based procedure. Reproducibility is guaranteed only if \code{permutation_parallel} is the same, since parallel execution changes the order of random number generation. Default is \code{NULL}, meaning no seed is set internally and users should call \code{set.seed()} beforehand to ensure reproducibility.
 #' @param permutation_parallel Logical. If \code{TRUE}, each permutation run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.
-#' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \code{permutation_parallel = TRUE}. Default is \code{parallel::detectCores() - 1}.
+#' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{permutation\_\discretionary{}{}{}parallel = TRUE}}}{\code{permutation_parallel = TRUE}}. Default is \code{parallel::detectCores() - 1}.
 #'
 #' @return A list containing all permutation options, suitable for passing to \code{\link{rain_attr}}.
 #'
@@ -384,10 +384,10 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 #' #Create default permutation options
 #' # These are the same permutation settings used in Chambers et al. (2022a)
 #' # Nudging a Pseudo-Science Towards a Science—The Role of Statistics
-#' # in a Rainfall Enhancement Trial in Oman. \emph{International Statistical Review}, 90: 346–373,
+#' # in a Rainfall Enhancement Trial in Oman. International Statistical Review, 90: 346–373,
 #' # as well as Chambers et al. (2022b) Weighting, Informativeness and Causal Inference,
 #' # with an Application to Rainfall Enhancement.
-#' # \emph{Journal of the Royal Statistical Society Series A: Statistics in Society}, 185: 1584–1612.
+#' # Journal of the Royal Statistical Society Series A: Statistics in Society, 185: 1584–1612.
 #' # Specifically: permute_between_ionizer = TRUE, permute_all_ionizers_between_day = FALSE,
 #' # and permute_between_gaugeday = TRUE
 #' perm_options = permutation_opt()

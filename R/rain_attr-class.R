@@ -40,7 +40,7 @@
 #'}
 #'
 #' @param x An \bold{R} object to be printed or plotted. For `print.rain_attr()` and
-#'   `plot.rain_attr()`, an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}; for
+#'   \ifelse{latex}{\out{\texttt{plot.\discretionary{}{}{}rain\_\discretionary{}{}{}attr()}}}{\code{plot.rain_attr()}}, an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}; for
 #'   `print.summary.rain_attr()`, an \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}, i.e., an output from applying \code{\link{summary.rain_attr}} to an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}.
 #' @param object An \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}.
 #' @param model An optional character string specifying which fitted model to focus on. Must be one of \code{"upwind_lmm"}, \code{"downwind_lmm"} (default), \code{"downwind_target_lmm"}, \code{"downwind_control_lmm"}, \code{"downwind_logistic"}, or \code{"downwind_propensity"}. See "Details" for more information.
@@ -72,7 +72,7 @@
 #'   \item{\code{upwind_n_groups}, \code{downwind_n_groups}}{Number of unique days (groups) used for fitting the upwind and downwind LMMs.}
 #'   \item{\code{upwind_summary}, \code{downwind_summary}}{Objects of class \code{\link[lme4:merMod-class]{summary.merMod}} containing summaries of the fitted upwind and downwind LMMs.}
 #'   \item{\code{upwind_fitted}, \code{downwind_fitted}}{Fitted values of the upwind and downwind LMMs, which include both the fixed effects and the predicted random intercepts.}
-#'   \item{\code{upwind_residuals}, \code{downwind_residuals}}{Scaled residuals of the upwind and downwind LMMs, which take the general form of (observed - fitted)/\eqn{\hat{\sigma}_e}, where the fitted values are either \code{upwind_fitted} or \code{downwind_fitted} and \eqn{\hat{\sigma}_e} denote the corresponding residual standard deviation. }
+#'   \item{\code{upwind_residuals}, \code{downwind_residuals}}{Scaled residuals of the upwind and downwind LMMs, which take the general form of (observed - fitted)/\eqn{\hat{\sigma}_e}, where the fitted values are either \ifelse{latex}{\out{\texttt{upwind\_\discretionary{}{}{}fitted}}}{\code{upwind_fitted}} or \code{downwind_fitted} and \eqn{\hat{\sigma}_e} denote the corresponding residual standard deviation. }
 #'   \item{\code{upwind_lmm_fixef}, \code{downwind_lmm_fixef}}{Matrices of fixed effect coefficients for the upwind and downwind LMMs, along with their corresponding standard error estimates and t-value computed from \code{\link[lme4]{summary.merMod}}.}
 #'   \item{\code{upwind_lmm_varcomp}, \code{downwind_lmm_varcomp}}{Data frames containing the estimated variance components for the upwind and downwind LMMs.}
 #' }
