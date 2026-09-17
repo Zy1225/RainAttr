@@ -56,7 +56,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 
 \item{individual_rain_interval}{Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \ifelse{latex}{
   \out{\texttt{winsorize\_\discretionary{}{}{}individual\_\discretionary{}{}{}rain = TRUE}}}{\code{winsorize_individual_rain = TRUE}}.
-(User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
+(User-configurable bootstrap option using \ifelse{latex}{\link[=bootstrap_opt]{\out{\texttt{bootstrap\_\discretionary{}{}{}opt}}}}{\code{\link{bootstrap_opt}}})}
 
 \item{winsorize_total_rain}{Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are proportionally rescaled so that the total equals a random number drawn uniformly from
 \code{[total_rain_interval[1], total_rain_interval[2]]} whenever the total bootstrapped rainfall falls outside this interval.
@@ -93,7 +93,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{ori_fitted_models}{A list containing the models fitted to the \code{ori_data}, including the upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, downwind (second stage) logistic model for rainfall event indicator, and downwind (second stage) propensity score model.
-(Internal argument set automatically when using \code{\link{rain_attr}})}
+(Internal argument set automatically when using \ifelse{latex}{\link[=rain_attr]{\out{\texttt{rain\_\discretionary{}{}{}attr}}}}{\code{\link{rain_attr}}})}
 
 \item{downwind_lmm_formula}{A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
@@ -111,7 +111,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{ori_attr_est}{A numeric vector containing the original attribution estimates (\code{apo} and \code{apl}) from the original dataset.
-(Internal argument set automatically when using \code{\link{rain_attr}})}
+(Internal argument set automatically when using \ifelse{latex}{\link[=rain_attr]{\out{\texttt{rain\_\discretionary{}{}{}attr}}}}{\code{\link{rain_attr}}})}
 
 \item{ori_sate_est}{A numeric vector containing the original SATE estimates (\code{sate.mb}, \code{sate.ipw}, \code{sate.ipw.l}, \code{sate.ipw.ma} and \code{sate.aipw}) from the original dataset.
 (Internal argument set automatically when using \code{\link{rain_attr}})}

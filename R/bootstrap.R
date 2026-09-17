@@ -173,7 +173,7 @@
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param individual_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \ifelse{latex}{
 #'   \out{\texttt{winsorize\_\discretionary{}{}{}individual\_\discretionary{}{}{}rain = TRUE}}}{\code{winsorize_individual_rain = TRUE}}.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
+#'   (User-configurable bootstrap option using \ifelse{latex}{\link[=bootstrap_opt]{\out{\texttt{bootstrap\_\discretionary{}{}{}opt}}}}{\code{\link{bootstrap_opt}}})
 #' @param winsorize_total_rain Logical. If \code{TRUE}, all individual rainfall values in each bootstrap sample are proportionally rescaled so that the total equals a random number drawn uniformly from
 #'   \code{[total_rain_interval[1], total_rain_interval[2]]} whenever the total bootstrapped rainfall falls outside this interval.
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
@@ -199,7 +199,7 @@
 #' @param downwind_control_expr A quosure (created using `rlang::enquo()`) representing a logical expression used to extract the relevant subset of downwind (second stage) observations from \code{ori_data} that were not exposed to treatment (operating ionizers).
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param ori_fitted_models A list containing the models fitted to the \code{ori_data}, including the upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, downwind (second stage) logistic model for rainfall event indicator, and downwind (second stage) propensity score model.
-#'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#'   (Internal argument set automatically when using \ifelse{latex}{\link[=rain_attr]{\out{\texttt{rain\_\discretionary{}{}{}attr}}}}{\code{\link{rain_attr}}})
 #' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
@@ -211,7 +211,7 @@
 #' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param ori_attr_est A numeric vector containing the original attribution estimates (\code{apo} and \code{apl}) from the original dataset.
-#'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#'   (Internal argument set automatically when using \ifelse{latex}{\link[=rain_attr]{\out{\texttt{rain\_\discretionary{}{}{}attr}}}}{\code{\link{rain_attr}}})
 #' @param ori_sate_est A numeric vector containing the original SATE estimates (\code{sate.mb}, \code{sate.ipw}, \code{sate.ipw.l}, \code{sate.ipw.ma} and \code{sate.aipw}) from the original dataset.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 
@@ -837,7 +837,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #' @param B_bootstrap An integer specifying the number of bootstrap replicates. Default is 10000.
 #' @param bootstrap_type A character string specifying the type of bootstrap.
 #'   Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
-#'   \code{"PREB1"}, \code{"PREB2"}, or \code{"MREB1"}. See \code{\link{bootstrap_downwind}} for their differences.
+#'   \code{"PREB1"}, \code{"PREB2"}, or \code{"MREB1"}. See \ifelse{latex}{\link[=bootstrap_downwind]{\out{\texttt{bootstrap\_\discretionary{}{}{}downwind}}}}{\code{\link{bootstrap_downwind}}} for their differences.
 #'   Default is "PREB1".
 #' @param bootstrap_zero Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators. Default is \code{TRUE}.
 #' @param positive_prob_threshold An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero. Default is \code{NULL}.

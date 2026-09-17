@@ -68,9 +68,9 @@
 
 \item{...}{Additional arguments passed to methods.}
 
-\item{x}{An \bold{R} object to be printed or plotted. For \code{print.rain_attr()} and
-\ifelse{latex}{\out{\texttt{plot.\discretionary{}{}{}rain\_\discretionary{}{}{}attr()}}}{\code{plot.rain_attr()}}, an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}; for
-\code{print.summary.rain_attr()}, an \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}, i.e., an output from applying \code{\link{summary.rain_attr}} to an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}.}
+\item{x}{An \bold{R} object to be printed or plotted. For \code{\link{print.rain_attr}} and
+\ifelse{latex}{\link[=plot.rain_attr]{\out{\texttt{plot.\discretionary{}{}{}rain\_\discretionary{}{}{}attr}}}}{\code{\link{plot.rain_attr}}}, an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}; for
+\ifelse{latex}{\link[=print.summary.rain_attr]{\out{\texttt{print.\discretionary{}{}{}summary.\discretionary{}{}{}rain\_\discretionary{}{}{}attr}}}}{\code{\link{print.summary.rain_attr}}}, an \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}, i.e., an output from applying \code{\link{summary.rain_attr}} to an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}.}
 
 \item{residual_type}{An optional character string specifying the type of residuals. Must be one of \code{"response"} (default for LMMs), \code{"deviance"} (default for GLMs), \code{"working"}, or \code{"pearson"}. An additional choice for GLMs is \code{"partial"}, but this residual type can only be used with \code{\link{residuals.rain_attr}} but not \code{\link{plot.rain_attr}}.
 See \code{\link[lme4]{residuals.merMod}} and \code{\link{residuals.glm}} for definition of each residual type of LMMs and GLMs, respectively.}

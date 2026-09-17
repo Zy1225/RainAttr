@@ -66,7 +66,7 @@ The order of names in this vector must match the column order of the correspondi
 (User-configurable permutation option using \code{\link{permutation_opt}})}
 
 \item{permutation_parallel_num_worker}{An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{permutation\_\discretionary{}{}{}parallel = TRUE}}}{\code{permutation_parallel = TRUE}}.
-(User-configurable permutation option using \code{\link{permutation_opt}})}
+(User-configurable permutation option using \ifelse{latex}{\link[=permutation_opt]{\out{\texttt{permutation\_\discretionary{}{}{}opt}}}}{\code{\link{permutation_opt}}})}
 
 \item{data}{A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 Its column names should contain \code{data_target_column_names} (binary target indicators) and \code{ionizer_operation_day_column_name} (day).

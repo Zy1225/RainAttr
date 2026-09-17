@@ -33,7 +33,7 @@
 #' @param permutation_parallel Logical. If \code{TRUE}, each permutation run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
 #' (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{permutation\_\discretionary{}{}{}parallel = TRUE}}}{\code{permutation_parallel = TRUE}}.
-#' (User-configurable permutation option using \code{\link{permutation_opt}})
+#' (User-configurable permutation option using \ifelse{latex}{\link[=permutation_opt]{\out{\texttt{permutation\_\discretionary{}{}{}opt}}}}{\code{\link{permutation_opt}}})
 #' @param data A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 #'   Its column names should contain \code{data_target_column_names} (binary target indicators) and \code{ionizer_operation_day_column_name} (day).
 #'   The row order of this data frame must match that of \code{gaugeday_downwind_input}.

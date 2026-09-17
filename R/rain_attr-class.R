@@ -39,9 +39,9 @@
 #'   Also print the model formula, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard errors and t-values computed from \code{\link[lme4]{summary.merMod}}.}
 #'}
 #'
-#' @param x An \bold{R} object to be printed or plotted. For `print.rain_attr()` and
-#'   \ifelse{latex}{\out{\texttt{plot.\discretionary{}{}{}rain\_\discretionary{}{}{}attr()}}}{\code{plot.rain_attr()}}, an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}; for
-#'   `print.summary.rain_attr()`, an \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}, i.e., an output from applying \code{\link{summary.rain_attr}} to an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}.
+#' @param x An \bold{R} object to be printed or plotted. For \code{\link{print.rain_attr}} and
+#'   \ifelse{latex}{\link[=plot.rain_attr]{\out{\texttt{plot.\discretionary{}{}{}rain\_\discretionary{}{}{}attr}}}}{\code{\link{plot.rain_attr}}}, an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}; for
+#'   \ifelse{latex}{\link[=print.summary.rain_attr]{\out{\texttt{print.\discretionary{}{}{}summary.\discretionary{}{}{}rain\_\discretionary{}{}{}attr}}}}{\code{\link{print.summary.rain_attr}}}, an \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}, i.e., an output from applying \code{\link{summary.rain_attr}} to an \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}.
 #' @param object An \bold{R} object of class \code{\link[=rain_attr-class]{rain_attr}}, i.e., an output from \code{\link{rain_attr}}.
 #' @param model An optional character string specifying which fitted model to focus on. Must be one of \code{"upwind_lmm"}, \code{"downwind_lmm"} (default), \code{"downwind_target_lmm"}, \code{"downwind_control_lmm"}, \code{"downwind_logistic"}, or \code{"downwind_propensity"}. See "Details" for more information.
 #' @param residual_type An optional character string specifying the type of residuals. Must be one of \code{"response"} (default for LMMs), \code{"deviance"} (default for GLMs), \code{"working"}, or \code{"pearson"}. An additional choice for GLMs is \code{"partial"}, but this residual type can only be used with \code{\link{residuals.rain_attr}} but not \code{\link{plot.rain_attr}}.

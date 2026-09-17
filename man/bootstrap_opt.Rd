@@ -25,7 +25,7 @@ bootstrap_opt(
 
 \item{bootstrap_type}{A character string specifying the type of bootstrap.
 Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
-\code{"PREB1"}, \code{"PREB2"}, or \code{"MREB1"}. See \code{\link{bootstrap_downwind}} for their differences.
+\code{"PREB1"}, \code{"PREB2"}, or \code{"MREB1"}. See \ifelse{latex}{\link[=bootstrap_downwind]{\out{\texttt{bootstrap\_\discretionary{}{}{}downwind}}}}{\code{\link{bootstrap_downwind}}} for their differences.
 Default is "PREB1".}
 
 \item{bootstrap_zero}{Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators. Default is \code{TRUE}.}
