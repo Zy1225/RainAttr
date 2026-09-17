@@ -36,8 +36,8 @@
 #'
 #' \item{\code{REB1}}{
 #' Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{REB0} with
-#' \eqn{\hat{u}_{ij}^{cs} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} \hat{u}_i^2 \}^{-1/2} } and
-#' \eqn{\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2} }, respectively,
+#' \deqn{\hat{u}_{ij}^{cs} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} \hat{u}_i^2 \}^{-1/2} } and
+#' \deqn{\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2},} respectively,
 #' where \eqn{ \hat{u}_i^c = \hat{u}_i - D^{-1} \sum_{i'=1}^{D} \hat{u}_{i'} }, \eqn{\hat{\sigma}^2_u} and \eqn{\hat{\sigma}^2_e} are the estimated variances of random intercepts and error terms from the fitted downwind (second stage) LMM, and \eqn{N = \sum_{i=1}^{D} n_i} is the total number of observations from \code{ori_data} satisfying \code{downwind & ori_positive}.
 #' }
 #'
@@ -49,7 +49,7 @@
 #'    \itemize{
 #'     \item \eqn{u_i^* = SRSWR( (\hat{u}_1, \ldots, \hat{u}_D ), 1 )} for \eqn{i=1,\ldots, D^*}.
 #'     \item First, sample the donor cluster \eqn{d_i^* = PPSWR{ (1,\ldots,D), (n_1,\cdots, n_D), 1 } } for \eqn{i = 1,\ldots, D^*},
-#'     where \eqn{PPSWR(a,b,c)} denotes the outcome of \eqn{c} independent draws based on probability-proportional-to-size sampling with replacement from the vector \eqn{a = (a_1,\ldots, a_D)} with corresponding sizes given by the vector \eqn{b = (b_1,\ldots,b_D)},
+#'     where \eqn{PPSWR(a,b,c)} denotes the outcome of \eqn{c} independent draws based on probability-proportional-to-size sampling with replacement from the vector \ifelse{latex}{\out{\(a = (a_1,\allowbreak\ldots,\allowbreak a_D)\)}}{\eqn{a = (a_1,\ldots, a_D)}} with corresponding sizes given by the vector \eqn{b = (b_1,\ldots,b_D)},
 #'     i.e., the probability of \eqn{a_i} being selected is given as \eqn{b_i / \sum_{i' = 1}^{D} b_{i'}}.
 #'     Then, sample
 #'     \eqn{e_i^* = (e_{i1}^*, \ldots, e_{in_i^*}^*)^\top = SRSWR( ( \hat{e}_{d_i^* 1}, \ldots, \hat{e}_{d_i^* n_{d_i^*}} ), n_i^*    )  }.
@@ -58,8 +58,8 @@
 #'
 #' \item{\code{PREB1}}{
 #' Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{PREB0} with
-#' \eqn{\hat{u}_{ij}^{sc} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} (\hat{u}_i^c)^2 \}^{-1/2} } and
-#' \eqn{\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2} }, respectively.
+#' \deqn{\hat{u}_{ij}^{sc} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} (\hat{u}_i^c)^2 \}^{-1/2} } and
+#' \deqn{\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2},} respectively.
 #' }
 #'
 #' \item{\code{PREB2}}{
@@ -69,7 +69,7 @@
 #' \item{\code{MREB1}}{
 #' Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{REB0} with
 #' \eqn{\hat{u}_{ij}^{sc}} defined under \code{PREB1} and
-#' \eqn{\tilde{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{  \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } D^{-1} n_{i'}^{-1} \hat{e}_{i'j'}^2  \}^{-1/2} }, respectively.
+#' \deqn{\tilde{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{  \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } D^{-1} n_{i'}^{-1} \hat{e}_{i'j'}^2  \}^{-1/2},} respectively.
 #' }
 #'
 #' }
