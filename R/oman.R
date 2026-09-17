@@ -20,13 +20,24 @@
 #'    \item{Positive.Rainfall}{Observed rainfall for rainfall events; NA if no rainfall occurred}
 #'    \item{LogRain}{Log-transformed rainfall for rainfall events; NA if no rainfall occurred}
 #'    \item{Rainfall.Measurement.Status}{Character variable indicating the gauge’s location relative to deployed ionizers based on the day’s wind direction, with possible values: "Upwind", "Downwind", "Out of Scope"}
-#'    \item{Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10}{Binary indicator variables showing whether the gauge is downwind of the ionizer and the ionizer has been deployed and turned on on that day (1 = yes, 0 = no)}
+#'    \item{Target.H.01}{Binary indicator for ionizer H1 showing whether the gauge is downwind of the ionizer and the ionizer has been deployed and turned on on that day (1 = yes, 0 = no)}
+#'    \item{Target.H.02}{Same as Target.H.01, for ionizer H2}
+#'    \item{Target.H.03}{Same as Target.H.01, for ionizer H3}
+#'    \item{Target.H.04}{Same as Target.H.01, for ionizer H4}
+#'    \item{Target.H.05}{Same as Target.H.01, for ionizer H5}
+#'    \item{Target.H.06}{Same as Target.H.01, for ionizer H6}
+#'    \item{Target.H.07}{Same as Target.H.01, for ionizer H7}
+#'    \item{Target.H.08}{Same as Target.H.01, for ionizer H8}
+#'    \item{Target.H.09}{Same as Target.H.01, for ionizer H9}
+#'    \item{Target.H.10}{Same as Target.H.01, for ionizer H10}
 #'    \item{Gauge.Day.Type}{Character variable that further classifies "Downwind" observations
 #'      - "Target" – downwind of at least one active ionizer (i.e., at least one of Target.H.01 -- Target.H.10 = 1)
 #'      - "Control" – downwind of all inactive ionizers (i.e., all Target.H.01 -- Target.H.10 = 0)
 #'
 #'    Observations that are "Upwind" or "Out of Scope" retain the same classification as Rainfall.Measurement.Status. Thus, the variable has four possible values: "Upwind", "Target", "Control", "Out of Scope".}
-#'    \item{PC1.Dry.Temperature, PC2.Dry.Temperature,PC1.Relative.Humidity, PC2..Relative.Humidity,PC1.Ground.Level.Pressure}{Principal component of meteorological variables}
+#'    \item{PC1.Dry.Temperature, PC2.Dry.Temperature}{First and second principal components of dry temperature}
+#'    \item{PC1.Relative.Humidity, PC2.Relative.Humidity}{First and second principal components of relative humidity}
+#'    \item{PC1.Ground.Level.Pressure}{First principal component of ground-level pressure}
 #'    \item{Steering.Wind.Direction, Steering.Wind.Principal.Direction, Steering.Wind.Speed}{Wind-related measures}
 #'    \item{Lifted.Index, Total.Totals}{Atmospheric instability indices}
 #'    \item{LCL.Pressure}{A measure of cloud base height}

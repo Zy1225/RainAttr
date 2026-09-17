@@ -30,53 +30,71 @@
 #' @param fps An optional numeric specifying frames per second for animated maps. Default is \code{10}.
 #' @param wind_direction_column_name An optional character string that refers to the column name of the daily wind direction in \code{data}. The wind direction should be expressed in degree, e.g., 90 represents easterly wind. If this is supplied, arrows representing daily wind direction are plotted on the animated map. It is recommended to supply \code{long_lim} and \code{lat_lim} so that the map is approximately square, ensuring that the wind arrow lengths appear visually consistent across directions.
 #' @param wind_arrow_long_lat An optional numeric vector of length 2 specifying the longitude and latitude for the starting point of the wind arrows. If not supplied, it is set to be \code{c( long_lim[2] - (long_lim[2] - long_lim[1]) / 5,lat_lim[2] - (lat_lim[2] - lat_lim[1]) / 5)}.  This is only used when \code{wind_direction_column_name} is supplied.
-#' @param wind_speed_column_name An optional character string that refers to the column name of the daily wind speed in \code{data}. If supplied, wind arrow lengths are equal to wind speed multiplied with \code{wind_speed_scaling}. Otherwise, arrow lengths are constant and equal to \code{wind_speed_scaling}. This is only used when \code{wind_direction_column_name} is supplied.
-#' @param wind_speed_scaling An optional positive numeric value controlling arrow length. If \code{wind_speed_column_name} is supplied,  wind arrow lengths are equal to wind speed multiplied with this value.  Otherwise, all wind arrows have length equal to this value. Default is 0.1 when \code{wind_speed_column_name} is supplied, and 1 otherwise. This is only used when \code{wind_direction_column_name} is supplied.
+#' @param wind_speed_column_name An optional character string that refers to the column name of the daily wind speed in \code{data}. If supplied, wind arrow lengths are equal to wind speed multiplied with \code{wind_speed_scaling}. Otherwise, arrow lengths are constant and equal to \code{wind_speed_scaling}. This is only used when \ifelse{latex}{\out{\texttt{wind\_\discretionary{}{}{}direction\_\discretionary{}{}{}column\_\discretionary{}{}{}name}}}{\code{wind_direction_column_name}} is supplied.
+#' @param wind_speed_scaling An optional positive numeric value controlling arrow length. If \ifelse{latex}{\out{\texttt{wind\_\discretionary{}{}{}speed\_\discretionary{}{}{}column\_\discretionary{}{}{}name}}}{\code{wind_speed_column_name}} is supplied,  wind arrow lengths are equal to wind speed multiplied with this value.  Otherwise, all wind arrows have length equal to this value. Default is 0.1 when \code{wind_speed_column_name} is supplied, and 1 otherwise. This is only used when \code{wind_direction_column_name} is supplied.
 #' @param animate_filename An optional character string specifying the file name used to save the animated map as a GIF. The file name should end with \code{".gif"}. If \code{animate_filename} is not supplied, no GIF is saved on disk.
-#' @param upwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \code{Gauge.Day.Type == "Upwind"}.
+#' @param upwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the upwind (first stage) LMM fitting. For example, \ifelse{latex}{\out{\texttt{Gauge.\discretionary{}{}{}Day.\discretionary{}{}{}Type == "Upwind"}}}{\code{Gauge.Day.Type == "Upwind"}}.
 #' @param downwind_subset A logical expression used to extract the relevant subset of observations from \code{data} to be used in the downwind (second stage) LMM fitting. For example, \code{Gauge.Day.Type \%in\% c("Target","Control")}.
 #' @param downwind_target_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Target"}.
 #' @param downwind_control_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Control"}.
 #' @param positive_subset A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall. For example, \code{Rain.Gauge.Measurement > 0}.
 #'
 #' @details
-#' Each \code{eda_type} has its own behavior and relevant arguments provided in parentheses:
+#' Each \code{eda_type} has its own required arguments and behavior:
 #'
 #' \describe{
-#'   \item{`num_obs_days` (\code{data}, \code{day_column_name}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset})}{
-#'     Computes contingency tables of the number of observations and number of unique days for each subset
-#'     (\code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}), with columns corresponding to positive vs zero rainfall events.
+#'   \item{`num_obs_days`}{\if{latex}{\out{\mbox{}\newline}}
+#'   \emph{Required arguments:} \code{data}, \code{day_column_name}, \code{upwind_subset}, \code{downwind_subset}, \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}target\_\discretionary{}{}{}subset}}}{\code{downwind_target_subset}}, \code{downwind_control_subset}, and \code{positive_subset}.
+#'
+#'    \emph{Behaviour:} Computes contingency tables of the number of observations and number of unique days for each subset
+#'     (\code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}control\_\discretionary{}{}{}subset}}}{\code{downwind_control_subset}}), with columns corresponding to positive vs zero rainfall events.
 #'   }
-#'   \item{`num_obs_days_by_year` (\code{data}, \code{day_column_name}, \code{year_column_name}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset})}{
-#'     Same as \code{num_obs_days}, but computed separately for each year.
+#'   \item{`num_obs_days_by_year`}{\if{latex}{\out{\mbox{}\newline}}
+#'   \emph{Required arguments:} \code{data}, \code{day_column_name}, \code{year_column_name}, \code{upwind_subset}, \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}subset}}}{\code{downwind_subset}}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset}.
+#'
+#'   \emph{Behaviour:} Same as \code{num_obs_days}, but computed separately for each year.
 #'   }
-#'   \item{`hist_day_group_sizes` (\code{data}, \code{day_column_name}, \code{upwind_subset}, \code{downwind_subset}, \code{positive_subset})}{
-#'     Plots histograms of group sizes for days in \code{upwind_subset} and \code{downwind_subset} with positive rainfall.
+#'   \item{`hist_day_group_sizes`}{\if{latex}{\out{\mbox{}\newline}}
+#'   \emph{Required arguments:} \code{data}, \code{day_column_name}, \code{upwind_subset}, \code{downwind_subset}, \ifelse{latex}{\out{\texttt{positive\_\discretionary{}{}{}subset}}}{\code{positive_subset}}
+#'
+#'   \emph{Behaviour:} Plots histograms of group sizes for days in \code{upwind_subset} and \code{downwind_subset} with positive rainfall.
 #'     The group size for a given day and type (\code{upwind_subset}, \code{downwind_subset}) is defined as the number of gauges satisfying that type and having positive rainfall on that day.
 #'   }
-#'   \item{`qq_rain` (\code{data}, \code{rain_col_name}, \code{use_raw}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset})}{
-#'     Produces Normal Q-Q plots for rainfall values (raw or log-transformed) for all observations satisfying \code{upwind_subset & positive_subset}, as well as those observations satisfying \code{downwind_subset & positive_subset}.
+#'   \item{`qq_rain`}{\if{latex}{\out{\mbox{}\newline}}
+#'   \emph{Required arguments:} \code{data}, \code{rain_col_name}, \code{use_raw}, \code{upwind_subset}, \code{downwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset}
+#'
+#'   \emph{Behaviour:} Produces Normal Q-Q plots for rainfall values (raw or log-transformed) for all observations satisfying \code{upwind_subset & positive_subset}, as well as those observations satisfying \code{downwind_subset & positive_subset}.
 #'   }
-#'   \item{`ts_by_type` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw}, \code{upwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset})}{
-#'     Plots daily average rainfall (raw or log-transformed) by subset (\code{upwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}), facetted by year.
+#'   \item{`ts_by_type`}{\if{latex}{\out{\mbox{}\newline}}
+#'   \emph{Required arguments:} \code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw}, \code{upwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}, \code{positive_subset}
+#'
+#'   \emph{Behaviour:} Plots daily average rainfall (raw or log-transformed) by subset (\code{upwind_subset}, \code{downwind_target_subset}, \code{downwind_control_subset}), facetted by year.
 #'     Averaging is performed only over observations with positive rainfall within each day.
 #'   }
-#'   \item{`ts_by_gauge` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw}, \code{gauge_id_column_name}, \code{ts_focus_gauge})}{
-#'     Plots daily rainfall (raw or log-transformed) time series for each gauge, optionally highlighting a subset of gauges, with faceting by year.
+#'   \item{`ts_by_gauge`}{\if{latex}{\out{\mbox{}\newline}}
+#'   \emph{Required arguments:} \code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw}, \code{gauge_id_column_name}, \code{ts_focus_gauge}
+#'
+#'   \emph{Behaviour:} Plots daily rainfall (raw or log-transformed) time series for each gauge, optionally highlighting a subset of gauges, with faceting by year.
 #'     When plotting log-transformed rainfall using \code{\link[ggplot2:ggplot]{ggplot2}}, observations with zero rainfall are represented as a point at the bottommost of the plot.
 #'   }
-#'   \item{`ts_by_gauge_interactive` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw}, \code{gauge_id_column_name}, \code{ts_focus_gauge})}{
-#'     Interactive version of \code{ts_by_gauge} using \code{\link[plotly:plot_ly]{plotly}}. Points show gauge identifiers on hover.
+#'   \item{`ts_by_gauge_interactive`}{\if{latex}{\out{\mbox{}\newline}}
+#'   \emph{Required arguments:} \code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw}, \code{gauge_id_column_name}, \code{ts_focus_gauge}
+#'
+#'   \emph{Behaviour:} Interactive version of \code{ts_by_gauge} using \code{\link[plotly:plot_ly]{plotly}}. Points show gauge identifiers on hover.
 #'     When plotting log-transformed rainfall (\code{use_raw = FALSE}), zero rainfall values result in \code{-Inf}.
 #'     Unlike \code{\link[ggplot2:ggplot]{ggplot2}}, \code{\link[plotly:plot_ly]{plotly}} will omit these points, breaking the lines. Therefore, users should be aware that lines may appear broken for days with zero rainfall when plotting log-transformed rainfall.
 #'   }
-#'   \item{`map_static` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw},  \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{positive_subset})}{
-#'     Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} and adding elevation contour lines if \code{elev_contour = TRUE} as well as plotting ionizers supplied via \code{ionizer_location_df}, with faceting by year.
+#'   \item{`map_static`}{\if{latex}{\out{\mbox{}\newline}}
+#'   \emph{Required arguments:} \code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name}, \code{use_raw},  \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \ifelse{latex}{\out{\texttt{ionizer\_\discretionary{}{}{}id\_\discretionary{}{}{}column\_\discretionary{}{}{}name}}}{\code{ionizer_id_column_name}}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \ifelse{latex}{\out{\texttt{positive\_\discretionary{}{}{}subset}}}{\code{positive_subset}}
+#'
+#'   \emph{Behaviour:} Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} and adding elevation contour lines if \code{elev_contour = TRUE} as well as plotting ionizers supplied via \code{ionizer_location_df}, with faceting by year.
 #'     Averaging is performed only over days with positive rainfall for each gauge. Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines (obtained from Amazon Web Services Terrain Tiles) when \code{elev_contour = TRUE}.
 #'   }
-#'   \item{`map_dynamic` (\code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \code{ionizer_id_column_name}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \code{wind_direction_column_name}, \code{wind_arrow_long_lat}, \code{wind_speed_column_name}, \code{wind_speed_scaling}, \code{focus_year}, \code{fps}, \code{animate_filename})}{
-#'     Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as adding elevation contour lines if \code{elev_contour = TRUE}, plotting ionizers supplied via \code{ionizer_location_df}, and plotting wind arrows based on daily wind directions supplied via \code{wind_direction_column_name}.
-#'     The animation frames are displayed in the order of \code{data[,day_column_name]}. Users should ensure that \code{data[,day_column_name]} contains values that can be meaningfully ordered (e.g., numeric or Date), rather than nominal/factor values, so the animation reflects the correct temporal progression.
+#'   \item{`map_dynamic`}{\if{latex}{\out{\mbox{}\newline}}
+#'   \emph{Required arguments:} \code{data}, \code{rain_col_name}, \code{day_column_name}, \code{year_column_name},  \code{use_raw}, \code{longlat_column_names}, \code{long_lim}, \code{lat_lim}, \code{input_sf}, \code{ionizer_location_df}, \ifelse{latex}{\out{\texttt{ionizer\_\discretionary{}{}{}id\_\discretionary{}{}{}column\_\discretionary{}{}{}name}}}{\code{ionizer_id_column_name}}, \code{ionizer_longlat_column_names}, \code{elev_contour}, \code{elev_resolution}, \ifelse{latex}{\out{\texttt{wind\_\discretionary{}{}{}direction\_\discretionary{}{}{}column\_\discretionary{}{}{}name}}}{\code{wind_direction_column_name}}, \code{wind_arrow_long_lat}, \code{wind_speed_column_name}, \ifelse{latex}{\out{\texttt{wind\_\discretionary{}{}{}speed\_\discretionary{}{}{}scaling}}}{\code{wind_speed_scaling}}, \code{focus_year}, \code{fps}, \code{animate_filename}
+#'
+#'   \emph{Behaviour:} Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument \code{focus_year} and overlaying an \code{\link[sf:st_as_sf]{sf}} polygon layer supplied via \code{input_sf} as well as adding elevation contour lines if \code{elev_contour = TRUE}, plotting ionizers supplied via \code{ionizer_location_df}, and plotting wind arrows based on daily wind directions supplied via \code{wind_direction_column_name}.
+#'     The animation frames are displayed in the order of \code{data[,day_column_name]}. Users should ensure that \ifelse{latex}{\out{\texttt{data[,day\_\discretionary{}{}{}column\_\discretionary{}{}{}name]}}}{\code{data[,day_column_name]}} contains values that can be meaningfully ordered (e.g., numeric or Date), rather than nominal/factor values, so the animation reflects the correct temporal progression.
 #'     Requires the \pkg{maps} package to draw map borders when \code{input_sf} is not supplied and the \pkg{gifski} package for rendering animated map. Also requires the \pkg{elevatr} and \pkg{raster} package to plot elevation contour lines (obtained from Amazon Web Services Terrain Tiles) when \code{elev_contour = TRUE}. When \code{animate_filename} is supplied, the resulting gif_image of the animated map will be saved to the location specified by \code{animate_filename}.
 #'   }
 #' }

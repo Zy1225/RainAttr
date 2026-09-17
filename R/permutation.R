@@ -14,7 +14,7 @@
 #' @param permute_between_gaugeday Logical. If \code{TRUE}, for each year, a random permutation is performed among the gauge-day level operation schedule of all gauge-days within that year.
 #'   (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param ionizer_operation_input A data frame containing ionizer operation indicators for each day (row) and each ionizer (column), where 1 indicates that an ionizer is turned on, 0 indicates that it is off and NA indicates that it is not deployed yet.
-#' Additionally, this data frame must include two columns with names specified by \code{ionizer_operation_day_column_name} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
+#' Additionally, this data frame must include two columns with names specified by \ifelse{latex}{\out{\texttt{ionizer\_\discretionary{}{}{}operation\_\discretionary{}{}{}day\_\discretionary{}{}{}column\_\discretionary{}{}{}name}}}{\code{ionizer_operation_day_column_name}} and \code{ionizer_operation_year_column_name}, containing the day and year for each row.
 #' Each day must appear only once in this data frame (no duplicated day entries).
 #' The ionizer columns must appear in the same order as specified by \code{data_target_column_names} and must be consistent with the column order in \code{gaugeday_downwind_input}.
 #'   (User-supplied using \code{\link{permutation_opt}})
@@ -32,7 +32,7 @@
 #' (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param permutation_parallel Logical. If \code{TRUE}, each permutation run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially.
 #' (User-configurable permutation option using \code{\link{permutation_opt}})
-#' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \code{permutation_parallel = TRUE}.
+#' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{permutation\_\discretionary{}{}{}parallel = TRUE}}}{\code{permutation_parallel = TRUE}}.
 #' (User-configurable permutation option using \code{\link{permutation_opt}})
 #' @param data A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 #'   Its column names should contain \code{data_target_column_names} (binary target indicators) and \code{ionizer_operation_day_column_name} (day).
@@ -44,7 +44,7 @@
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param x_downwind_name A character vector containing variable names from the right hand side of \code{downwind_lmm_formula}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
+#' @param x_downwind_name A character vector containing variable names from the right hand side of \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}lmm\_\discretionary{}{}{}formula}}}{\code{downwind_lmm_formula}}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -71,7 +71,7 @@
 #' \strong{Permutation Steps} \cr
 #' The permutation-based procedure considers to randomly permute ionizers' operation statuses via:
 #' \enumerate{
-#'    \item{If \code{permute_between_ionizer = TRUE}, for each row of the day-level \code{ionizer_operation_input} matrix, a random permutation is performed among the binary indicators in the row that correspond to ionizers that have already been deployed during the year of the row.
+#'    \item{If \code{permute_between_ionizer = TRUE}, for each row of the day-level \ifelse{latex}{\out{\texttt{ionizer\_\discretionary{}{}{}operation\_\discretionary{}{}{}input}}}{\code{ionizer_operation_input}} matrix, a random permutation is performed among the binary indicators in the row that correspond to ionizers that have already been deployed during the year of the row.
 #'    This is equivalent to randomly permuting the operation statuses of deployed ionizers for each day. }
 #'    \item{If \code{permute_all_ionizers_between_day = TRUE}, for each year, a random permutation is performed among all rows belonging to the year in the day-level \code{ionizer_operation_input} matrix.
 #'    This is equivalent to randomly permuting the daily operation schedules of all trial days belonging to each year.  }
