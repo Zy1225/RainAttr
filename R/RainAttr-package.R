@@ -21,4 +21,5 @@
 #'\itemize{
 #'  \item Chambers, R., Beare, S., Peak, S. and Al-Kalbani, M. (2022) Nudging a Pseudo-Science Towards a Science—The Role of Statistics in a Rainfall Enhancement Trial in Oman. \emph{International Statistical Review}, 90: 346–373.
 #'}
+#'@keywords internal
 "_PACKAGE"
