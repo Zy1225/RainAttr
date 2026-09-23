@@ -233,12 +233,12 @@ For full details of the bootstrap procedure, please see \code{\link{bootstrap_do
 This is done using one of the semiparametric bootstrap methods of Chambers & Chandra (2013) and Tho et al. (2025), which involves the use of marginal residuals from the fitted downwind (second stage) LMM.   }
 }
 The above attribution and SATE estimates are then computed based on each bootstrap sample of the positive rainfall, forming their respective bootstrap distributions. This function also provides bootstrap distributions of parameters associated with the downwind LMM (\code{downwind_lmm_formula}), downwind logistic model (\code{downwind_logistic_formula}), downwind propensity score model (\ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}propensity\_\discretionary{}{}{}formula}}}{\code{downwind_propensity_formula}}), downwind treatment-only LMM, and downwind control-only LMM.
-These bootstrap distributions are then used to compute bootstrap p-values (proportion of bootstrapped estimates that are negative), form bootstrap percentile confidence intervals (with confidence level specified in \code{bootstrap_option$CI_level}), and generate their respective plots.
+These bootstrap distributions are then used to compute bootstrap p-values (proportion of bootstrapped estimates that are less than or equal to zero), form bootstrap percentile confidence intervals (with confidence level specified in \code{bootstrap_option$CI_level}), and generate their respective plots.
 It is worth noting that the entire bootstrap procedure (including rainfall resampling, model fitting, and parameter estimation) can be run in parallel by setting \code{bootstrap_option$bootstrap_parallel = TRUE}, using \code{bootstrap_option$bootstrap_parallel_num_worker} workers.
 
 Finally, this function enables permutation-based inference on the attribution and SATE, by setting \code{permutation = TRUE} and supplying the relevant permutation options using \code{\link{permutation_opt}()}.
 For full details of the permutation-based procedure, please see \code{\link{permutation_ionizer}}. In short, the permutation-based procedure involves randomly permuting the operating schedules of the ionizers (treatment) and re-estimating the attribution and SATE based on the permuted data, from which permutation distributions of attribution and SATE estimates are formed.
-These permutation distributions are used to compute permutation p-values (proportion of permuted estimates that are greater than the observed estimates) and generate their respective plots.
+These permutation distributions are used to compute permutation p-values (proportion of permuted estimates that are greater than or equal to the observed estimates) and generate their respective plots.
 }
 \examples{
 result <- rain_attr(
