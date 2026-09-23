@@ -454,7 +454,7 @@ Table 3 and 4, which are identical to the following summary tables of upwind (fi
 ```{r}
 summary(headline)
 ```
-@chambers2022a reported a 95% bootstrap CI for `apl` in Section 5.1 as (10.10%,23.09%), based on 10000 bootstrap replicates, with a bootstrap p-value of less than 0.0001. In addition, they also reported a permutation p-value of 0.0007. Our bootstrap and permutation results for `apl` presented below differ for several reasons:
+@chambers2022a reported a 95% bootstrap CI for `apl` in Section 5.1 as (10.10%, 23.09%), based on 10000 bootstrap replicates, with a bootstrap p-value of less than 0.0001. In addition, they also reported a permutation p-value of 0.0007. Our bootstrap and permutation results for `apl` presented below differ for several reasons:
 
 * The inherent randomness of the bootstrap and permutation procedure, as well as the smaller number of bootstrap and permutation replicates used here (`bootstrap_opt(B_bootstrap = 500)` and `permutation_opt(B_permutation = 500)`) to reduce computational cost
 
