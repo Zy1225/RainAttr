@@ -38,6 +38,10 @@
 #'   Its column names should contain \code{data_target_column_names} (binary target indicators) and \code{ionizer_operation_day_column_name} (day).
 #'   The row order of this data frame must match that of \code{gaugeday_downwind_input}.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#'  @param downwind A logical vector indicating which observation in \code{data} would be used in the downwind (second stage) LMM fitting.
+#'   (Internal argument set automatically when using \code{\link{rain_attr}})
+#' @param positive A logical vector indicating which observation in \code{data} has positive rainfall.
+#'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind_lmm_formula A two sided linear formula object to be used in \link[lme4]{lmer}, describing both the fixed-effects and random intercept part of the downwind (second stage) LMM.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind_propensity_formula A two sided linear formula object to be used in \code{\link{glm}} with \code{family = "binomial"}, for fitting a propensity score model to the treatment indicators of downwind (second stage) observations.
@@ -48,7 +52,7 @@
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param rain_col_name A character string specifying the column name of the raw scale rainfall in \ifelse{latex}{\out{\texttt{ori\_\discretionary{}{}{}data}}}{\code{ori_data}}.
+#' @param rain_col_name A character string specifying the column name of the raw scale rainfall in \code{data}.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #'
 #' @return A list with two components:
@@ -65,7 +69,7 @@
 #' To perform permutation-based procedure, additional information need to be supplied through the following arguments of \code{\link{permutation_opt}}:
 #' \describe{
 #'  \item{\code{ionizer_operation_input}}{Day(group)-level ionizers operation schedule during the rainfall enhancement trial.}
-#'  \item{{gaugeday_downwind_input}}{Gauge-day(unit within group)-level information on relative orientation of gauges from ionizers each day.}
+#'  \item{\code{gaugeday_downwind_input}}{Gauge-day(unit within group)-level information on relative orientation of gauges from ionizers each day.}
 #' }
 #'
 #' \strong{Permutation Steps} \cr
@@ -92,9 +96,9 @@
 #'
 #'  \strong{Permutation Distribution of Attribution and SATE} \cr
 #' The same procedure described in \code{\link{rain_attr}} is then repeated on the permuted dataset, where the columns containing the binary target indicators and the binary indicators \eqn{I_{ij}} for exposure to ionizers (treatment) are replaced according to the permutation.
-#  This includes the fitting of the downwind (second stage) LMM, downwind (second stage) target-only LMM, downwind (second stage) control-only LMM to the subset of observations from \code{data} that are downwind (second stage) and with positive rainfall, where a gauge-day level observation is said to be downwind if the gauge is downwind of at least one deployed ionizer (not necessarily turned on) on that day i.e., at least one of the indicators is equal to one for that row of \code{gaugeday_downwind_input}.
-#' This includes the fitting of the downwind (second stage) LMM, downwind (second stage) target-only LMM, downwind (second stage) control-only LMM to the subset of observations from \code{data} that are downwind (second stage) and with positive rainfall, along with the fitting of downwind propensity score model to the subset of observations from \code{data} that are downwind (second stage) with the response being the permuted indicator \eqn{I_{ij}^*} for exposure to ionizers (treatment).
+#' This includes the fitting of the downwind (second stage) LMM, downwind (second stage) target-only LMM, downwind (second stage) control-only LMM to the subset of observations from \code{data} that satisfy \code{downwind & positive}, along with the fitting of downwind propensity score model to the same subset with the permuted indicator \eqn{I_{ij}^*} for exposure to ionizers (treatment) as the response.
 #' Finally, two attribution estimates and the SATE estimates are computed based on the estimation results of these models fitted to the permuted dataset, where \eqn{z_{ij}} (ionizer related covariate vector constructed from the binary target indicators) and \eqn{I_{ij}} are replaced by their permuted counterparts \eqn{z_{ij}^*} and \eqn{I_{ij}^*}, respectively.
+#' The subset of observations from \code{data} satisfying \code{downwind & positive} is held fixed across permutation replicates; only the ionizer-operation indicators and resulting treatment indicators are permuted.
 #'
 #' By repeatedly permuting ionizers' operation schedules, fitting models and computing attribution and SATE estimates for \code{B_permutation} number of times, this function returns the permutation distributions of
 #' \itemize{
@@ -120,7 +124,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
                                ionizer_operation_input, gaugeday_downwind_input,
                                data_target_column_names, ionizer_operation_year_column_name, ionizer_operation_day_column_name,
                                permutation_seed, permutation_parallel, permutation_parallel_num_worker,
-                               data, downwind_lmm_formula, downwind_propensity_formula,
+                               data, downwind, positive, downwind_lmm_formula, downwind_propensity_formula,
                                attr_type, x_downwind_name, target_only,
                                rain_col_name){
   #data_target_column_names are the column names of 'data', which correspond to the target indicators of all ionizers
@@ -159,8 +163,6 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
       set.seed(permutation_seed)
     }
 
-    downwind = apply(gaugeday_downwind_input,1,function(x){sum(x, na.rm=TRUE)}) > 0
-    positive = ( data[,rain_col_name] > 0)
 
     test_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
     z_downwind_name = setdiff(names(lme4::fixef(test_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
@@ -237,8 +239,6 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
       },error=function(e){cat(b,"th","Permutation Run Skipped due to ERROR :",conditionMessage(e), "\n")})
     }
   }else{
-    downwind = apply(gaugeday_downwind_input,1,function(x){sum(x, na.rm=TRUE)}) > 0
-    positive = ( data[,rain_col_name] > 0)
 
     test_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
     z_downwind_name = setdiff(names(lme4::fixef(test_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
