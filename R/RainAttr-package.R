@@ -1,6 +1,6 @@
 #' RainAttr: Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data
 #'
-#' The RainAttr package provides tools for estimation and inference of attribution and sample
+#' \code{RainAttr} provides tools for estimation and inference of attribution and sample
 #' average treatment effect in rainfall enhancement trials using a two-stage linear mixed model approach
 #' based on Chambers et al. (2022).
 #'
