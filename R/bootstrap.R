@@ -622,15 +622,17 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
         b_raw_y[(b_raw_y>0.7)&(b_raw_y<0.9)] = 0.8
       }
 
+
       if(winsorize_individual_rain){
-        b_raw_y[b_raw_y>175] <- 100+75*stats::runif(n=sum(b_raw_y>175))
+        b_raw_y[b_raw_y> individual_rain_interval[2]] = individual_rain_interval[1] + (individual_rain_interval[2] - individual_rain_interval[1]) * stats::runif(n=sum(b_raw_y> individual_rain_interval[2]))
       }
 
       if(winsorize_total_rain){
-        if(sum(b_raw_y)<6000 | sum(b_raw_y)>60000){
-          b_raw_y <- b_raw_y*(stats::runif(n=1,min=6000,max=60000))/sum(b_raw_y)
+        if(sum(b_raw_y)< total_rain_interval[1] | sum(b_raw_y)> total_rain_interval[2]){
+          b_raw_y = b_raw_y*(stats::runif(n=1,min=total_rain_interval[1], max=total_rain_interval[2]))/sum(b_raw_y)
         }
       }
+
 
       b_downwind_positive_data[,rain_col_name] = b_raw_y
 
