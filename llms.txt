@@ -1,9 +1,9 @@
 # RainAttr
 
-`RainAttr` provide tools for estimation and inference of attribution and
-sample average treatment effect in rainfall enhancement trials, based on
-the two-stage linear mixed model approach employed by [Chambers et
-al. (2022)](#references). It also provides tools for exploratory
+`RainAttr` provides tools for estimation and inference of attribution
+and sample average treatment effect in rainfall enhancement trials,
+based on the two-stage linear mixed model approach employed by [Chambers
+et al. (2022)](#references). It also provides tools for exploratory
 analysis of rainfall enhancement trial data.
 
 ## Installation
@@ -210,7 +210,7 @@ citation("RainAttr")
 #> 
 #>   Tho Z, Chambers R, Welsh A (2026). _RainAttr: Attribution and Sample
 #>   Average Treatment Effect for Rainfall Enhancement Trial Data_. R
-#>   package version 0.0.0.9000, <https://github.com/Zy1225/RainAttr>.
+#>   package version 0.0.0.9001, <https://github.com/Zy1225/RainAttr>.
 #> 
 #> A BibTeX entry for LaTeX users is
 #> 
@@ -218,7 +218,7 @@ citation("RainAttr")
 #>     title = {RainAttr: Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data},
 #>     author = {Zhi Yang Tho and Raymond Chambers and A. H. Welsh},
 #>     year = {2026},
-#>     note = {R package version 0.0.0.9000},
+#>     note = {R package version 0.0.0.9001},
 #>     url = {https://github.com/Zy1225/RainAttr},
 #>   }
 ```

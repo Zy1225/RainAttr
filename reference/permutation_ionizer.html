@@ -9,7 +9,7 @@ It allows for flexible permutation schemes, including permutations between ioniz
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,6 +56,8 @@ It allows for flexible permutation schemes, including permutations between ioniz
 <span>  <span class="va">permutation_parallel</span>,</span>
 <span>  <span class="va">permutation_parallel_num_worker</span>,</span>
 <span>  <span class="va">data</span>,</span>
+<span>  <span class="va">downwind</span>,</span>
+<span>  <span class="va">positive</span>,</span>
 <span>  <span class="va">downwind_lmm_formula</span>,</span>
 <span>  <span class="va">downwind_propensity_formula</span>,</span>
 <span>  <span class="va">attr_type</span>,</span>
@@ -138,6 +140,13 @@ The order of names in this vector must match the column order of the correspondi
 <dd><p>A data frame containing the original dataset used in <code><a href="rain_attr.html">rain_attr</a></code>, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 Its column names should contain <code>data_target_column_names</code> (binary target indicators) and <code>ionizer_operation_day_column_name</code> (day).
 The row order of this data frame must match that of <code>gaugeday_downwind_input</code>.
+(Internal argument set automatically when using <code><a href="rain_attr.html">rain_attr</a></code>)
+@param downwind A logical vector indicating which observation in <code>data</code> would be used in the downwind (second stage) LMM fitting.
+(Internal argument set automatically when using <code><a href="rain_attr.html">rain_attr</a></code>)</p></dd>
+
+
+<dt id="arg-positive">positive<a class="anchor" aria-label="anchor" href="#arg-positive"></a></dt>
+<dd><p>A logical vector indicating which observation in <code>data</code> has positive rainfall.
 (Internal argument set automatically when using <code><a href="rain_attr.html">rain_attr</a></code>)</p></dd>
 
 
@@ -167,7 +176,7 @@ The row order of this data frame must match that of <code>gaugeday_downwind_inpu
 
 
 <dt id="arg-rain-col-name">rain_col_name<a class="anchor" aria-label="anchor" href="#arg-rain-col-name"></a></dt>
-<dd><p>A character string specifying the column name of the raw scale rainfall in <code>ori_data</code>.
+<dd><p>A character string specifying the column name of the raw scale rainfall in <code>data</code>.
 (Internal argument set automatically when using <code><a href="rain_attr.html">rain_attr</a></code>)</p></dd>
 
 </dl></div>
@@ -188,7 +197,7 @@ Instead, permutation-based inference should be performed by calling <code><a hre
 <p>To perform permutation-based procedure, additional information need to be supplied through the following arguments of <code><a href="permutation_opt.html">permutation_opt</a></code>:</p><dl><dt><code>ionizer_operation_input</code></dt>
 <dd><p>Day(group)-level ionizers operation schedule during the rainfall enhancement trial.</p></dd>
 
-<dt>gaugeday_downwind_input</dt>
+<dt><code>gaugeday_downwind_input</code></dt>
 <dd><p>Gauge-day(unit within group)-level information on relative orientation of gauges from ionizers each day.</p></dd>
 
 
@@ -207,8 +216,9 @@ Therefore, it is important to ensure that</p><ul><li><p>The row order of <code>g
 </ul><p>Based on these permuted binary target indicators, the original binary indicators \(I_{ij}\) for exposure to ionizers (treatment) are also updated to be their permuted counterparts \(I_{ij}^*\), where \(I_{ij}^*\) only equals zero if all permuted binary target indicators in its corresponding row equal zero.</p>
 <p><strong>Permutation Distribution of Attribution and SATE</strong> <br>
 The same procedure described in <code><a href="rain_attr.html">rain_attr</a></code> is then repeated on the permuted dataset, where the columns containing the binary target indicators and the binary indicators \(I_{ij}\) for exposure to ionizers (treatment) are replaced according to the permutation.
-This includes the fitting of the downwind (second stage) LMM, downwind (second stage) target-only LMM, downwind (second stage) control-only LMM to the subset of observations from <code>data</code> that are downwind (second stage) and with positive rainfall, along with the fitting of downwind propensity score model to the subset of observations from <code>data</code> that are downwind (second stage) with the response being the permuted indicator \(I_{ij}^*\) for exposure to ionizers (treatment).
-Finally, two attribution estimates and the SATE estimates are computed based on the estimation results of these models fitted to the permuted dataset, where \(z_{ij}\) (ionizer related covariate vector constructed from the binary target indicators) and \(I_{ij}\) are replaced by their permuted counterparts \(z_{ij}^*\) and \(I_{ij}^*\), respectively.</p>
+This includes the fitting of the downwind (second stage) LMM, downwind (second stage) target-only LMM, downwind (second stage) control-only LMM to the subset of observations from <code>data</code> that satisfy <code>downwind &amp; positive</code>, along with the fitting of downwind propensity score model to the same subset with the permuted indicator \(I_{ij}^*\) for exposure to ionizers (treatment) as the response.
+Finally, two attribution estimates and the SATE estimates are computed based on the estimation results of these models fitted to the permuted dataset, where \(z_{ij}\) (ionizer related covariate vector constructed from the binary target indicators) and \(I_{ij}\) are replaced by their permuted counterparts \(z_{ij}^*\) and \(I_{ij}^*\), respectively.
+The subset of observations from <code>data</code> satisfying <code>downwind &amp; positive</code> is held fixed across permutation replicates; only the ionizer-operation indicators and resulting treatment indicators are permuted.</p>
 <p>By repeatedly permuting ionizers' operation schedules, fitting models and computing attribution and SATE estimates for <code>B_permutation</code> number of times, this function returns the permutation distributions of</p><ul><li><p>Two attribution estimates</p></li>
 <li><p>Five SATE estimates</p></li>
 </ul><p><strong>Permutation-Based P-Value and Permutation-Based Plots</strong> <br>

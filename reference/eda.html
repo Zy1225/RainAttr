@@ -9,7 +9,7 @@ including summaries of observation types and positive rainfall events, time seri
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -211,40 +211,49 @@ The data frame must contain columns specified by <code>ionizer_id_column_name</c
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Each <code>eda_type</code> has its own behavior and relevant arguments provided in parentheses:</p>
-<dl><dt><code>num_obs_days</code> (<code>data</code>, <code>day_column_name</code>, <code>upwind_subset</code>, <code>downwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>, <code>positive_subset</code>)</dt>
-<dd><p>Computes contingency tables of the number of observations and number of unique days for each subset
+    <p>Each <code>eda_type</code> has its own required arguments and behavior:</p>
+<dl><dt><code>num_obs_days</code></dt>
+<dd><p><em>Required arguments:</em> <code>data</code>, <code>day_column_name</code>, <code>upwind_subset</code>, <code>downwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>, and <code>positive_subset</code>.</p>
+<p><em>Behaviour:</em> Computes contingency tables of the number of observations and number of unique days for each subset
 (<code>upwind_subset</code>, <code>downwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>), with columns corresponding to positive vs zero rainfall events.</p></dd>
 
-<dt><code>num_obs_days_by_year</code> (<code>data</code>, <code>day_column_name</code>, <code>year_column_name</code>, <code>upwind_subset</code>, <code>downwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>, <code>positive_subset</code>)</dt>
-<dd><p>Same as <code>num_obs_days</code>, but computed separately for each year.</p></dd>
+<dt><code>num_obs_days_by_year</code></dt>
+<dd><p><em>Required arguments:</em> <code>data</code>, <code>day_column_name</code>, <code>year_column_name</code>, <code>upwind_subset</code>, <code>downwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>, <code>positive_subset</code>.</p>
+<p><em>Behaviour:</em> Same as <code>num_obs_days</code>, but computed separately for each year.</p></dd>
 
-<dt><code>hist_day_group_sizes</code> (<code>data</code>, <code>day_column_name</code>, <code>upwind_subset</code>, <code>downwind_subset</code>, <code>positive_subset</code>)</dt>
-<dd><p>Plots histograms of group sizes for days in <code>upwind_subset</code> and <code>downwind_subset</code> with positive rainfall.
+<dt><code>hist_day_group_sizes</code></dt>
+<dd><p><em>Required arguments:</em> <code>data</code>, <code>day_column_name</code>, <code>upwind_subset</code>, <code>downwind_subset</code>, <code>positive_subset</code></p>
+<p><em>Behaviour:</em> Plots histograms of group sizes for days in <code>upwind_subset</code> and <code>downwind_subset</code> with positive rainfall.
 The group size for a given day and type (<code>upwind_subset</code>, <code>downwind_subset</code>) is defined as the number of gauges satisfying that type and having positive rainfall on that day.</p></dd>
 
-<dt><code>qq_rain</code> (<code>data</code>, <code>rain_col_name</code>, <code>use_raw</code>, <code>upwind_subset</code>, <code>downwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>, <code>positive_subset</code>)</dt>
-<dd><p>Produces Normal Q-Q plots for rainfall values (raw or log-transformed) for all observations satisfying <code>upwind_subset &amp; positive_subset</code>, as well as those observations satisfying <code>downwind_subset &amp; positive_subset</code>.</p></dd>
+<dt><code>qq_rain</code></dt>
+<dd><p><em>Required arguments:</em> <code>data</code>, <code>rain_col_name</code>, <code>use_raw</code>, <code>upwind_subset</code>, <code>downwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>, <code>positive_subset</code></p>
+<p><em>Behaviour:</em> Produces Normal Q-Q plots for rainfall values (raw or log-transformed) for all observations satisfying <code>upwind_subset &amp; positive_subset</code>, as well as those observations satisfying <code>downwind_subset &amp; positive_subset</code>.</p></dd>
 
-<dt><code>ts_by_type</code> (<code>data</code>, <code>rain_col_name</code>, <code>day_column_name</code>, <code>year_column_name</code>, <code>use_raw</code>, <code>upwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>, <code>positive_subset</code>)</dt>
-<dd><p>Plots daily average rainfall (raw or log-transformed) by subset (<code>upwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>), facetted by year.
+<dt><code>ts_by_type</code></dt>
+<dd><p><em>Required arguments:</em> <code>data</code>, <code>rain_col_name</code>, <code>day_column_name</code>, <code>year_column_name</code>, <code>use_raw</code>, <code>upwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>, <code>positive_subset</code></p>
+<p><em>Behaviour:</em> Plots daily average rainfall (raw or log-transformed) by subset (<code>upwind_subset</code>, <code>downwind_target_subset</code>, <code>downwind_control_subset</code>), facetted by year.
 Averaging is performed only over observations with positive rainfall within each day.</p></dd>
 
-<dt><code>ts_by_gauge</code> (<code>data</code>, <code>rain_col_name</code>, <code>day_column_name</code>, <code>year_column_name</code>, <code>use_raw</code>, <code>gauge_id_column_name</code>, <code>ts_focus_gauge</code>)</dt>
-<dd><p>Plots daily rainfall (raw or log-transformed) time series for each gauge, optionally highlighting a subset of gauges, with faceting by year.
+<dt><code>ts_by_gauge</code></dt>
+<dd><p><em>Required arguments:</em> <code>data</code>, <code>rain_col_name</code>, <code>day_column_name</code>, <code>year_column_name</code>, <code>use_raw</code>, <code>gauge_id_column_name</code>, <code>ts_focus_gauge</code></p>
+<p><em>Behaviour:</em> Plots daily rainfall (raw or log-transformed) time series for each gauge, optionally highlighting a subset of gauges, with faceting by year.
 When plotting log-transformed rainfall using <code><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2</a></code>, observations with zero rainfall are represented as a point at the bottommost of the plot.</p></dd>
 
-<dt><code>ts_by_gauge_interactive</code> (<code>data</code>, <code>rain_col_name</code>, <code>day_column_name</code>, <code>year_column_name</code>, <code>use_raw</code>, <code>gauge_id_column_name</code>, <code>ts_focus_gauge</code>)</dt>
-<dd><p>Interactive version of <code>ts_by_gauge</code> using <code><a href="https://rdrr.io/pkg/plotly/man/plot_ly.html" class="external-link">plotly</a></code>. Points show gauge identifiers on hover.
+<dt><code>ts_by_gauge_interactive</code></dt>
+<dd><p><em>Required arguments:</em> <code>data</code>, <code>rain_col_name</code>, <code>day_column_name</code>, <code>year_column_name</code>, <code>use_raw</code>, <code>gauge_id_column_name</code>, <code>ts_focus_gauge</code></p>
+<p><em>Behaviour:</em> Interactive version of <code>ts_by_gauge</code> using <code><a href="https://rdrr.io/pkg/plotly/man/plot_ly.html" class="external-link">plotly</a></code>. Points show gauge identifiers on hover.
 When plotting log-transformed rainfall (<code>use_raw = FALSE</code>), zero rainfall values result in <code>-Inf</code>.
 Unlike <code><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2</a></code>, <code><a href="https://rdrr.io/pkg/plotly/man/plot_ly.html" class="external-link">plotly</a></code> will omit these points, breaking the lines. Therefore, users should be aware that lines may appear broken for days with zero rainfall when plotting log-transformed rainfall.</p></dd>
 
-<dt><code>map_static</code> (<code>data</code>, <code>rain_col_name</code>, <code>day_column_name</code>, <code>year_column_name</code>, <code>use_raw</code>,  <code>longlat_column_names</code>, <code>long_lim</code>, <code>lat_lim</code>, <code>input_sf</code>, <code>ionizer_location_df</code>, <code>ionizer_id_column_name</code>, <code>ionizer_longlat_column_names</code>, <code>elev_contour</code>, <code>elev_resolution</code>, <code>positive_subset</code>)</dt>
-<dd><p>Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an <code><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">sf</a></code> polygon layer supplied via <code>input_sf</code> and adding elevation contour lines if <code>elev_contour = TRUE</code> as well as plotting ionizers supplied via <code>ionizer_location_df</code>, with faceting by year.
+<dt><code>map_static</code></dt>
+<dd><p><em>Required arguments:</em> <code>data</code>, <code>rain_col_name</code>, <code>day_column_name</code>, <code>year_column_name</code>, <code>use_raw</code>,  <code>longlat_column_names</code>, <code>long_lim</code>, <code>lat_lim</code>, <code>input_sf</code>, <code>ionizer_location_df</code>, <code>ionizer_id_column_name</code>, <code>ionizer_longlat_column_names</code>, <code>elev_contour</code>, <code>elev_resolution</code>, <code>positive_subset</code></p>
+<p><em>Behaviour:</em> Produces a static spatial map of annual average rainfall (raw or log-transformed), optionally overlaying an <code><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">sf</a></code> polygon layer supplied via <code>input_sf</code> and adding elevation contour lines if <code>elev_contour = TRUE</code> as well as plotting ionizers supplied via <code>ionizer_location_df</code>, with faceting by year.
 Averaging is performed only over days with positive rainfall for each gauge. Requires the <span class="pkg">maps</span> package to draw map borders when <code>input_sf</code> is not supplied. Also requires the <span class="pkg">elevatr</span> and <span class="pkg">raster</span> package to plot elevation contour lines (obtained from Amazon Web Services Terrain Tiles) when <code>elev_contour = TRUE</code>.</p></dd>
 
-<dt><code>map_dynamic</code> (<code>data</code>, <code>rain_col_name</code>, <code>day_column_name</code>, <code>year_column_name</code>,  <code>use_raw</code>, <code>longlat_column_names</code>, <code>long_lim</code>, <code>lat_lim</code>, <code>input_sf</code>, <code>ionizer_location_df</code>, <code>ionizer_id_column_name</code>, <code>ionizer_longlat_column_names</code>, <code>elev_contour</code>, <code>elev_resolution</code>, <code>wind_direction_column_name</code>, <code>wind_arrow_long_lat</code>, <code>wind_speed_column_name</code>, <code>wind_speed_scaling</code>, <code>focus_year</code>, <code>fps</code>, <code>animate_filename</code>)</dt>
-<dd><p>Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument <code>focus_year</code> and overlaying an <code><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">sf</a></code> polygon layer supplied via <code>input_sf</code> as well as adding elevation contour lines if <code>elev_contour = TRUE</code>, plotting ionizers supplied via <code>ionizer_location_df</code>, and plotting wind arrows based on daily wind directions supplied via <code>wind_direction_column_name</code>.
+<dt><code>map_dynamic</code></dt>
+<dd><p><em>Required arguments:</em> <code>data</code>, <code>rain_col_name</code>, <code>day_column_name</code>, <code>year_column_name</code>,  <code>use_raw</code>, <code>longlat_column_names</code>, <code>long_lim</code>, <code>lat_lim</code>, <code>input_sf</code>, <code>ionizer_location_df</code>, <code>ionizer_id_column_name</code>, <code>ionizer_longlat_column_names</code>, <code>elev_contour</code>, <code>elev_resolution</code>, <code>wind_direction_column_name</code>, <code>wind_arrow_long_lat</code>, <code>wind_speed_column_name</code>, <code>wind_speed_scaling</code>, <code>focus_year</code>, <code>fps</code>, <code>animate_filename</code></p>
+<p><em>Behaviour:</em> Produces an animated map showing rainfall (raw or log-transformed) for each day, optionally filtered by year using the argument <code>focus_year</code> and overlaying an <code><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">sf</a></code> polygon layer supplied via <code>input_sf</code> as well as adding elevation contour lines if <code>elev_contour = TRUE</code>, plotting ionizers supplied via <code>ionizer_location_df</code>, and plotting wind arrows based on daily wind directions supplied via <code>wind_direction_column_name</code>.
 The animation frames are displayed in the order of <code>data[,day_column_name]</code>. Users should ensure that <code>data[,day_column_name]</code> contains values that can be meaningfully ordered (e.g., numeric or Date), rather than nominal/factor values, so the animation reflects the correct temporal progression.
 Requires the <span class="pkg">maps</span> package to draw map borders when <code>input_sf</code> is not supplied and the <span class="pkg">gifski</span> package for rendering animated map. Also requires the <span class="pkg">elevatr</span> and <span class="pkg">raster</span> package to plot elevation contour lines (obtained from Amazon Web Services Terrain Tiles) when <code>elev_contour = TRUE</code>. When <code>animate_filename</code> is supplied, the resulting gif_image of the animated map will be saved to the location specified by <code>animate_filename</code>.</p></dd>
 

@@ -24,6 +24,8 @@ permutation_ionizer(
   permutation_parallel,
   permutation_parallel_num_worker,
   data,
+  downwind,
+  positive,
   downwind_lmm_formula,
   downwind_propensity_formula,
   attr_type,
@@ -149,6 +151,16 @@ permutation_ionizer(
   frame must match that of `gaugeday_downwind_input`. (Internal argument
   set automatically when using
   [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md))
+  @param downwind A logical vector indicating which observation in
+  `data` would be used in the downwind (second stage) LMM fitting.
+  (Internal argument set automatically when using
+  [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md))
+
+- positive:
+
+  A logical vector indicating which observation in `data` has positive
+  rainfall. (Internal argument set automatically when using
+  [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md))
 
 - downwind_lmm_formula:
 
@@ -195,8 +207,7 @@ permutation_ionizer(
 - rain_col_name:
 
   A character string specifying the column name of the raw scale
-  rainfall in `ori_data`. (Internal argument set automatically when
-  using
+  rainfall in `data`. (Internal argument set automatically when using
   [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md))
 
 ## Value
@@ -230,7 +241,7 @@ be supplied through the following arguments of
   Day(group)-level ionizers operation schedule during the rainfall
   enhancement trial.
 
-- gaugeday_downwind_input:
+- `gaugeday_downwind_input`:
 
   Gauge-day(unit within group)-level information on relative orientation
   of gauges from ionizers each day.
@@ -292,16 +303,18 @@ the binary target indicators and the binary indicators \\I\_{ij}\\ for
 exposure to ionizers (treatment) are replaced according to the
 permutation. This includes the fitting of the downwind (second stage)
 LMM, downwind (second stage) target-only LMM, downwind (second stage)
-control-only LMM to the subset of observations from `data` that are
-downwind (second stage) and with positive rainfall, along with the
-fitting of downwind propensity score model to the subset of observations
-from `data` that are downwind (second stage) with the response being the
-permuted indicator \\I\_{ij}^\*\\ for exposure to ionizers (treatment).
+control-only LMM to the subset of observations from `data` that satisfy
+`downwind & positive`, along with the fitting of downwind propensity
+score model to the same subset with the permuted indicator
+\\I\_{ij}^\*\\ for exposure to ionizers (treatment) as the response.
 Finally, two attribution estimates and the SATE estimates are computed
 based on the estimation results of these models fitted to the permuted
 dataset, where \\z\_{ij}\\ (ionizer related covariate vector constructed
 from the binary target indicators) and \\I\_{ij}\\ are replaced by their
 permuted counterparts \\z\_{ij}^\*\\ and \\I\_{ij}^\*\\, respectively.
+The subset of observations from `data` satisfying `downwind & positive`
+is held fixed across permutation replicates; only the ionizer-operation
+indicators and resulting treatment indicators are permuted.
 
 By repeatedly permuting ionizers' operation schedules, fitting models
 and computing attribution and SATE estimates for `B_permutation` number

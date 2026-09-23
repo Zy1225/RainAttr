@@ -75,12 +75,47 @@ A data frame with 122259 rows (gauge-day observations) and 55 variables:
   deployed ionizers based on the day’s wind direction, with possible
   values: "Upwind", "Downwind", "Out of Scope"
 
-- Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05,
-  Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10:
+- Target.H.01:
 
-  Binary indicator variables showing whether the gauge is downwind of
-  the ionizer and the ionizer has been deployed and turned on on that
+  Binary indicator for ionizer H1 showing whether the gauge is downwind
+  of the ionizer and the ionizer has been deployed and turned on on that
   day (1 = yes, 0 = no)
+
+- Target.H.02:
+
+  Same as Target.H.01, for ionizer H2
+
+- Target.H.03:
+
+  Same as Target.H.01, for ionizer H3
+
+- Target.H.04:
+
+  Same as Target.H.01, for ionizer H4
+
+- Target.H.05:
+
+  Same as Target.H.01, for ionizer H5
+
+- Target.H.06:
+
+  Same as Target.H.01, for ionizer H6
+
+- Target.H.07:
+
+  Same as Target.H.01, for ionizer H7
+
+- Target.H.08:
+
+  Same as Target.H.01, for ionizer H8
+
+- Target.H.09:
+
+  Same as Target.H.01, for ionizer H9
+
+- Target.H.10:
+
+  Same as Target.H.01, for ionizer H10
 
 - Gauge.Day.Type:
 
@@ -93,10 +128,17 @@ A data frame with 122259 rows (gauge-day observations) and 55 variables:
   classification as Rainfall.Measurement.Status. Thus, the variable has
   four possible values: "Upwind", "Target", "Control", "Out of Scope".
 
-- PC1.Dry.Temperature, PC2.Dry.Temperature,PC1.Relative.Humidity,
-  PC2..Relative.Humidity,PC1.Ground.Level.Pressure:
+- PC1.Dry.Temperature, PC2.Dry.Temperature:
 
-  Principal component of meteorological variables
+  First and second principal components of dry temperature
+
+- PC1.Relative.Humidity, PC2.Relative.Humidity:
+
+  First and second principal components of relative humidity
+
+- PC1.Ground.Level.Pressure:
+
+  First principal component of ground-level pressure
 
 - Steering.Wind.Direction, Steering.Wind.Principal.Direction,
   Steering.Wind.Speed:

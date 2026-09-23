@@ -133,7 +133,8 @@ for more details on the two-level bootstrap procedure
 ``` r
 #Create default bootstrap options to account for highly unbalanced clustered data
 # Specifically: bootstrap_type = 'PREB1' as proposed by Tho et al. (2025)
-# Adjusted Random Effect Block Bootstraps for Highly Unbalanced Clustered Data. arXiv:2510.07770.
+# A Proportional Random Effect Block Bootstrap for General Clustered Data.
+# arXiv:2510.07770.
 boot_options = bootstrap_opt()
 str(boot_options)
 #> List of 13

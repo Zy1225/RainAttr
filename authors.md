@@ -15,12 +15,12 @@ Source:
 
 Tho Z, Chambers R, Welsh A (2026). *RainAttr: Attribution and Sample
 Average Treatment Effect for Rainfall Enhancement Trial Data*. R package
-version 0.0.0.9000, <https://github.com/Zy1225/RainAttr>.
+version 0.0.0.9001, <https://github.com/Zy1225/RainAttr>.
 
     @Manual{,
       title = {RainAttr: Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data},
       author = {Zhi Yang Tho and Raymond Chambers and A. H. Welsh},
       year = {2026},
-      note = {R package version 0.0.0.9000},
+      note = {R package version 0.0.0.9001},
       url = {https://github.com/Zy1225/RainAttr},
     }

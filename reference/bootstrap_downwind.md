@@ -183,9 +183,9 @@ bootstrap_downwind(
 
   A list containing the models fitted to the `ori_data`, including the
   upwind (first stage) LMM, downwind (second stage) LMM, downwind
-  (second stage) treatment-only LMM, downwind (second stage) target-only
-  LMM, downwind (second stage) logistic model for rainfall event
-  indicator, and downwind (second stage) propensity score model.
+  (second stage) treatment-only LMM, downwind (second stage)
+  control-only LMM, downwind (second stage) logistic model for rainfall
+  event indicator, and downwind (second stage) propensity score model.
   (Internal argument set automatically when using
   [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md))
 
@@ -363,16 +363,16 @@ Depending on the chosen `bootstrap_type`, bootstrap samples of
 - `REB1`:
 
   Replaces \\\hat{u}\_i\\ and \\\hat{e}\_{ij}\\ in `REB0` with
-  \\\hat{u}\_{ij}^{cs} = \hat{\sigma}\_u \hat{u}\_i^{c} \\ D^{-1}
-  \sum\_{i' =1}^{D} \hat{u}\_i^2 \\^{-1/2} \\ and \\\hat{e}\_{ij}^{s} =
-  \hat{\sigma}\_e \hat{e}\_{ij} \\ N^{-1} \sum\_{i' = 1}^{D} \sum\_{j' =
-  1}^{n\_{i'} } \hat{e}\_{i'j'}^2 \\^{-1/2} \\, respectively, where \\
-  \hat{u}\_i^c = \hat{u}\_i - D^{-1} \sum\_{i'=1}^{D} \hat{u}\_{i'} \\,
-  \\\hat{\sigma}^2_u\\ and \\\hat{\sigma}^2_e\\ are the estimated
-  variances of random intercepts and error terms from the fitted
-  downwind (second stage) LMM, and \\N = \sum\_{i=1}^{D} n_i\\ is the
-  total number of observations from `ori_data` satisfying
-  `downwind & ori_positive`.
+  \$\$\hat{u}\_{ij}^{cs} = \hat{\sigma}\_u \hat{u}\_i^{c} \\ D^{-1}
+  \sum\_{i' =1}^{D} \hat{u}\_i^2 \\^{-1/2} \$\$ and
+  \$\$\hat{e}\_{ij}^{s} = \hat{\sigma}\_e \hat{e}\_{ij} \\ N^{-1}
+  \sum\_{i' = 1}^{D} \sum\_{j' = 1}^{n\_{i'} } \hat{e}\_{i'j'}^2
+  \\^{-1/2},\$\$ respectively, where \\ \hat{u}\_i^c = \hat{u}\_i -
+  D^{-1} \sum\_{i'=1}^{D} \hat{u}\_{i'} \\, \\\hat{\sigma}^2_u\\ and
+  \\\hat{\sigma}^2_e\\ are the estimated variances of random intercepts
+  and error terms from the fitted downwind (second stage) LMM, and \\N =
+  \sum\_{i=1}^{D} n_i\\ is the total number of observations from
+  `ori_data` satisfying `downwind & ori_positive`.
 
 - `REB2`:
 
@@ -399,11 +399,11 @@ Depending on the chosen `bootstrap_type`, bootstrap samples of
 - `PREB1`:
 
   Replaces \\\hat{u}\_i\\ and \\\hat{e}\_{ij}\\ in `PREB0` with
-  \\\hat{u}\_{ij}^{sc} = \hat{\sigma}\_u \hat{u}\_i^{c} \\ D^{-1}
-  \sum\_{i' =1}^{D} (\hat{u}\_i^c)^2 \\^{-1/2} \\ and
-  \\\hat{e}\_{ij}^{s} = \hat{\sigma}\_e \hat{e}\_{ij} \\ N^{-1}
+  \$\$\hat{u}\_{ij}^{sc} = \hat{\sigma}\_u \hat{u}\_i^{c} \\ D^{-1}
+  \sum\_{i' =1}^{D} (\hat{u}\_i^c)^2 \\^{-1/2} \$\$ and
+  \$\$\hat{e}\_{ij}^{s} = \hat{\sigma}\_e \hat{e}\_{ij} \\ N^{-1}
   \sum\_{i' = 1}^{D} \sum\_{j' = 1}^{n\_{i'} } \hat{e}\_{i'j'}^2
-  \\^{-1/2} \\, respectively.
+  \\^{-1/2},\$\$ respectively.
 
 - `PREB2`:
 
@@ -414,10 +414,10 @@ Depending on the chosen `bootstrap_type`, bootstrap samples of
 - `MREB1`:
 
   Replaces \\\hat{u}\_i\\ and \\\hat{e}\_{ij}\\ in `REB0` with
-  \\\hat{u}\_{ij}^{sc}\\ defined under `PREB1` and \\\tilde{e}\_{ij}^{s}
-  = \hat{\sigma}\_e \hat{e}\_{ij} \\ \sum\_{i' = 1}^{D} \sum\_{j' =
-  1}^{n\_{i'} } D^{-1} n\_{i'}^{-1} \hat{e}\_{i'j'}^2 \\^{-1/2} \\,
-  respectively.
+  \\\hat{u}\_{ij}^{sc}\\ defined under `PREB1` and
+  \$\$\tilde{e}\_{ij}^{s} = \hat{\sigma}\_e \hat{e}\_{ij} \\ \sum\_{i' =
+  1}^{D} \sum\_{j' = 1}^{n\_{i'} } D^{-1} n\_{i'}^{-1} \hat{e}\_{i'j'}^2
+  \\^{-1/2},\$\$ respectively.
 
 The random effect block (REB0, REB1, REB2) bootstraps proposed in
 Chambers and Chandra (2013) were originally designed to handle balanced
@@ -426,7 +426,7 @@ bootstraps and the MREB1 bootstrap proposed by Tho et al. (2025) are
 generalizations of the REB bootstraps to accommodate highly unbalanced
 clustered data. Therefore, it is recommended to use either
 `bootstrap_type = "PREB1"` or `bootstrap_type = "MREB1"`, especially
-when \\n_i\\'s are highly unbalanced. Users are refered to Tho et al.
+when \\n_i\\'s are highly unbalanced. Users are referred to Tho et al.
 (2025) for more discussion on the comparison among these bootstrap
 methods.
 
@@ -567,10 +567,10 @@ produced by this function are further used in
 to:
 
 - Compute bootstrap p-values as the proportion of bootstrapped estimates
-  that are less than zero, i.e., \$\$ \frac{1}{B} \sum\_{b=1}^{B} 1\_{
-  \\ \hat{\theta}\_b^\* \< 0 \\} \$\$ where \\1\_{\\\cdot\\}\\ is the
-  indicator function and \\\hat{\theta}\_b\\ denotes the estimate from
-  the \\b\\-th bootstrap sample.
+  that are less than or equal to zero, i.e., \$\$ \frac{1}{B}
+  \sum\_{b=1}^{B} 1\_{ \\ \hat{\theta}\_b^\* \leq 0 \\} \$\$ where
+  \\1\_{\\\cdot\\}\\ is the indicator function and \\\hat{\theta}\_b\\
+  denotes the estimate from the \\b\\-th bootstrap sample.
 
 - Compute bootstrap percentile confidence interval with confidence level
   \\(1-\alpha) \times 100\\\\ as \$\$ \[ \hat{\theta}^\*\_{\alpha / 2},

@@ -251,68 +251,82 @@ Depending on `eda_type`:
 
 ## Details
 
-Each `eda_type` has its own behavior and relevant arguments provided in
-parentheses:
+Each `eda_type` has its own required arguments and behavior:
 
-- `num_obs_days` (`data`, `day_column_name`, `upwind_subset`,
+- `num_obs_days`:
+
+  *Required arguments:* `data`, `day_column_name`, `upwind_subset`,
   `downwind_subset`, `downwind_target_subset`,
-  `downwind_control_subset`, `positive_subset`):
+  `downwind_control_subset`, and `positive_subset`.
 
-  Computes contingency tables of the number of observations and number
-  of unique days for each subset (`upwind_subset`, `downwind_subset`,
-  `downwind_target_subset`, `downwind_control_subset`), with columns
-  corresponding to positive vs zero rainfall events.
+  *Behaviour:* Computes contingency tables of the number of observations
+  and number of unique days for each subset (`upwind_subset`,
+  `downwind_subset`, `downwind_target_subset`,
+  `downwind_control_subset`), with columns corresponding to positive vs
+  zero rainfall events.
 
-- `num_obs_days_by_year` (`data`, `day_column_name`, `year_column_name`,
+- `num_obs_days_by_year`:
+
+  *Required arguments:* `data`, `day_column_name`, `year_column_name`,
   `upwind_subset`, `downwind_subset`, `downwind_target_subset`,
-  `downwind_control_subset`, `positive_subset`):
+  `downwind_control_subset`, `positive_subset`.
 
-  Same as `num_obs_days`, but computed separately for each year.
+  *Behaviour:* Same as `num_obs_days`, but computed separately for each
+  year.
 
-- `hist_day_group_sizes` (`data`, `day_column_name`, `upwind_subset`,
-  `downwind_subset`, `positive_subset`):
+- `hist_day_group_sizes`:
 
-  Plots histograms of group sizes for days in `upwind_subset` and
-  `downwind_subset` with positive rainfall. The group size for a given
-  day and type (`upwind_subset`, `downwind_subset`) is defined as the
-  number of gauges satisfying that type and having positive rainfall on
-  that day.
+  *Required arguments:* `data`, `day_column_name`, `upwind_subset`,
+  `downwind_subset`, `positive_subset`
 
-- `qq_rain` (`data`, `rain_col_name`, `use_raw`, `upwind_subset`,
-  `downwind_subset`, `downwind_target_subset`,
-  `downwind_control_subset`, `positive_subset`):
+  *Behaviour:* Plots histograms of group sizes for days in
+  `upwind_subset` and `downwind_subset` with positive rainfall. The
+  group size for a given day and type (`upwind_subset`,
+  `downwind_subset`) is defined as the number of gauges satisfying that
+  type and having positive rainfall on that day.
 
-  Produces Normal Q-Q plots for rainfall values (raw or log-transformed)
-  for all observations satisfying `upwind_subset & positive_subset`, as
-  well as those observations satisfying
-  `downwind_subset & positive_subset`.
+- `qq_rain`:
 
-- `ts_by_type` (`data`, `rain_col_name`, `day_column_name`,
+  *Required arguments:* `data`, `rain_col_name`, `use_raw`,
+  `upwind_subset`, `downwind_subset`, `downwind_target_subset`,
+  `downwind_control_subset`, `positive_subset`
+
+  *Behaviour:* Produces Normal Q-Q plots for rainfall values (raw or
+  log-transformed) for all observations satisfying
+  `upwind_subset & positive_subset`, as well as those observations
+  satisfying `downwind_subset & positive_subset`.
+
+- `ts_by_type`:
+
+  *Required arguments:* `data`, `rain_col_name`, `day_column_name`,
   `year_column_name`, `use_raw`, `upwind_subset`,
-  `downwind_target_subset`, `downwind_control_subset`,
-  `positive_subset`):
+  `downwind_target_subset`, `downwind_control_subset`, `positive_subset`
 
-  Plots daily average rainfall (raw or log-transformed) by subset
-  (`upwind_subset`, `downwind_target_subset`,
+  *Behaviour:* Plots daily average rainfall (raw or log-transformed) by
+  subset (`upwind_subset`, `downwind_target_subset`,
   `downwind_control_subset`), facetted by year. Averaging is performed
   only over observations with positive rainfall within each day.
 
-- `ts_by_gauge` (`data`, `rain_col_name`, `day_column_name`,
-  `year_column_name`, `use_raw`, `gauge_id_column_name`,
-  `ts_focus_gauge`):
+- `ts_by_gauge`:
 
-  Plots daily rainfall (raw or log-transformed) time series for each
-  gauge, optionally highlighting a subset of gauges, with faceting by
-  year. When plotting log-transformed rainfall using
+  *Required arguments:* `data`, `rain_col_name`, `day_column_name`,
+  `year_column_name`, `use_raw`, `gauge_id_column_name`,
+  `ts_focus_gauge`
+
+  *Behaviour:* Plots daily rainfall (raw or log-transformed) time series
+  for each gauge, optionally highlighting a subset of gauges, with
+  faceting by year. When plotting log-transformed rainfall using
   [`ggplot2`](https://ggplot2.tidyverse.org/reference/ggplot.html),
   observations with zero rainfall are represented as a point at the
   bottommost of the plot.
 
-- `ts_by_gauge_interactive` (`data`, `rain_col_name`, `day_column_name`,
-  `year_column_name`, `use_raw`, `gauge_id_column_name`,
-  `ts_focus_gauge`):
+- `ts_by_gauge_interactive`:
 
-  Interactive version of `ts_by_gauge` using
+  *Required arguments:* `data`, `rain_col_name`, `day_column_name`,
+  `year_column_name`, `use_raw`, `gauge_id_column_name`,
+  `ts_focus_gauge`
+
+  *Behaviour:* Interactive version of `ts_by_gauge` using
   [`plotly`](https://rdrr.io/pkg/plotly/man/plot_ly.html). Points show
   gauge identifiers on hover. When plotting log-transformed rainfall
   (`use_raw = FALSE`), zero rainfall values result in `-Inf`. Unlike
@@ -322,14 +336,16 @@ parentheses:
   that lines may appear broken for days with zero rainfall when plotting
   log-transformed rainfall.
 
-- `map_static` (`data`, `rain_col_name`, `day_column_name`,
+- `map_static`:
+
+  *Required arguments:* `data`, `rain_col_name`, `day_column_name`,
   `year_column_name`, `use_raw`, `longlat_column_names`, `long_lim`,
   `lat_lim`, `input_sf`, `ionizer_location_df`,
   `ionizer_id_column_name`, `ionizer_longlat_column_names`,
-  `elev_contour`, `elev_resolution`, `positive_subset`):
+  `elev_contour`, `elev_resolution`, `positive_subset`
 
-  Produces a static spatial map of annual average rainfall (raw or
-  log-transformed), optionally overlaying an
+  *Behaviour:* Produces a static spatial map of annual average rainfall
+  (raw or log-transformed), optionally overlaying an
   [`sf`](https://r-spatial.github.io/sf/reference/st_as_sf.html) polygon
   layer supplied via `input_sf` and adding elevation contour lines if
   `elev_contour = TRUE` as well as plotting ionizers supplied via
@@ -340,17 +356,19 @@ parentheses:
   lines (obtained from Amazon Web Services Terrain Tiles) when
   `elev_contour = TRUE`.
 
-- `map_dynamic` (`data`, `rain_col_name`, `day_column_name`,
+- `map_dynamic`:
+
+  *Required arguments:* `data`, `rain_col_name`, `day_column_name`,
   `year_column_name`, `use_raw`, `longlat_column_names`, `long_lim`,
   `lat_lim`, `input_sf`, `ionizer_location_df`,
   `ionizer_id_column_name`, `ionizer_longlat_column_names`,
   `elev_contour`, `elev_resolution`, `wind_direction_column_name`,
   `wind_arrow_long_lat`, `wind_speed_column_name`, `wind_speed_scaling`,
-  `focus_year`, `fps`, `animate_filename`):
+  `focus_year`, `fps`, `animate_filename`
 
-  Produces an animated map showing rainfall (raw or log-transformed) for
-  each day, optionally filtered by year using the argument `focus_year`
-  and overlaying an
+  *Behaviour:* Produces an animated map showing rainfall (raw or
+  log-transformed) for each day, optionally filtered by year using the
+  argument `focus_year` and overlaying an
   [`sf`](https://r-spatial.github.io/sf/reference/st_as_sf.html) polygon
   layer supplied via `input_sf` as well as adding elevation contour
   lines if `elev_contour = TRUE`, plotting ionizers supplied via

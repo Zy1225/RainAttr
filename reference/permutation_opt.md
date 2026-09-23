@@ -161,10 +161,10 @@ for more details on the permutation-based procedure
 #Create default permutation options
 # These are the same permutation settings used in Chambers et al. (2022a)
 # Nudging a Pseudo-Science Towards a Science—The Role of Statistics
-# in a Rainfall Enhancement Trial in Oman. \emph{International Statistical Review}, 90: 346–373,
+# in a Rainfall Enhancement Trial in Oman. International Statistical Review, 90: 346–373,
 # as well as Chambers et al. (2022b) Weighting, Informativeness and Causal Inference,
 # with an Application to Rainfall Enhancement.
-# \emph{Journal of the Royal Statistical Society Series A: Statistics in Society}, 185: 1584–1612.
+# Journal of the Royal Statistical Society Series A: Statistics in Society, 185: 1584–1612.
 # Specifically: permute_between_ionizer = TRUE, permute_all_ionizers_between_day = FALSE,
 # and permute_between_gaugeday = TRUE
 perm_options = permutation_opt()

@@ -83,11 +83,11 @@ print(x, ...)
 
 - x:
 
-  An **R** object to be printed or plotted. For `print.rain_attr()` and
-  `plot.rain_attr()`, an **R** object of class `rain_attr`, i.e., an
+  An **R** object to be printed or plotted. For `print.rain_attr` and
+  `plot.rain_attr`, an **R** object of class `rain_attr`, i.e., an
   output from
   [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md);
-  for `print.summary.rain_attr()`, an **R** object of class
+  for `print.summary.rain_attr`, an **R** object of class
   `summary.rain_attr`, i.e., an output from applying `summary.rain_attr`
   to an **R** object of class `rain_attr`.
 
@@ -211,7 +211,7 @@ bootstrap and permutation-based procedures if `bootstrap = TRUE` or
 [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md)
 call, the data supplied in the original call with an additional column
 containing the fitted values generated from the upwind (first stage)
-LMM., and the specified arguments in the original call.
+LMM, and the specified arguments in the original call.
 
 ## S3 Methods
 
@@ -225,7 +225,7 @@ LMM., and the specified arguments in the original call.
 - `print`:
 
   Print the point estimates of attributions and SATE and indicate
-  whether bootstrap and permutation has been performed. Also print the
+  whether bootstrap and permutation have been performed. Also print the
   model formula, data subset, number of observations, number of days
   (groups), and point estimates of fixed effect coefficients for the
   upwind (first stage) and downwind (second stage) LMMs.
@@ -285,10 +285,10 @@ LMM., and the specified arguments in the original call.
 
   Print the point estimates of attributions and SATE, along with their
   bootstrap confidence intervals, bootstrap p-values and permutation
-  p-values if bootstrap and permutation has been performed. Also print
+  p-values if bootstrap and permutation have been performed. Also print
   the model formula, data subset, number of observations, number of
   unique days (groups), variance component estimates, and fixed effect
-  coefficient estimates along with their standard error and t-values
+  coefficient estimates along with their standard errors and t-values
   computed from
   [`summary.merMod`](https://rdrr.io/pkg/lme4/man/summary.merMod.html).
 
@@ -350,7 +350,8 @@ The following describes the output from `summary.rain_attr`:
   Scaled residuals of the upwind and downwind LMMs, which take the
   general form of (observed - fitted)/\\\hat{\sigma}\_e\\, where the
   fitted values are either `upwind_fitted` or `downwind_fitted` and
-  \\\hat{\sigma}\_e\\ denote the corresponding estimated error variance.
+  \\\hat{\sigma}\_e\\ denote the corresponding residual standard
+  deviation.
 
 - `upwind_lmm_fixef`, `downwind_lmm_fixef`:
 

@@ -79,13 +79,13 @@ head(oman)
 #> 4         8.03         34.6       607.24              15.77            1.089538
 #> 5         8.03         34.6       607.24              15.77            1.089538
 #> 6         8.03         34.6       607.24              15.77            1.089538
-#>   PC2.Dry.Temperature PC1.Relative.Humidity PC2..Relative.Humidity
-#> 1            3.045836             -2.183532              -2.494393
-#> 2            3.045836             -2.183532              -2.494393
-#> 3            3.045836             -2.183532              -2.494393
-#> 4            3.045836             -2.183532              -2.494393
-#> 5            3.045836             -2.183532              -2.494393
-#> 6            3.045836             -2.183532              -2.494393
+#>   PC2.Dry.Temperature PC1.Relative.Humidity PC2.Relative.Humidity
+#> 1            3.045836             -2.183532             -2.494393
+#> 2            3.045836             -2.183532             -2.494393
+#> 3            3.045836             -2.183532             -2.494393
+#> 4            3.045836             -2.183532             -2.494393
+#> 5            3.045836             -2.183532             -2.494393
+#> 6            3.045836             -2.183532             -2.494393
 #>   PC1.Ground.Level.Pressure
 #> 1                 0.4760997
 #> 2                 0.4760997
@@ -412,10 +412,10 @@ end_time = Sys.time()
 
 #
 end_time - start_time
-#> Time difference of 5.07815 mins
+#> Time difference of 5.023722 mins
 ```
 
-The total computational time was 5.08 minutes.
+The total computational time was 5.02 minutes.
 
 In the above example, we use the default PREB1 bootstrap proposed by Tho
 et al. (2025); hence, it is not necessary to explicitly specify
@@ -444,18 +444,18 @@ summary(boot_perm_result)
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
 #>     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> apo    6.27% (2.3799%, 11.21%)            0***              0***
-#> apl    6.69%  (2.438%, 12.63%)            0***              0***
+#> apo    6.27% (2.3799%, 11.21%)            0***           0.004**
+#> apl    6.69%  (2.438%, 12.63%)            0***           0.004**
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> SATE Results:
 #>             Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> sate.mb       0.1153 (0.0259, 0.1899)            0***              0***
-#> sate.ipw      0.0751  (0.022, 0.1861)           0.01*             0.05.
-#> sate.ipw.l    0.1132 (0.0263, 0.1898)            0***              0***
-#> sate.ipw.ma   0.0813 (0.0278, 0.1895)           0.01*             0.05.
-#> sate.aipw     0.0771 (0.0243, 0.1877)           0.01*             0.05.
+#> sate.mb       0.1153 (0.0259, 0.1899)         0.002**           0.004**
+#> sate.ipw      0.0751  (0.022, 0.1861)          0.012*            0.052.
+#> sate.ipw.l    0.1132 (0.0263, 0.1898)         0.002**           0.004**
+#> sate.ipw.ma   0.0813 (0.0278, 0.1895)         0.006**            0.052.
+#> sate.aipw     0.0771 (0.0243, 0.1877)         0.008**            0.048*
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -655,9 +655,9 @@ oman[1:2,]
 #>   Lifted.Index Total.Totals LCL.Pressure Precipitable.Water PC1.Dry.Temperature
 #> 1         8.03         34.6       607.24              15.77            1.089538
 #> 2         8.03         34.6       607.24              15.77            1.089538
-#>   PC2.Dry.Temperature PC1.Relative.Humidity PC2..Relative.Humidity
-#> 1            3.045836             -2.183532              -2.494393
-#> 2            3.045836             -2.183532              -2.494393
+#>   PC2.Dry.Temperature PC1.Relative.Humidity PC2.Relative.Humidity
+#> 1            3.045836             -2.183532             -2.494393
+#> 2            3.045836             -2.183532             -2.494393
 #>   PC1.Ground.Level.Pressure
 #> 1                 0.4760997
 #> 2                 0.4760997
@@ -828,7 +828,7 @@ annual_map = eda(eda_type = "map_static",
               longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
               long_lim = c(55,60),
               lat_lim = c(22,25),
-              input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
+              input_sf = rnaturalearth::ne_countries(scale = ifelse(in_cran_check,'medium','large'), country = "Oman", returnclass = "sf"),
               ionizer_location_df = ionizer_location,
               ionizer_id_column_name = 'Ionizer',
               ionizer_longlat_column_names = c("Longitude","Latitude"),
@@ -856,15 +856,15 @@ annual_map = eda(eda_type = "map_static",
 #> 
 #> ℹ Packaging rnaturalearthhires 1.0.0.9000
 #> 
-#> ✔ Packaged rnaturalearthhires 1.0.0.9000 (1.3s)
+#> ✔ Packaged rnaturalearthhires 1.0.0.9000 (1.1s)
 #> 
 #> ℹ Building rnaturalearthhires 1.0.0.9000
 #> 
-#> ✔ Built rnaturalearthhires 1.0.0.9000 (21.3s)
+#> ✔ Built rnaturalearthhires 1.0.0.9000 (22.6s)
 #> 
-#> ✔ Installed rnaturalearthhires 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) (95ms)
+#> ✔ Installed rnaturalearthhires 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) (115ms)
 #> 
-#> ✔ 1 pkg: added 1, dld 1 (NA B) [30.6s]
+#> ✔ 1 pkg: added 1, dld 1 (NA B) [30.9s]
 #> 
 #> Mosaicing & Projecting
 #> 
@@ -899,7 +899,7 @@ animated_map = eda(eda_type = "map_dynamic",
               longlat_column_names = c("Gauge.Longitude", "Gauge.Latitude"),
               long_lim = c(55,60),
               lat_lim = c(20,25),
-              input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf"),
+              input_sf = rnaturalearth::ne_countries(scale = ifelse(in_cran_check, "medium", "large"), country = "Oman", returnclass = "sf"),
               ionizer_location_df = ionizer_location,
               ionizer_id_column_name = 'Ionizer',
               ionizer_longlat_column_names = c("Longitude","Latitude"),
@@ -1023,18 +1023,18 @@ summary(headline)
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
 #>     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> apo   11.12% (7.6667%, 14.82%)            0***              0***
-#> apl   12.51% (8.5784%, 16.97%)            0***              0***
+#> apo   11.12% (7.6667%, 14.82%)            0***           0.004**
+#> apl   12.51% (8.5784%, 16.97%)            0***           0.004**
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> SATE Results:
 #>             Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> sate.mb       0.1144  (0.0533, 0.1779)            0***             0.02*
-#> sate.ipw      0.0740  (-0.012, 0.1653)           0.05.             0.07.
-#> sate.ipw.l    0.1123  (0.0514, 0.1756)            0***             0.02*
-#> sate.ipw.ma   0.0654 (-0.0183, 0.1589)           0.06.             0.08.
-#> sate.aipw     0.0774 (-0.0089, 0.1689)           0.04*             0.06.
+#> sate.mb       0.1144  (0.0533, 0.1779)            0***            0.016*
+#> sate.ipw      0.0740  (-0.012, 0.1653)          0.048*            0.066.
+#> sate.ipw.l    0.1123  (0.0514, 0.1756)            0***            0.018*
+#> sate.ipw.ma   0.0654 (-0.0183, 0.1589)          0.064.            0.082.
+#> sate.aipw     0.0774 (-0.0089, 0.1689)           0.04*            0.056.
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -1120,7 +1120,7 @@ results for `apl` presented below differ for several reasons:
 
 summary(headline)$attr_table[2,]
 #>     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> apl   12.51% (8.5784%, 16.97%)               0                 0
+#> apl   12.51% (8.5784%, 16.97%)               0             0.004
 ```
 
 The following plots aim to replicate Figure 7, noting that some
@@ -1200,11 +1200,11 @@ summary(table6_2013_2018)
 #> 
 #> SATE Results:
 #>             Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> sate.mb       0.1259 (0.0669, 0.1849)            0***             0.01*
-#> sate.ipw      0.0821 (0.0023, 0.1683)           0.02*              0.12
-#> sate.ipw.l    0.1229 (0.0658, 0.1819)            0***             0.01*
-#> sate.ipw.ma   0.0828 (0.0033, 0.1692)           0.02*              0.12
-#> sate.aipw     0.0842 (0.0035, 0.1686)           0.02*              0.12
+#> sate.mb       0.1259 (0.0669, 0.1849)            0***            0.014*
+#> sate.ipw      0.0821 (0.0023, 0.1683)          0.018*              0.12
+#> sate.ipw.l    0.1229 (0.0658, 0.1819)            0***            0.014*
+#> sate.ipw.ma   0.0828 (0.0033, 0.1692)           0.02*             0.116
+#> sate.aipw     0.0842 (0.0035, 0.1686)          0.018*             0.118
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -1328,18 +1328,18 @@ summary(table6_2013_2015)
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
 #>     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> apo      13% (8.1945%, 17.96%)            0***              0***
-#> apl   14.94% (9.3628%, 21.17%)            0***              0***
+#> apo      13% (8.1945%, 17.96%)            0***           0.006**
+#> apl   14.94% (9.3628%, 21.17%)            0***           0.006**
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> SATE Results:
 #>             Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> sate.mb       0.1035  (0.0228, 0.1851)           0.01*             0.01*
-#> sate.ipw      0.0460 (-0.0604, 0.1535)            0.21              0.25
-#> sate.ipw.l    0.1063  (0.0228, 0.1886)           0.01*             0.01*
-#> sate.ipw.ma   0.0463   (-0.06, 0.1527)            0.21              0.25
-#> sate.aipw     0.0550 (-0.0524, 0.1613)            0.17              0.19
+#> sate.mb       0.1035  (0.0228, 0.1851)          0.014*             0.05.
+#> sate.ipw      0.0460 (-0.0604, 0.1535)           0.208             0.318
+#> sate.ipw.l    0.1063  (0.0228, 0.1886)          0.012*            0.046*
+#> sate.ipw.ma   0.0463   (-0.06, 0.1527)            0.21             0.314
+#> sate.aipw     0.0550 (-0.0524, 0.1613)           0.166              0.27
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -1451,18 +1451,18 @@ summary(table6_2016_2018)
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
 #>     Estimate   95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> apo   14.66%  (9.0013%, 20.84%)            0***              0***
-#> apl   17.18% (10.4577%, 25.28%)            0***              0***
+#> apo   14.66%  (9.0013%, 20.84%)            0***            0.068.
+#> apl   17.18% (10.4577%, 25.28%)            0***            0.068.
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> SATE Results:
 #>             Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> sate.mb       0.1565   (0.062, 0.2427)            0***              0***
-#> sate.ipw      0.1243 (-0.0025, 0.2364)           0.03*              0***
-#> sate.ipw.l    0.1540  (0.0608, 0.2397)            0***              0***
-#> sate.ipw.ma   0.1260  (-6e-04, 0.2366)           0.03*              0***
-#> sate.aipw     0.1219 (-0.0074, 0.2352)           0.03*              0***
+#> sate.mb       0.1565   (0.062, 0.2427)            0***            0.046*
+#> sate.ipw      0.1243 (-0.0025, 0.2364)           0.03*             0.09.
+#> sate.ipw.l    0.1540  (0.0608, 0.2397)            0***            0.046*
+#> sate.ipw.ma   0.1260  (-6e-04, 0.2366)          0.028*            0.082.
+#> sate.aipw     0.1219 (-0.0074, 0.2352)          0.028*            0.096.
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -1705,18 +1705,18 @@ summary(jrssa)
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
 #>     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> apo    6.84% (3.2052%, 10.53%)            0***             0.01*
-#> apl    7.34% (3.2402%, 11.76%)            0***             0.01*
+#> apo    6.84% (3.2052%, 10.53%)            0***            0.012*
+#> apl    7.34% (3.2402%, 11.76%)            0***            0.012*
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> SATE Results:
 #>             Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
-#> sate.mb       0.1259  (0.0639, 0.1888)            0***             0.01*
-#> sate.ipw      0.0740 (-0.0089, 0.1589)           0.04*              0.11
-#> sate.ipw.l    0.1236   (0.0613, 0.186)            0***             0.01*
-#> sate.ipw.ma   0.0733 (-0.0039, 0.1548)           0.04*              0.13
-#> sate.aipw     0.0758  (-0.0056, 0.163)           0.04*               0.1
+#> sate.mb       0.1259  (0.0639, 0.1888)            0***            0.012*
+#> sate.ipw      0.0740 (-0.0089, 0.1589)           0.04*             0.114
+#> sate.ipw.l    0.1236   (0.0613, 0.186)            0***            0.012*
+#> sate.ipw.ma   0.0733 (-0.0039, 0.1548)          0.038*             0.134
+#> sate.aipw     0.0758  (-0.0056, 0.163)          0.038*               0.1
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -2036,8 +2036,8 @@ Chambers, Ray, S. Ranjbar, Nicola Salvati, and Barbara Pacini. 2022.
 Rainfall Enhancement.” *Journal of the Royal Statistical Society: Series
 A (Statistics in Society)* 185: 1584–612.
 
-Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2025. *Adjusted Random
-Effect Block Bootstraps for Highly Unbalanced Clustered Data*.
+Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2025. *A Proportional
+Random Effect Block Bootstrap for General Clustered Data*.
 <https://arxiv.org/abs/2510.07770>.
 
 Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2026. “Bias-Adjusted

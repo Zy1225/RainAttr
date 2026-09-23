@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -136,13 +136,13 @@ dataset is given below:</p>
 <span><span class="co">#&gt; 4         8.03         34.6       607.24              15.77            1.089538</span></span>
 <span><span class="co">#&gt; 5         8.03         34.6       607.24              15.77            1.089538</span></span>
 <span><span class="co">#&gt; 6         8.03         34.6       607.24              15.77            1.089538</span></span>
-<span><span class="co">#&gt;   PC2.Dry.Temperature PC1.Relative.Humidity PC2..Relative.Humidity</span></span>
-<span><span class="co">#&gt; 1            3.045836             -2.183532              -2.494393</span></span>
-<span><span class="co">#&gt; 2            3.045836             -2.183532              -2.494393</span></span>
-<span><span class="co">#&gt; 3            3.045836             -2.183532              -2.494393</span></span>
-<span><span class="co">#&gt; 4            3.045836             -2.183532              -2.494393</span></span>
-<span><span class="co">#&gt; 5            3.045836             -2.183532              -2.494393</span></span>
-<span><span class="co">#&gt; 6            3.045836             -2.183532              -2.494393</span></span>
+<span><span class="co">#&gt;   PC2.Dry.Temperature PC1.Relative.Humidity PC2.Relative.Humidity</span></span>
+<span><span class="co">#&gt; 1            3.045836             -2.183532             -2.494393</span></span>
+<span><span class="co">#&gt; 2            3.045836             -2.183532             -2.494393</span></span>
+<span><span class="co">#&gt; 3            3.045836             -2.183532             -2.494393</span></span>
+<span><span class="co">#&gt; 4            3.045836             -2.183532             -2.494393</span></span>
+<span><span class="co">#&gt; 5            3.045836             -2.183532             -2.494393</span></span>
+<span><span class="co">#&gt; 6            3.045836             -2.183532             -2.494393</span></span>
 <span><span class="co">#&gt;   PC1.Ground.Level.Pressure</span></span>
 <span><span class="co">#&gt; 1                 0.4760997</span></span>
 <span><span class="co">#&gt; 2                 0.4760997</span></span>
@@ -465,8 +465,8 @@ each with 500 replicates parallelized over 4 workers:</p>
 <span></span>
 <span><span class="co">#</span></span>
 <span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 5.07815 mins</span></span></code></pre></div>
-<p>The total computational time was 5.08 minutes.</p>
+<span><span class="co">#&gt; Time difference of 5.023722 mins</span></span></code></pre></div>
+<p>The total computational time was 5.02 minutes.</p>
 <p>In the above example, we use the default PREB1 bootstrap proposed by
 <span class="citation">Tho et al. (2025)</span>; hence, it is not
 necessary to explicitly specify
@@ -492,18 +492,18 @@ data):</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
 <span><span class="co">#&gt;     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; apo    6.27% (2.3799%, 11.21%)            0***              0***</span></span>
-<span><span class="co">#&gt; apl    6.69%  (2.438%, 12.63%)            0***              0***</span></span>
+<span><span class="co">#&gt; apo    6.27% (2.3799%, 11.21%)            0***           0.004**</span></span>
+<span><span class="co">#&gt; apl    6.69%  (2.438%, 12.63%)            0***           0.004**</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SATE Results:</span></span>
 <span><span class="co">#&gt;             Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; sate.mb       0.1153 (0.0259, 0.1899)            0***              0***</span></span>
-<span><span class="co">#&gt; sate.ipw      0.0751  (0.022, 0.1861)           0.01*             0.05.</span></span>
-<span><span class="co">#&gt; sate.ipw.l    0.1132 (0.0263, 0.1898)            0***              0***</span></span>
-<span><span class="co">#&gt; sate.ipw.ma   0.0813 (0.0278, 0.1895)           0.01*             0.05.</span></span>
-<span><span class="co">#&gt; sate.aipw     0.0771 (0.0243, 0.1877)           0.01*             0.05.</span></span>
+<span><span class="co">#&gt; sate.mb       0.1153 (0.0259, 0.1899)         0.002**           0.004**</span></span>
+<span><span class="co">#&gt; sate.ipw      0.0751  (0.022, 0.1861)          0.012*            0.052.</span></span>
+<span><span class="co">#&gt; sate.ipw.l    0.1132 (0.0263, 0.1898)         0.002**           0.004**</span></span>
+<span><span class="co">#&gt; sate.ipw.ma   0.0813 (0.0278, 0.1895)         0.006**            0.052.</span></span>
+<span><span class="co">#&gt; sate.aipw     0.0771 (0.0243, 0.1877)         0.008**            0.048*</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -686,9 +686,9 @@ intercept:</p>
 <span><span class="co">#&gt;   Lifted.Index Total.Totals LCL.Pressure Precipitable.Water PC1.Dry.Temperature</span></span>
 <span><span class="co">#&gt; 1         8.03         34.6       607.24              15.77            1.089538</span></span>
 <span><span class="co">#&gt; 2         8.03         34.6       607.24              15.77            1.089538</span></span>
-<span><span class="co">#&gt;   PC2.Dry.Temperature PC1.Relative.Humidity PC2..Relative.Humidity</span></span>
-<span><span class="co">#&gt; 1            3.045836             -2.183532              -2.494393</span></span>
-<span><span class="co">#&gt; 2            3.045836             -2.183532              -2.494393</span></span>
+<span><span class="co">#&gt;   PC2.Dry.Temperature PC1.Relative.Humidity PC2.Relative.Humidity</span></span>
+<span><span class="co">#&gt; 1            3.045836             -2.183532             -2.494393</span></span>
+<span><span class="co">#&gt; 2            3.045836             -2.183532             -2.494393</span></span>
 <span><span class="co">#&gt;   PC1.Ground.Level.Pressure</span></span>
 <span><span class="co">#&gt; 1                 0.4760997</span></span>
 <span><span class="co">#&gt; 2                 0.4760997</span></span>
@@ -832,7 +832,7 @@ contour lines added using <code>elev_contour = TRUE</code>:</p>
 <span>              longlat_column_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gauge.Longitude"</span>, <span class="st">"Gauge.Latitude"</span><span class="op">)</span>,</span>
 <span>              long_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">55</span>,<span class="fl">60</span><span class="op">)</span>,</span>
 <span>              lat_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">22</span>,<span class="fl">25</span><span class="op">)</span>,</span>
-<span>              input_sf <span class="op">=</span> <span class="fu">rnaturalearth</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/rnaturalearth/reference/ne_countries.html" class="external-link">ne_countries</a></span><span class="op">(</span>scale <span class="op">=</span> <span class="st">"large"</span>, country <span class="op">=</span> <span class="st">"Oman"</span>, returnclass <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span>,</span>
+<span>              input_sf <span class="op">=</span> <span class="fu">rnaturalearth</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/rnaturalearth/reference/ne_countries.html" class="external-link">ne_countries</a></span><span class="op">(</span>scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">in_cran_check</span>,<span class="st">'medium'</span>,<span class="st">'large'</span><span class="op">)</span>, country <span class="op">=</span> <span class="st">"Oman"</span>, returnclass <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span>,</span>
 <span>              ionizer_location_df <span class="op">=</span> <span class="va">ionizer_location</span>,</span>
 <span>              ionizer_id_column_name <span class="op">=</span> <span class="st">'Ionizer'</span>,</span>
 <span>              ionizer_longlat_column_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Longitude"</span>,<span class="st">"Latitude"</span><span class="op">)</span>,</span>
@@ -860,15 +860,15 @@ contour lines added using <code>elev_contour = TRUE</code>:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Packaging <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Packaged <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(1.3s)</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Packaged <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(1.1s)</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Building <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Built <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(21.3s)</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Built <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(22.6s)</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Installed <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) <span style="color: #9E9E9E;">(95ms)</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Installed <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) <span style="color: #9E9E9E;">(115ms)</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> 1 pkg: added 1, dld 1 (NA B) <span style="color: #B2B2B2;">[30.6s]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> 1 pkg: added 1, dld 1 (NA B) <span style="color: #B2B2B2;">[30.9s]</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Mosaicing &amp; Projecting</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -900,7 +900,7 @@ appear visually consistent across directions:</p>
 <span>              longlat_column_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gauge.Longitude"</span>, <span class="st">"Gauge.Latitude"</span><span class="op">)</span>,</span>
 <span>              long_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">55</span>,<span class="fl">60</span><span class="op">)</span>,</span>
 <span>              lat_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>,<span class="fl">25</span><span class="op">)</span>,</span>
-<span>              input_sf <span class="op">=</span> <span class="fu">rnaturalearth</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/rnaturalearth/reference/ne_countries.html" class="external-link">ne_countries</a></span><span class="op">(</span>scale <span class="op">=</span> <span class="st">"large"</span>, country <span class="op">=</span> <span class="st">"Oman"</span>, returnclass <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span>,</span>
+<span>              input_sf <span class="op">=</span> <span class="fu">rnaturalearth</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/rnaturalearth/reference/ne_countries.html" class="external-link">ne_countries</a></span><span class="op">(</span>scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">in_cran_check</span>, <span class="st">"medium"</span>, <span class="st">"large"</span><span class="op">)</span>, country <span class="op">=</span> <span class="st">"Oman"</span>, returnclass <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span>,</span>
 <span>              ionizer_location_df <span class="op">=</span> <span class="va">ionizer_location</span>,</span>
 <span>              ionizer_id_column_name <span class="op">=</span> <span class="st">'Ionizer'</span>,</span>
 <span>              ionizer_longlat_column_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Longitude"</span>,<span class="st">"Latitude"</span><span class="op">)</span>,</span>
@@ -1011,18 +1011,18 @@ upwind (first-stage) and downwind (second-stage) LMM, respectively:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
 <span><span class="co">#&gt;     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; apo   11.12% (7.6667%, 14.82%)            0***              0***</span></span>
-<span><span class="co">#&gt; apl   12.51% (8.5784%, 16.97%)            0***              0***</span></span>
+<span><span class="co">#&gt; apo   11.12% (7.6667%, 14.82%)            0***           0.004**</span></span>
+<span><span class="co">#&gt; apl   12.51% (8.5784%, 16.97%)            0***           0.004**</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SATE Results:</span></span>
 <span><span class="co">#&gt;             Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; sate.mb       0.1144  (0.0533, 0.1779)            0***             0.02*</span></span>
-<span><span class="co">#&gt; sate.ipw      0.0740  (-0.012, 0.1653)           0.05.             0.07.</span></span>
-<span><span class="co">#&gt; sate.ipw.l    0.1123  (0.0514, 0.1756)            0***             0.02*</span></span>
-<span><span class="co">#&gt; sate.ipw.ma   0.0654 (-0.0183, 0.1589)           0.06.             0.08.</span></span>
-<span><span class="co">#&gt; sate.aipw     0.0774 (-0.0089, 0.1689)           0.04*             0.06.</span></span>
+<span><span class="co">#&gt; sate.mb       0.1144  (0.0533, 0.1779)            0***            0.016*</span></span>
+<span><span class="co">#&gt; sate.ipw      0.0740  (-0.012, 0.1653)          0.048*            0.066.</span></span>
+<span><span class="co">#&gt; sate.ipw.l    0.1123  (0.0514, 0.1756)            0***            0.018*</span></span>
+<span><span class="co">#&gt; sate.ipw.ma   0.0654 (-0.0183, 0.1589)          0.064.            0.082.</span></span>
+<span><span class="co">#&gt; sate.aipw     0.0774 (-0.0089, 0.1689)           0.04*            0.056.</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -1107,7 +1107,7 @@ the present implementation.</p></li>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">headline</span><span class="op">)</span><span class="op">$</span><span class="va">attr_table</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span></span>
 <span><span class="co">#&gt;     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; apl   12.51% (8.5784%, 16.97%)               0                 0</span></span></code></pre></div>
+<span><span class="co">#&gt; apl   12.51% (8.5784%, 16.97%)               0             0.004</span></span></code></pre></div>
 <p>The following plots aim to replicate Figure 7, noting that some
 differences remain due to the same reasons outlined above.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
@@ -1174,11 +1174,11 @@ in the original implementation.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SATE Results:</span></span>
 <span><span class="co">#&gt;             Estimate 95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; sate.mb       0.1259 (0.0669, 0.1849)            0***             0.01*</span></span>
-<span><span class="co">#&gt; sate.ipw      0.0821 (0.0023, 0.1683)           0.02*              0.12</span></span>
-<span><span class="co">#&gt; sate.ipw.l    0.1229 (0.0658, 0.1819)            0***             0.01*</span></span>
-<span><span class="co">#&gt; sate.ipw.ma   0.0828 (0.0033, 0.1692)           0.02*              0.12</span></span>
-<span><span class="co">#&gt; sate.aipw     0.0842 (0.0035, 0.1686)           0.02*              0.12</span></span>
+<span><span class="co">#&gt; sate.mb       0.1259 (0.0669, 0.1849)            0***            0.014*</span></span>
+<span><span class="co">#&gt; sate.ipw      0.0821 (0.0023, 0.1683)          0.018*              0.12</span></span>
+<span><span class="co">#&gt; sate.ipw.l    0.1229 (0.0658, 0.1819)            0***            0.014*</span></span>
+<span><span class="co">#&gt; sate.ipw.ma   0.0828 (0.0033, 0.1692)           0.02*             0.116</span></span>
+<span><span class="co">#&gt; sate.aipw     0.0842 (0.0035, 0.1686)          0.018*             0.118</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -1298,18 +1298,18 @@ in the original implementation.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
 <span><span class="co">#&gt;     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; apo      13% (8.1945%, 17.96%)            0***              0***</span></span>
-<span><span class="co">#&gt; apl   14.94% (9.3628%, 21.17%)            0***              0***</span></span>
+<span><span class="co">#&gt; apo      13% (8.1945%, 17.96%)            0***           0.006**</span></span>
+<span><span class="co">#&gt; apl   14.94% (9.3628%, 21.17%)            0***           0.006**</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SATE Results:</span></span>
 <span><span class="co">#&gt;             Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; sate.mb       0.1035  (0.0228, 0.1851)           0.01*             0.01*</span></span>
-<span><span class="co">#&gt; sate.ipw      0.0460 (-0.0604, 0.1535)            0.21              0.25</span></span>
-<span><span class="co">#&gt; sate.ipw.l    0.1063  (0.0228, 0.1886)           0.01*             0.01*</span></span>
-<span><span class="co">#&gt; sate.ipw.ma   0.0463   (-0.06, 0.1527)            0.21              0.25</span></span>
-<span><span class="co">#&gt; sate.aipw     0.0550 (-0.0524, 0.1613)            0.17              0.19</span></span>
+<span><span class="co">#&gt; sate.mb       0.1035  (0.0228, 0.1851)          0.014*             0.05.</span></span>
+<span><span class="co">#&gt; sate.ipw      0.0460 (-0.0604, 0.1535)           0.208             0.318</span></span>
+<span><span class="co">#&gt; sate.ipw.l    0.1063  (0.0228, 0.1886)          0.012*            0.046*</span></span>
+<span><span class="co">#&gt; sate.ipw.ma   0.0463   (-0.06, 0.1527)            0.21             0.314</span></span>
+<span><span class="co">#&gt; sate.aipw     0.0550 (-0.0524, 0.1613)           0.166              0.27</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -1417,18 +1417,18 @@ in the original implementation.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
 <span><span class="co">#&gt;     Estimate   95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; apo   14.66%  (9.0013%, 20.84%)            0***              0***</span></span>
-<span><span class="co">#&gt; apl   17.18% (10.4577%, 25.28%)            0***              0***</span></span>
+<span><span class="co">#&gt; apo   14.66%  (9.0013%, 20.84%)            0***            0.068.</span></span>
+<span><span class="co">#&gt; apl   17.18% (10.4577%, 25.28%)            0***            0.068.</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SATE Results:</span></span>
 <span><span class="co">#&gt;             Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; sate.mb       0.1565   (0.062, 0.2427)            0***              0***</span></span>
-<span><span class="co">#&gt; sate.ipw      0.1243 (-0.0025, 0.2364)           0.03*              0***</span></span>
-<span><span class="co">#&gt; sate.ipw.l    0.1540  (0.0608, 0.2397)            0***              0***</span></span>
-<span><span class="co">#&gt; sate.ipw.ma   0.1260  (-6e-04, 0.2366)           0.03*              0***</span></span>
-<span><span class="co">#&gt; sate.aipw     0.1219 (-0.0074, 0.2352)           0.03*              0***</span></span>
+<span><span class="co">#&gt; sate.mb       0.1565   (0.062, 0.2427)            0***            0.046*</span></span>
+<span><span class="co">#&gt; sate.ipw      0.1243 (-0.0025, 0.2364)           0.03*             0.09.</span></span>
+<span><span class="co">#&gt; sate.ipw.l    0.1540  (0.0608, 0.2397)            0***            0.046*</span></span>
+<span><span class="co">#&gt; sate.ipw.ma   0.1260  (-6e-04, 0.2366)          0.028*            0.082.</span></span>
+<span><span class="co">#&gt; sate.aipw     0.1219 (-0.0074, 0.2352)          0.028*            0.096.</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -1653,18 +1653,18 @@ reproduced using the code below.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
 <span><span class="co">#&gt;     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; apo    6.84% (3.2052%, 10.53%)            0***             0.01*</span></span>
-<span><span class="co">#&gt; apl    7.34% (3.2402%, 11.76%)            0***             0.01*</span></span>
+<span><span class="co">#&gt; apo    6.84% (3.2052%, 10.53%)            0***            0.012*</span></span>
+<span><span class="co">#&gt; apl    7.34% (3.2402%, 11.76%)            0***            0.012*</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SATE Results:</span></span>
 <span><span class="co">#&gt;             Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
-<span><span class="co">#&gt; sate.mb       0.1259  (0.0639, 0.1888)            0***             0.01*</span></span>
-<span><span class="co">#&gt; sate.ipw      0.0740 (-0.0089, 0.1589)           0.04*              0.11</span></span>
-<span><span class="co">#&gt; sate.ipw.l    0.1236   (0.0613, 0.186)            0***             0.01*</span></span>
-<span><span class="co">#&gt; sate.ipw.ma   0.0733 (-0.0039, 0.1548)           0.04*              0.13</span></span>
-<span><span class="co">#&gt; sate.aipw     0.0758  (-0.0056, 0.163)           0.04*               0.1</span></span>
+<span><span class="co">#&gt; sate.mb       0.1259  (0.0639, 0.1888)            0***            0.012*</span></span>
+<span><span class="co">#&gt; sate.ipw      0.0740 (-0.0089, 0.1589)           0.04*             0.114</span></span>
+<span><span class="co">#&gt; sate.ipw.l    0.1236   (0.0613, 0.186)            0***            0.012*</span></span>
+<span><span class="co">#&gt; sate.ipw.ma   0.0733 (-0.0039, 0.1548)          0.038*             0.134</span></span>
+<span><span class="co">#&gt; sate.aipw     0.0758  (-0.0056, 0.163)          0.038*               0.1</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -1961,9 +1961,8 @@ Statistical Society: Series A (Statistics in Society)</em> 185:
 1584–612.
 </div>
 <div id="ref-tho2025" class="csl-entry">
-Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2025. <em>Adjusted
-Random Effect Block Bootstraps for Highly Unbalanced Clustered
-Data</em>. <a href="https://arxiv.org/abs/2510.07770" class="external-link">https://arxiv.org/abs/2510.07770</a>.
+Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2025. <em>A Proportional
+Random Effect Block Bootstrap for General Clustered Data</em>. <a href="https://arxiv.org/abs/2510.07770" class="external-link">https://arxiv.org/abs/2510.07770</a>.
 </div>
 <div id="ref-tho2026" class="csl-entry">
 Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2026.

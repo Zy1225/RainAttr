@@ -230,21 +230,25 @@ which is a list containing
     observations. Observations with zero bootstrapped rainfall are
     represented as `NA`.
 
+  This is `NULL` when `bootstrap = FALSE`.
+
 - bootstrap_CI_result:
 
   A list of matrices with same element names as in `bootstrap_result`
   (excluding `downwind_LogRain`), containing the corresponding bootstrap
-  percentile confidence intervals.
+  percentile confidence intervals. This is `NULL` when
+  `bootstrap = FALSE`.
 
 - bootstrap_p_value_result:
 
-  A list of matrices with same element names as in `bootstrap_result`
-  (excluding `downwind_LogRain`), containing the corresponding
-  proportion of bootstrap samples that are less than zero.
+  A list of numeric vectors with same element names as in
+  `bootstrap_result` (excluding `downwind_LogRain`), containing the
+  corresponding proportion of bootstrap samples that are less than zero.
+  This is `NULL` when `bootstrap = FALSE`.
 
 - bootstrap_plot_result:
 
-  A list of matrices with two elements:
+  A list with two elements:
 
   - hatattr: A list of `ggplot` objects, each showing the bootstrap
     distribution of attribution estimates. Each plot includes a dotted
@@ -254,26 +258,29 @@ which is a list containing
   - hatsate: A list of `ggplot` objects, each showing the bootstrap
     distribution of SATE estimates. Each plot includes a dotted vertical
     line at zero and a solid vertical line at the original estimate
-    based on the observed data.
+    based on the observed data. This is `NULL` when `bootstrap = FALSE`.
 
 - permutation_result:
 
-  A list of matrices with the two elements:
+  A list of matrices with two elements:
 
   - hatattr: Matrix of permutation samples for attribution estimates.
 
   - hatsate: Matrix of permutation samples for SATE estimates.
 
+  This is `NULL` when `permutation = FALSE`.
+
 - permutation_p_value_result:
 
-  A list of matrices with same element names as in `permutation_result`,
-  containing the corresponding proportion of permutation samples that
-  are greater than or equal to the original estimate based on the
-  observed data.
+  A list of numeric vectors with same element names as in
+  `permutation_result`, containing the corresponding proportion of
+  permutation samples that are greater than or equal to the original
+  estimate based on the observed data. This is `NULL` when
+  `permutation = FALSE`.
 
 - permutation_plot_result:
 
-  A list of matrices with two elements:
+  A list with two elements:
 
   - hatattr: A list of `ggplot` objects, each showing the permutation
     distribution of attribution estimates. Each plot includes a solid
@@ -282,6 +289,8 @@ which is a list containing
   - hatsate: A list of `ggplot` objects, each showing the permutation
     distribution of SATE estimates. Each plot includes a solid vertical
     line at the original estimate based on the observed data.
+
+  This is `NULL` when `permutation = FALSE`.
 
 - args:
 
@@ -332,11 +341,11 @@ the estimated fixed effect coefficients \\\hat{\alpha}\\,
 \\\hat{\beta}\\ and EBLUPs \\\hat{u}\_i\\ from the fitted downwind
 (second stage) LMM. `apo` represents the total increase or decrease in
 downwind rainfall attributed to the ionizer (treatment) as a proportion
-of the total amount of observed downwind rainfall., while `apl`
+of the total amount of observed downwind rainfall, while `apl`
 represents the total increase or decrease in downwind rainfall
 attributed to the ionizer (treatment) as a proportion of the total
 expected amount of downwind rainfall without the effect of ionizer
-(treatment). This function allows for three different ways of estimating
+(treatment). This function allows for four different ways of estimating
 `apo` and `apl` as specified by the argument `attr_type`:
 
 - `ChambersEtAl`:
@@ -345,9 +354,9 @@ expected amount of downwind rainfall without the effect of ionizer
   (2022a), to adjust for back-transformation bias due to the modelling
   of log-transformed rainfall: \$\$ \code{apo} = \sum\_{(i,j)}
   Rain\_{ij} \[ 1 - \max\\\lambda^{-1} \exp(-z\_{ij}^\top \hat{\beta}),
-  0.5\\ \] / \sum\_{(i,j)}Rain\_{ij}, \quad \code{apl} = \sum\_{(i,j)}
-  Rain\_{ij} \[ 1 - \max\\\lambda^{-1} \exp(-z\_{ij}^\top \hat{\beta}),
-  0.5\\ \] / \sum\_{(i,j)}Rain\_{ij} \max\\\lambda^{-1}
+  0.5\\ \] / \sum\_{(i,j)}Rain\_{ij}, \$\$ \$\$ \code{apl} =
+  \sum\_{(i,j)} Rain\_{ij} \[ 1 - \max\\\lambda^{-1} \exp(-z\_{ij}^\top
+  \hat{\beta}), 0.5\\ \] / \sum\_{(i,j)}Rain\_{ij} \max\\\lambda^{-1}
   \exp(-z\_{ij}^\top \hat{\beta}), 0.5\\, \$\$ where the summation is
   either across all observations satisfying
   `downwind_subset & positive_subset` (when `target_only = FALSE`), or
@@ -382,7 +391,7 @@ expected amount of downwind rainfall without the effect of ionizer
   replaced by \\\lambda^{-1} \exp(-z\_{ij}^\top \hat{\beta})\\: \$\$
   \code{apo} = \sum\_{(i,j)} Rain\_{ij} \\ 1 - \lambda^{-1}
   \exp(-z\_{ij}^\top \hat{\beta}) \\ / \sum\_{(i,j)}Rain\_{ij}, \quad
-  \code{apl} = \sum\_{(i,j)} Rain\_{ij} \\ 1 - \lambda^{-1}
+  \$\$ \$\$ \code{apl} = \sum\_{(i,j)} Rain\_{ij} \\ 1 - \lambda^{-1}
   \exp(-z\_{ij}^\top \hat{\beta}) \\ / \sum\_{(i,j)}Rain\_{ij}
   \lambda^{-1} \exp(-z\_{ij}^\top \hat{\beta}), \$\$ where \\\lambda\\
   is the same as in `ChambersEtAl`.
@@ -392,20 +401,20 @@ expected amount of downwind rainfall without the effect of ionizer
   Attribution is estimated based on an alternative adjustment proposed
   by Tho et al. (2026), using the estimated covariance matrix
   \\\hat{\Sigma}\\ of \\\hat{\beta}\\. \$\$ \code{apo} = \sum\_{(i,j)}
-  Rain\_{ij} \\ 1 - \exp(z\_{ij}^\top \hat{\beta} - 0.5 z\_{ij}^\top
-  \hat{\Sigma} z\_{ij} ) \\/ \sum\_{(i,j)}Rain\_{ij}, \quad \code{apl} =
-  \sum\_{(i,j)} Rain\_{ij} \\ 1 - \exp(z\_{ij}^\top \hat{\beta} - 0.5
-  z\_{ij}^\top \hat{\Sigma} z\_{ij} ) \\ / \sum\_{(i,j)}Rain\_{ij}
-  \exp(-z\_{ij}^\top \hat{\beta} - 0.5 z\_{ij}^\top \hat{\Sigma} z\_{ij}
-  ). \$\$
+  Rain\_{ij} \\ 1 - \exp(-z\_{ij}^\top \hat{\beta} - 0.5 z\_{ij}^\top
+  \hat{\Sigma} z\_{ij} ) \\/ \sum\_{(i,j)}Rain\_{ij}, \quad \$\$ \$\$
+  \code{apl} = \sum\_{(i,j)} Rain\_{ij} \\ 1 - \exp(-z\_{ij}^\top
+  \hat{\beta} - 0.5 z\_{ij}^\top \hat{\Sigma} z\_{ij} ) \\ /
+  \sum\_{(i,j)}Rain\_{ij} \exp(-z\_{ij}^\top \hat{\beta} - 0.5
+  z\_{ij}^\top \hat{\Sigma} z\_{ij} ). \$\$
 
 - `No`:
 
   Attribution is estimated based on no adjustment. \$\$ \code{apo} =
-  \sum\_{(i,j)} Rain\_{ij} \\ 1 - \exp(z\_{ij}^\top \hat{\beta} ) \\/
-  \sum\_{(i,j)}Rain\_{ij}, \quad \code{apl} = \sum\_{(i,j)} Rain\_{ij}
-  \\ 1 - \exp(z\_{ij}^\top \hat{\beta} ) \\ / \sum\_{(i,j)}Rain\_{ij}
-  \exp(-z\_{ij}^\top \hat{\beta} ). \$\$
+  \sum\_{(i,j)} Rain\_{ij} \\ 1 - \exp(-z\_{ij}^\top \hat{\beta} ) \\/
+  \sum\_{(i,j)}Rain\_{ij}, \quad \$\$ \$\$\code{apl} = \sum\_{(i,j)}
+  Rain\_{ij} \\ 1 - \exp(-z\_{ij}^\top \hat{\beta} ) \\ /
+  \sum\_{(i,j)}Rain\_{ij} \exp(-z\_{ij}^\top \hat{\beta} ). \$\$
 
 **SATE**  
 The computation of SATE estimates involves fitting a downwind (second
@@ -503,12 +512,12 @@ distributions of parameters associated with the downwind LMM
 (`downwind_propensity_formula`), downwind treatment-only LMM, and
 downwind control-only LMM. These bootstrap distributions are then used
 to compute bootstrap p-values (proportion of bootstrapped estimates that
-are negative), form bootstrap percentile confidence intervals (with
-confidence level specified in `bootstrap_option$CI_level`), and generate
-their respective plots. It is worth noting that the entire bootstrap
-procedure (including rainfall resampling, model fitting, and parameter
-estimation) can be run in parallel by setting
-`bootstrap_option$bootstrap_parallel = TRUE`, using
+are less than or equal to zero), form bootstrap percentile confidence
+intervals (with confidence level specified in
+`bootstrap_option$CI_level`), and generate their respective plots. It is
+worth noting that the entire bootstrap procedure (including rainfall
+resampling, model fitting, and parameter estimation) can be run in
+parallel by setting `bootstrap_option$bootstrap_parallel = TRUE`, using
 `bootstrap_option$bootstrap_parallel_num_worker` workers.
 
 Finally, this function enables permutation-based inference on the
@@ -520,10 +529,10 @@ For full details of the permutation-based procedure, please see
 In short, the permutation-based procedure involves randomly permuting
 the operating schedules of the ionizers (treatment) and re-estimating
 the attribution and SATE based on the permuted data, from which
-permutations distributions of attribution and SATE estimates are formed.
+permutation distributions of attribution and SATE estimates are formed.
 These permutation distributions are used to compute permutation p-values
-(proportion of permuted estimates that are greater than the observed
-estimates) and generate their respective plots.
+(proportion of permuted estimates that are greater than or equal to the
+observed estimates) and generate their respective plots.
 
 ## References
 

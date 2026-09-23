@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,8 +83,35 @@
 <dt>Rainfall.Measurement.Status</dt>
 <dd><p>Character variable indicating the gauge’s location relative to deployed ionizers based on the day’s wind direction, with possible values: "Upwind", "Downwind", "Out of Scope"</p></dd>
 
-<dt>Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10</dt>
-<dd><p>Binary indicator variables showing whether the gauge is downwind of the ionizer and the ionizer has been deployed and turned on on that day (1 = yes, 0 = no)</p></dd>
+<dt>Target.H.01</dt>
+<dd><p>Binary indicator for ionizer H1 showing whether the gauge is downwind of the ionizer and the ionizer has been deployed and turned on on that day (1 = yes, 0 = no)</p></dd>
+
+<dt>Target.H.02</dt>
+<dd><p>Same as Target.H.01, for ionizer H2</p></dd>
+
+<dt>Target.H.03</dt>
+<dd><p>Same as Target.H.01, for ionizer H3</p></dd>
+
+<dt>Target.H.04</dt>
+<dd><p>Same as Target.H.01, for ionizer H4</p></dd>
+
+<dt>Target.H.05</dt>
+<dd><p>Same as Target.H.01, for ionizer H5</p></dd>
+
+<dt>Target.H.06</dt>
+<dd><p>Same as Target.H.01, for ionizer H6</p></dd>
+
+<dt>Target.H.07</dt>
+<dd><p>Same as Target.H.01, for ionizer H7</p></dd>
+
+<dt>Target.H.08</dt>
+<dd><p>Same as Target.H.01, for ionizer H8</p></dd>
+
+<dt>Target.H.09</dt>
+<dd><p>Same as Target.H.01, for ionizer H9</p></dd>
+
+<dt>Target.H.10</dt>
+<dd><p>Same as Target.H.01, for ionizer H10</p></dd>
 
 <dt>Gauge.Day.Type</dt>
 <dd><p>Character variable that further classifies "Downwind" observations
@@ -92,8 +119,14 @@
 - "Control" – downwind of all inactive ionizers (i.e., all Target.H.01 – Target.H.10 = 0)</p>
 <p>Observations that are "Upwind" or "Out of Scope" retain the same classification as Rainfall.Measurement.Status. Thus, the variable has four possible values: "Upwind", "Target", "Control", "Out of Scope".</p></dd>
 
-<dt>PC1.Dry.Temperature, PC2.Dry.Temperature,PC1.Relative.Humidity, PC2..Relative.Humidity,PC1.Ground.Level.Pressure</dt>
-<dd><p>Principal component of meteorological variables</p></dd>
+<dt>PC1.Dry.Temperature, PC2.Dry.Temperature</dt>
+<dd><p>First and second principal components of dry temperature</p></dd>
+
+<dt>PC1.Relative.Humidity, PC2.Relative.Humidity</dt>
+<dd><p>First and second principal components of relative humidity</p></dd>
+
+<dt>PC1.Ground.Level.Pressure</dt>
+<dd><p>First principal component of ground-level pressure</p></dd>
 
 <dt>Steering.Wind.Direction, Steering.Wind.Principal.Direction, Steering.Wind.Speed</dt>
 <dd><p>Wind-related measures</p></dd>

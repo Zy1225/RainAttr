@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -133,7 +133,8 @@ Default is "PREB1".</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">#Create default bootstrap options to account for highly unbalanced clustered data</span></span></span>
 <span class="r-in"><span><span class="co"># Specifically: bootstrap_type = 'PREB1' as proposed by Tho et al. (2025)</span></span></span>
-<span class="r-in"><span><span class="co"># Adjusted Random Effect Block Bootstraps for Highly Unbalanced Clustered Data. arXiv:2510.07770.</span></span></span>
+<span class="r-in"><span><span class="co"># A Proportional Random Effect Block Bootstrap for General Clustered Data.</span></span></span>
+<span class="r-in"><span><span class="co"># arXiv:2510.07770.</span></span></span>
 <span class="r-in"><span><span class="va">boot_options</span> <span class="op">=</span> <span class="fu">bootstrap_opt</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">boot_options</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 13</span>

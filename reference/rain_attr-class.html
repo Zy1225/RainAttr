@@ -9,7 +9,7 @@ rainfall enhancement analysis, created by calls to rain_attr."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -114,9 +114,9 @@ rainfall enhancement analysis, created by calls to <code><a href="rain_attr.html
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>An <b>R</b> object to be printed or plotted. For <code>print.rain_attr()</code> and
-<code>plot.rain_attr()</code>, an <b>R</b> object of class <code>rain_attr</code>, i.e., an output from <code><a href="rain_attr.html">rain_attr</a></code>; for
-<code>print.summary.rain_attr()</code>, an <b>R</b> object of class <code>summary.rain_attr</code>, i.e., an output from applying <code>summary.rain_attr</code> to an <b>R</b> object of class <code>rain_attr</code>.</p></dd>
+<dd><p>An <b>R</b> object to be printed or plotted. For <code>print.rain_attr</code> and
+<code>plot.rain_attr</code>, an <b>R</b> object of class <code>rain_attr</code>, i.e., an output from <code><a href="rain_attr.html">rain_attr</a></code>; for
+<code>print.summary.rain_attr</code>, an <b>R</b> object of class <code>summary.rain_attr</code>, i.e., an output from applying <code>summary.rain_attr</code> to an <b>R</b> object of class <code>rain_attr</code>.</p></dd>
 
 
 <dt id="arg-residual-type">residual_type<a class="anchor" aria-label="anchor" href="#arg-residual-type"></a></dt>
@@ -182,7 +182,7 @@ See <code><a href="https://rdrr.io/pkg/lme4/man/residuals.merMod.html" class="ex
 
 
 </dl><p>The object also includes attribution estimates, SATE, results from bootstrap and permutation-based procedures if <code>bootstrap = TRUE</code>
-or <code>permutation = TRUE</code> were specified in the original <code><a href="rain_attr.html">rain_attr</a></code> call, the data supplied in the original call with an additional column containing the fitted values generated from the upwind (first stage) LMM., and the specified arguments in the original call.</p>
+or <code>permutation = TRUE</code> were specified in the original <code><a href="rain_attr.html">rain_attr</a></code> call, the data supplied in the original call with an additional column containing the fitted values generated from the upwind (first stage) LMM, and the specified arguments in the original call.</p>
     </div>
     <div class="section level2">
     <h2 id="s-methods">S3 Methods<a class="anchor" aria-label="anchor" href="#s-methods"></a></h2>
@@ -192,7 +192,7 @@ or <code>permutation = TRUE</code> were specified in the original <code><a href=
 <dd><p>Computes the fixed effect coefficients and the empirical best linear unbiased predictors (EBLUPs) of random intercepts if the selected <code>model</code> is one of the LMMs, or the regression coefficients if the selected <code>model</code> is one of the GLMs.</p></dd>
 
 <dt><code>print</code></dt>
-<dd><p>Print the point estimates of attributions and SATE and indicate whether bootstrap and permutation has been performed. Also print the model formula, data subset, number of observations, number of days (groups), and point estimates of fixed effect coefficients for the upwind (first stage) and downwind (second stage) LMMs.</p></dd>
+<dd><p>Print the point estimates of attributions and SATE and indicate whether bootstrap and permutation have been performed. Also print the model formula, data subset, number of observations, number of days (groups), and point estimates of fixed effect coefficients for the upwind (first stage) and downwind (second stage) LMMs.</p></dd>
 
 <dt><code>residuals</code></dt>
 <dd><p>Compute residuals of the selected <code>model</code>. Residual type is controlled by <code>residual_type</code>, while scaling (only for LMMs) is controlled by <code>residual_scaled</code>.</p></dd>
@@ -218,8 +218,8 @@ Moreover, the validity of GLMs does not require normally distributed residuals.<
 <dd><p>Returns a list of summary statistics of the two-stage LMM approach, which is an <b>R</b> object of class <code>summary.rain_attr</code>. For details of this list, see the "Value from <code>summary.rain_attr</code>" section below.</p></dd>
 
 <dt><code>print.summary</code></dt>
-<dd><p>Print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values if bootstrap and permutation has been performed.
-Also print the model formula, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard error and t-values computed from <code><a href="https://rdrr.io/pkg/lme4/man/summary.merMod.html" class="external-link">summary.merMod</a></code>.</p></dd>
+<dd><p>Print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values if bootstrap and permutation have been performed.
+Also print the model formula, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard errors and t-values computed from <code><a href="https://rdrr.io/pkg/lme4/man/summary.merMod.html" class="external-link">summary.merMod</a></code>.</p></dd>
 
 
 </dl></div>
@@ -255,7 +255,7 @@ Also print the model formula, data subset, number of observations, number of uni
 <dd><p>Fitted values of the upwind and downwind LMMs, which include both the fixed effects and the predicted random intercepts.</p></dd>
 
 <dt><code>upwind_residuals</code>, <code>downwind_residuals</code></dt>
-<dd><p>Scaled residuals of the upwind and downwind LMMs, which take the general form of (observed - fitted)/\(\hat{\sigma}_e\), where the fitted values are either <code>upwind_fitted</code> or <code>downwind_fitted</code> and \(\hat{\sigma}_e\) denote the corresponding estimated error variance.</p></dd>
+<dd><p>Scaled residuals of the upwind and downwind LMMs, which take the general form of (observed - fitted)/\(\hat{\sigma}_e\), where the fitted values are either <code>upwind_fitted</code> or <code>downwind_fitted</code> and \(\hat{\sigma}_e\) denote the corresponding residual standard deviation.</p></dd>
 
 <dt><code>upwind_lmm_fixef</code>, <code>downwind_lmm_fixef</code></dt>
 <dd><p>Matrices of fixed effect coefficients for the upwind and downwind LMMs, along with their corresponding standard error estimates and t-value computed from <code><a href="https://rdrr.io/pkg/lme4/man/summary.merMod.html" class="external-link">summary.merMod</a></code>.</p></dd>

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -167,7 +167,7 @@ Must be one of <code>"REB0"</code>, <code>"REB1"</code>, <code>"REB2"</code>, <c
 
 
 <dt id="arg-ori-fitted-models">ori_fitted_models<a class="anchor" aria-label="anchor" href="#arg-ori-fitted-models"></a></dt>
-<dd><p>A list containing the models fitted to the <code>ori_data</code>, including the upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) target-only LMM, downwind (second stage) logistic model for rainfall event indicator, and downwind (second stage) propensity score model.
+<dd><p>A list containing the models fitted to the <code>ori_data</code>, including the upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, downwind (second stage) logistic model for rainfall event indicator, and downwind (second stage) propensity score model.
 (Internal argument set automatically when using <code><a href="rain_attr.html">rain_attr</a></code>)</p></dd>
 
 
@@ -261,8 +261,8 @@ Depending on the chosen <code>bootstrap_type</code>, bootstrap samples of \(u_i^
 
 <dt><code>REB1</code></dt>
 <dd><p>Replaces \(\hat{u}_i\) and \(\hat{e}_{ij}\) in <code>REB0</code> with
-\(\hat{u}_{ij}^{cs} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} \hat{u}_i^2 \}^{-1/2} \) and
-\(\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2} \), respectively,
+$$\hat{u}_{ij}^{cs} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} \hat{u}_i^2 \}^{-1/2} $$ and
+$$\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2},$$ respectively,
 where \( \hat{u}_i^c = \hat{u}_i - D^{-1} \sum_{i'=1}^{D} \hat{u}_{i'} \), \(\hat{\sigma}^2_u\) and \(\hat{\sigma}^2_e\) are the estimated variances of random intercepts and error terms from the fitted downwind (second stage) LMM, and \(N = \sum_{i=1}^{D} n_i\) is the total number of observations from <code>ori_data</code> satisfying <code>downwind &amp; ori_positive</code>.</p></dd>
 
 
@@ -283,8 +283,8 @@ Then, sample
 
 <dt><code>PREB1</code></dt>
 <dd><p>Replaces \(\hat{u}_i\) and \(\hat{e}_{ij}\) in <code>PREB0</code> with
-\(\hat{u}_{ij}^{sc} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} (\hat{u}_i^c)^2 \}^{-1/2} \) and
-\(\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2} \), respectively.</p></dd>
+$$\hat{u}_{ij}^{sc} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} (\hat{u}_i^c)^2 \}^{-1/2} $$ and
+$$\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2},$$ respectively.</p></dd>
 
 
 <dt><code>PREB2</code></dt>
@@ -294,12 +294,12 @@ Then, sample
 <dt><code>MREB1</code></dt>
 <dd><p>Replaces \(\hat{u}_i\) and \(\hat{e}_{ij}\) in <code>REB0</code> with
 \(\hat{u}_{ij}^{sc}\) defined under <code>PREB1</code> and
-\(\tilde{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{  \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } D^{-1} n_{i'}^{-1} \hat{e}_{i'j'}^2  \}^{-1/2} \), respectively.</p></dd>
+$$\tilde{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{  \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } D^{-1} n_{i'}^{-1} \hat{e}_{i'j'}^2  \}^{-1/2},$$ respectively.</p></dd>
 
 
 
 </dl><p>The random effect block (REB0, REB1, REB2) bootstraps proposed in Chambers and Chandra (2013) were originally designed to handle balanced clustered data, while the proportional REB (PREB0, PREB1, PREB2) bootstraps and the MREB1 bootstrap proposed by Tho et al. (2025) are generalizations of the REB bootstraps to accommodate highly unbalanced clustered data.
-Therefore, it is recommended to use either <code>bootstrap_type = "PREB1"</code> or <code>bootstrap_type = "MREB1"</code>, especially when \(n_i\)'s are highly unbalanced. Users are refered to Tho et al. (2025) for more discussion on the comparison among these bootstrap methods.</p>
+Therefore, it is recommended to use either <code>bootstrap_type = "PREB1"</code> or <code>bootstrap_type = "MREB1"</code>, especially when \(n_i\)'s are highly unbalanced. Users are referred to Tho et al. (2025) for more discussion on the comparison among these bootstrap methods.</p>
 <p><strong>Adjustment of Bootstrapped Rainfall</strong> <br>
 After obtaining the bootstrapped \(y_{ij}^*\) that are assumed to be log-rainfall, it is possible to perform some adjustment to the bootstrap samples to ensure that they are similar to the observed data.</p>
 <p>Let \(Rain_{ij}^* = \exp(y_{ij}^*)\) be the bootstrapped raw rainfall.
@@ -342,8 +342,8 @@ $$\hat{\sigma}^{2*}_{e,b} \leftarrow \hat{\sigma}^{2*}_{e,b} \times \frac{\hat{\
 where \(\hat{\sigma}^{2*}_{u,b}\) and \(\hat{\sigma}^{2*}_{e,b}\) are the adjusted bootstrap estimates,
 and \(\hat{\sigma}^2_u\), \(\hat{\sigma}^2_e\) are the original estimates.</p></li>
 </ul><p><strong>Bootstrap P-values, Bootstrap Percentile Confidence Intervals, Bootstrap Plots</strong> <br>
-All bootstrap distributions (except for log-transformed rainfall) produced by this function are further used in <code><a href="rain_attr.html">rain_attr</a></code> to:</p><ul><li><p>Compute bootstrap p-values as the proportion of bootstrapped estimates that are less than zero,
-i.e., $$ \frac{1}{B} \sum_{b=1}^{B} 1_{ \{ \hat{\theta}_b^* &lt; 0 \}} $$
+All bootstrap distributions (except for log-transformed rainfall) produced by this function are further used in <code><a href="rain_attr.html">rain_attr</a></code> to:</p><ul><li><p>Compute bootstrap p-values as the proportion of bootstrapped estimates that are less than or equal to zero,
+i.e., $$ \frac{1}{B} \sum_{b=1}^{B} 1_{ \{ \hat{\theta}_b^* \leq 0 \}} $$
 where \(1_{\{\cdot\}}\) is the indicator function and \(\hat{\theta}_b\) denotes the estimate from the \(b\)-th bootstrap sample.</p></li>
 <li><p>Compute bootstrap percentile confidence interval with confidence level \((1-\alpha) \times 100\%\) as
 $$ [ \hat{\theta}^*_{\alpha / 2}, \hat{\theta}^*_{1 - \alpha/2} ], $$
