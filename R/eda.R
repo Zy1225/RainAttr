@@ -867,7 +867,7 @@ eda = function(eda_type,
     }
 
     data[,'alpha'] = 1
-    data[oman$Rain.Gauge.Measurement == 0,'alpha'] = 0.2
+    data[data[,rain_col_name] == 0,'alpha'] = 0.2
 
     if(!use_raw){
       data[,rain_col_name] = log(data[,rain_col_name])
