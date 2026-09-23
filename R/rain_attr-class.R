@@ -18,7 +18,7 @@
 #' }
 #'
 #' The object also includes attribution estimates, SATE, results from bootstrap and permutation-based procedures if \code{bootstrap = TRUE}
-#' or \code{permutation = TRUE} were specified in the original \code{\link{rain_attr}} call, the data supplied in the original call with an additional column containing the fitted values generated from the upwind (first stage) LMM., and the specified arguments in the original call.
+#' or \code{permutation = TRUE} were specified in the original \code{\link{rain_attr}} call, the data supplied in the original call with an additional column containing the fitted values generated from the upwind (first stage) LMM, and the specified arguments in the original call.
 #'
 #' @section S3 Methods:
 #' \describe{
@@ -35,7 +35,7 @@
 #'   Diagnostic plots for GLM-type \code{model} should be interpreted with caution. In particular, logistic regressions (for both \code{"downwind_logistic"} and  \code{"downwind_propensity"}) are inherently curvilinear, which often leads to unusual patterns in the residuals–fitted values plot even when the model is correctly specified.
 #'   Moreover, the validity of GLMs does not require normally distributed residuals.}
 #'   \item{\code{summary}}{Returns a list of summary statistics of the two-stage LMM approach, which is an \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}. For details of this list, see the "Value from \code{summary.rain_attr}" section below. }
-#'   \item{\code{print.summary}}{Print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values if bootstrap and permutation has been performed.
+#'   \item{\code{print.summary}}{Print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values if bootstrap and permutation have been performed.
 #'   Also print the model formula, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard errors and t-values computed from \code{\link[lme4]{summary.merMod}}.}
 #'}
 #'

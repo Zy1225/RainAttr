@@ -639,7 +639,7 @@ summary.rain_attr <- function(object, ...) {
   if(!is.null(object$bootstrap_result)) {
     ci_mat = bootstrap_CI(object$bootstrap_result$hatattr[, attr_rows],level = ifelse(is.null(object$args$bootstrap_option$CI_level), bootstrap_opt()$CI_level, object$args$bootstrap_option$CI_level) )
     attr_table$Bootstrap_CI = apply(ci_mat, 1, function(r) paste0("(", round(r[1] * 100, 4), "%", ", ", round(r[2] * 100, 2), "%", ")"))
-    attr_table$Bootstrap_p = round(bootstrap_p_value(object$bootstrap_result$hatattr[, attr_rows]),2)
+    attr_table$Bootstrap_p = bootstrap_p_value(object$bootstrap_result$hatattr[, attr_rows])
   }else{
     attr_table$Bootstrap_CI = NA
     attr_table$Bootstrap_p = NA
@@ -647,10 +647,10 @@ summary.rain_attr <- function(object, ...) {
 
 
   if(!is.null(object$permutation_result)) {
-    attr_table$Permutation_p = round(permutation_p_value(object$permutation_result$hatattr[, attr_rows],
-                                                         ori_est = sapply(attr_rows, FUN = function(nm){
-                                                           object$hatattr[[nm]]
-                                                         })),2)
+    attr_table$Permutation_p = permutation_p_value(object$permutation_result$hatattr[, attr_rows],
+                                                   ori_est = sapply(attr_rows, FUN = function(nm){
+                                                     object$hatattr[[nm]]
+                                                   }))
   }else{
     attr_table$Permutation_p <- NA
   }
@@ -674,7 +674,7 @@ summary.rain_attr <- function(object, ...) {
                                                bootstrap_opt()$CI_level,
                                                object$args$bootstrap_option$CI_level))
     sate_table$Bootstrap_CI <- apply(ci_mat_sate, 1, function(r) paste0("(", round(r[1],4), ", ", round(r[2],4), ")"))
-    sate_table$Bootstrap_p <- round(bootstrap_p_value(object$bootstrap_result$hatsate[, sate_rows]),2)
+    sate_table$Bootstrap_p <- bootstrap_p_value(object$bootstrap_result$hatsate[, sate_rows])
   } else {
     sate_table$Bootstrap_CI <- NA
     sate_table$Bootstrap_p <- NA
@@ -682,8 +682,8 @@ summary.rain_attr <- function(object, ...) {
 
   # Permutation p-values
   if(!is.null(object$permutation_result)) {
-    sate_table$Permutation_p <- round(permutation_p_value(object$permutation_result$hatsate[, sate_rows],
-                                                          ori_est = sapply(sate_rows, function(nm) object$hatsate[[nm]])), 2)
+    sate_table$Permutation_p <- permutation_p_value(object$permutation_result$hatsate[, sate_rows],
+                                                    ori_est = sapply(sate_rows, function(nm) object$hatsate[[nm]]))
   } else {
     sate_table$Permutation_p <- NA
   }
@@ -755,7 +755,7 @@ print.summary.rain_attr <- function(x, ...) {
   pval_cols = grep("P-Val", colnames(attr_tbl))
   for(col in pval_cols){
     stars = signif_stars(as.numeric(attr_tbl[,col]))
-    attr_tbl[,col] = paste0(attr_tbl[,col], stars)
+    attr_tbl[,col] = paste0(round(attr_tbl[,col],4), stars)
   }
   print(attr_tbl)
   cat("---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
@@ -767,7 +767,7 @@ print.summary.rain_attr <- function(x, ...) {
   pval_cols <- grep("P-Val", colnames(sate_tbl))
   for(col in pval_cols){
     stars <- signif_stars(as.numeric(sate_tbl[,col]))
-    sate_tbl[,col] <- paste0(sate_tbl[,col], stars)
+    sate_tbl[,col] <- paste0(round(sate_tbl[,col],4), stars)
   }
   print(sate_tbl)
   cat("---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")

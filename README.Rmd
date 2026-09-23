@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-`RainAttr` provide tools for estimation and inference of attribution and sample average treatment effect in rainfall enhancement trials, based on the two-stage linear mixed model approach employed by [Chambers et al. (2022)](#references). It also provides tools for exploratory analysis of rainfall enhancement trial data.
+`RainAttr` provides tools for estimation and inference of attribution and sample average treatment effect in rainfall enhancement trials, based on the two-stage linear mixed model approach employed by [Chambers et al. (2022)](#references). It also provides tools for exploratory analysis of rainfall enhancement trial data.
 
 ## Installation
 

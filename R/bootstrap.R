@@ -864,7 +864,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #' @examples
 #' #Create default bootstrap options to account for highly unbalanced clustered data
 #' # Specifically: bootstrap_type = 'PREB1' as proposed by Tho et al. (2025)
-#' # Adjusted Random Effect Block Bootstraps for Highly Unbalanced Clustered Data.
+#' # A Proportional Random Effect Block Bootstrap for General Clustered Data.
 #' # arXiv:2510.07770.
 #' boot_options = bootstrap_opt()
 #' str(boot_options)
