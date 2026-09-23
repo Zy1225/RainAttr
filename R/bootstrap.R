@@ -140,8 +140,8 @@
 #' All bootstrap distributions (except for log-transformed rainfall) produced by this function are further used in \code{\link{rain_attr}} to:
 #' \itemize{
 #'
-#' \item{Compute bootstrap p-values as the proportion of bootstrapped estimates that are less than zero,
-#' i.e., \deqn{ \frac{1}{B} \sum_{b=1}^{B} 1_{ \{ \hat{\theta}_b^* < 0 \}} }
+#' \item{Compute bootstrap p-values as the proportion of bootstrapped estimates that are less than or equal to zero,
+#' i.e., \deqn{ \frac{1}{B} \sum_{b=1}^{B} 1_{ \{ \hat{\theta}_b^* \leq 0 \}} }
 #' where \eqn{1_{\{\cdot\}}} is the indicator function and \eqn{\hat{\theta}_b} denotes the estimate from the \eqn{b}-th bootstrap sample.
 #'  }
 #'
@@ -915,7 +915,7 @@ bootstrap_p_value = function(bootstrap_result){
   if(is.null(bootstrap_result)){
     return(NULL)
   }else{
-    return(apply(bootstrap_result,2, function(x){mean(x < 0, na.rm = T)}))
+    return(apply(bootstrap_result,2, function(x){mean(x <= 0, na.rm = T)}))
   }
 }
 
