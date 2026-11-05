@@ -155,7 +155,7 @@
 #'  - downwind_propensity_param: Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators.
 #'  - downwind_positive_target_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.
 #'  - downwind_positive_control_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.
-#'  - downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}.
+#'  - downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}. This element is \code{NULL} when \code{bootstrap_option$store_bootstrap_rain = FALSE}
 #'
 #'  This is \code{NULL} when \code{bootstrap = FALSE}.
 #' }
@@ -412,6 +412,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                                           bootstrap_seed = bootstrap_option$bootstrap_seed,
                                           bootstrap_parallel = bootstrap_option$bootstrap_parallel,
                                           bootstrap_parallel_num_worker = bootstrap_option$bootstrap_parallel_num_worker,
+                                          store_bootstrap_rain = bootstrap_option$store_bootstrap_rain,
                                           ori_data = fitted_models$data,
                                           downwind = downwind,
                                           ori_positive = positive,
@@ -425,8 +426,11 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
                                           ori_sate_est = c(hatsate$estimates$sate.mb, hatsate$estimates$sate.ipw, hatsate$estimates$sate.ipw.l, hatsate$estimates$sate.ipw.ma, hatsate$estimates$sate.aipw)
                                           )
 
-    bootstrap_CI_result = lapply(bootstrap_result[-length(bootstrap_result)], function(x){bootstrap_CI(x,level = bootstrap_option$CI_level)})
-    bootstrap_p_value_result = lapply(bootstrap_result[-length(bootstrap_result)], function(x){bootstrap_p_value(x)})
+    bootstrap_inference_result = bootstrap_result[names(bootstrap_result) != "downwind_LogRain"]
+
+    bootstrap_CI_result = lapply(bootstrap_inference_result, function(x){bootstrap_CI(x, level = bootstrap_option$CI_level)})
+    bootstrap_p_value_result = lapply(bootstrap_inference_result,function(x){bootstrap_p_value(x)})
+
     bootstrap_plot_result = list(
       hatattr = bootstrap_plot(bootstrap_result$hatattr, ori_est = c(hatattr$apo,hatattr$apl)),
       hatsate = bootstrap_plot(bootstrap_result$hatsate, ori_est = c(hatsate$estimates$sate.mb, hatsate$estimates$sate.ipw, hatsate$estimates$sate.ipw.l, hatsate$estimates$sate.ipw.ma, hatsate$estimates$sate.aipw))
@@ -519,7 +523,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
   }
 
   y_vec = downwind_positive_data[downwind_positive_useful_row,rain_col_name]
-  x_z_mat = stats::model.matrix(downwind_lmm_fit, data = downwind_positive_data, type = 'fixed')[downwind_positive_useful_row,]
+  x_z_mat = stats::model.matrix(downwind_lmm_fit, data = downwind_positive_data, type = 'fixed')[downwind_positive_useful_row, ,drop=FALSE]
 
   if(is.null(hatalphabeta)){
     hatalpha_downwind = lme4::fixef(downwind_lmm_fit)[c('(Intercept)',x_downwind_name)]
@@ -641,13 +645,14 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
     Sigma_full = as.matrix(stats::vcov(downwind_lmm_fit))
 
     #Sigma_beta = covariance matrix of only hatbeta
-    Sigma_beta = Sigma_full[- which(rownames(Sigma_full) %in% c('(Intercept)', x_downwind_name)), -  which(rownames(Sigma_full) %in% c('(Intercept)',x_downwind_name))]
+    Sigma_beta = Sigma_full[- which(rownames(Sigma_full) %in% c('(Intercept)', x_downwind_name)), -  which(rownames(Sigma_full) %in% c('(Intercept)',x_downwind_name)), drop = FALSE]
 
     #Extracting the z_it matrix, for PDR (i,t) or PDR Target (i,t)
-    z_mat = x_z_mat[,-which(colnames(x_z_mat) %in%  c('(Intercept)',x_downwind_name) )]
+    z_mat = x_z_mat[,-which(colnames(x_z_mat) %in%  c('(Intercept)',x_downwind_name) ), drop = FALSE]
 
     #Compute the vector of z_it^T %*% Sigma_beta %*% z_it for all PDR (i,t) or PDR Target (i,t)
-    zT_Sigma_beta_z = diag(z_mat %*% Sigma_beta %*% t(z_mat))
+    # zT_Sigma_beta_z = diag(z_mat %*% Sigma_beta %*% t(z_mat))
+    zT_Sigma_beta_z = rowSums((z_mat %*% Sigma_beta) * z_mat)
 
     lambda = exp(0.5 * zT_Sigma_beta_z)
 
@@ -705,7 +710,7 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
   #When we consider hatbeta from MQ, can add another option to use either hatbeta_{0.5} or hatbeta_{hat{q}_i}
   #Note that when the instr_pred or natural_pred is used as an offset term, the sate.ipw is computed using LogRain - natural_pred, instead of LogRain only
 
-  downwind_propensity_fit = stats::glm(downwind_propensity_formula, family = "binomial", data = downwind_positive_data)
+  downwind_propensity_fit = stats::glm(downwind_propensity_formula, family = "binomial", data = downwind_positive_data, na.action = stats::na.fail)
   hatpi = stats::predict(downwind_propensity_fit, type = "response")
 
   hatw_1 = (1/hatpi)/( sum( (1/hatpi) * as.numeric(downwind_propensity_fit$y) )   )
@@ -732,8 +737,8 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
 
 
   #Fit separate LMM to downwind_positive_target and downwind_positive_control
-  downwind_positive_target_lmm_fit = lme4::lmer(downwind_separate_formula, data = downwind_positive_data[downwind_positive_target,])
-  downwind_positive_control_lmm_fit = lme4::lmer(downwind_separate_formula, data = downwind_positive_data[downwind_positive_control,])
+  downwind_positive_target_lmm_fit = lme4::lmer(downwind_separate_formula, data = downwind_positive_data[downwind_positive_target,], na.action = stats::na.fail)
+  downwind_positive_control_lmm_fit = lme4::lmer(downwind_separate_formula, data = downwind_positive_data[downwind_positive_control,], na.action = stats::na.fail)
   hatm_1 = stats::predict(downwind_positive_target_lmm_fit, newdata = downwind_positive_data, re.form = NA)
   hatm_0 = stats::predict(downwind_positive_control_lmm_fit, newdata = downwind_positive_data, re.form = NA)
   sate.ipw.ma = mean(hatm_1) - mean(hatm_0) + sum(hatw_1 * as.numeric(downwind_propensity_fit$y) * (lme4::getME(downwind_lmm_fit, 'y') - hatm_1)  ) - sum( hatw_0 * (1 - as.numeric(downwind_propensity_fit$y) ) * (lme4::getME(downwind_lmm_fit, 'y'  ) - hatm_0)  )
@@ -761,7 +766,7 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
 fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type, downwind_lmm_formula, downwind_logistic_formula = NULL, upwind, downwind, positive){
   #data is the full data
 
-  upwind_lmm_fit = lme4::lmer(upwind_lmm_formula, data = data[upwind & positive,])
+  upwind_lmm_fit = lme4::lmer(upwind_lmm_formula, data = data[upwind & positive,], na.action = stats::na.fail)
 
   if(!instr_pred_type %in% c('Unconditional','Conditional')){
     stop("instr_pred_type should be either 'Unconditional' or 'Conditional'")
@@ -774,11 +779,11 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
     data = cbind(data, stats::predict(upwind_lmm_fit, data, re.form = NULL, allow.new.levels = T))
   }
   colnames(data)[ncol(data)] = instr_pred_name
-  downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
+  downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,], na.action = stats::na.fail)
   if(is.null(downwind_logistic_formula)){
     downwind_logistic_fit = NULL
   }else{
-    downwind_logistic_fit = stats::glm(downwind_logistic_formula, data = data[downwind,], family = 'binomial')
+    downwind_logistic_fit = stats::glm(downwind_logistic_formula, data = data[downwind,], family = 'binomial', na.action = stats::na.fail)
   }
   return(list(
     upwind_lmm_fit = upwind_lmm_fit,

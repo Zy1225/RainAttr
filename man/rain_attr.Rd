@@ -84,7 +84,7 @@ An object of class \code{\link[=rain_attr-class]{rain_attr}}, which is a list co
 \item downwind_propensity_param: Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators.
 \item downwind_positive_target_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.
 \item downwind_positive_control_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.
-\item downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}.
+\item downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}. This element is \code{NULL} when \code{bootstrap_option$store_bootstrap_rain = FALSE}
 }
 
 This is \code{NULL} when \code{bootstrap = FALSE}.

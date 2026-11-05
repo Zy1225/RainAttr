@@ -17,6 +17,7 @@ bootstrap_downwind(
   bootstrap_seed,
   bootstrap_parallel,
   bootstrap_parallel_num_worker,
+  store_bootstrap_rain,
   ori_data,
   downwind,
   ori_positive,
@@ -72,6 +73,9 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 (User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
 
 \item{bootstrap_parallel_num_worker}{An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}parallel = TRUE}}}{\code{bootstrap_parallel = TRUE}}.
+(User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
+
+\item{store_bootstrap_rain}{Logical. If \code{TRUE}, retain bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations in every bootstrap replicate. If \code{FALSE}, these samples are not retained to reduce memory usage.
 (User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
 
 \item{ori_data}{A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.

@@ -17,7 +17,8 @@ bootstrap_opt(
   bootstrap_seed = NULL,
   bootstrap_parallel = F,
   bootstrap_parallel_num_worker = parallel::detectCores() - 1,
-  CI_level = 0.95
+  CI_level = 0.95,
+  store_bootstrap_rain = FALSE
 )
 }
 \arguments{
@@ -50,6 +51,8 @@ Default is "PREB1".}
 \item{bootstrap_parallel_num_worker}{An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}parallel = TRUE}}}{\code{bootstrap_parallel = TRUE}}. Default is \code{parallel::detectCores() - 1}.}
 
 \item{CI_level}{A numeric value between 0 and 1 specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.}
+
+\item{store_bootstrap_rain}{Logical. If \code{TRUE}, retain bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations in every bootstrap replicate. If \code{FALSE}, these samples are not retained to reduce memory usage. Default is \code{FALSE}.}
 }
 \value{
 A list containing all bootstrap options, suitable for passing to \code{\link{rain_attr}}.

@@ -185,7 +185,8 @@
 #' (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param bootstrap_parallel_num_worker An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}parallel = TRUE}}}{\code{bootstrap_parallel = TRUE}}.
 #' (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
-#'
+#' @param store_bootstrap_rain Logical. If \code{TRUE}, retain bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations in every bootstrap replicate. If \code{FALSE}, these samples are not retained to reduce memory usage.
+#' (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param ori_data A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param downwind A logical vector indicating which observation in \code{ori_data} would be used in the downwind (second stage) LMM fitting.
@@ -242,7 +243,7 @@
 #TODO: Think if we really need to save the bootstrapped LogRain for each bootstrap run, as this would be a LARGE object when B_bootstrap is large since it is of dimension B_bootstrap x num_downwind (43276)
 
 bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_individual_rain, individual_rain_interval, winsorize_total_rain, total_rain_interval,
-                              bootstrap_seed, bootstrap_parallel, bootstrap_parallel_num_worker,
+                              bootstrap_seed, bootstrap_parallel, bootstrap_parallel_num_worker, store_bootstrap_rain,
                               ori_data, downwind, ori_positive, rain_col_name, downwind_target_expr, downwind_control_expr, ori_fitted_models,
                               downwind_lmm_formula, attr_type, x_downwind_name, target_only,
                               downwind_propensity_formula,
@@ -368,7 +369,11 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
                                                                 ncol = length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov']),
                                                                 dimnames = list(NULL, c(names(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)), paste0('VarComponent_',as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'grp'] ) )))
 
-  bootstrap_downwind_LogRain_matrix = matrix(data = NA, nrow = B_bootstrap, ncol = num_downwind)
+  if(store_bootstrap_rain){
+    bootstrap_downwind_LogRain_matrix = matrix(data = NA, nrow = B_bootstrap, ncol = num_downwind)
+  }else{
+    bootstrap_downwind_LogRain_matrix = NULL
+  }
 
   z_downwind_name = setdiff(names(lme4::fixef(ori_fitted_models$downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
   downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
@@ -502,8 +507,10 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
 
 
 
-        bootstrap_downwind_LogRain_matrix[b, b_downwind_positive] = log(b_raw_y)
-        bootstrap_downwind_LogRain_matrix[b, !b_downwind_positive] = NA
+        if(store_bootstrap_rain){
+          bootstrap_downwind_LogRain_matrix[b, b_downwind_positive] = log(b_raw_y)
+          bootstrap_downwind_LogRain_matrix[b, !b_downwind_positive] = NA
+        }
 
 
 
@@ -647,8 +654,12 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
                                as.data.frame(lme4::VarCorr(b_downwind_lmm_fit))[,'vcov'])
 
 
-      downwind_LogRain_b = rep(NA, num_downwind)
-      downwind_LogRain_b[b_downwind_positive] = log(b_raw_y)
+      if(store_bootstrap_rain){
+        downwind_LogRain_b = rep(NA, num_downwind)
+        downwind_LogRain_b[b_downwind_positive] = log(b_raw_y)
+      }else{
+        downwind_LogRain_b = NULL
+      }
 
 
       b_downwind_positive_target = rlang::eval_tidy(downwind_target_expr, data = b_downwind_positive_data)
@@ -702,7 +713,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
     parallel::stopCluster(cl)
 
     for(res in results){
-      bootstrap_downwind_LogRain_matrix[res$b,] = res$downwind_LogRain_b
+      if(store_bootstrap_rain){
+        bootstrap_downwind_LogRain_matrix[res$b,] = res$downwind_LogRain_b
+      }
       bootstrap_downwind_lmm_param_matrix[res$b,] = res$downwind_lmm_param_b
       bootstrap_downwind_positive_target_lmm_param_matrix[res$b,] = res$downwind_positive_target_lmm_param_b
       bootstrap_downwind_positive_control_lmm_param_matrix[res$b,] = res$downwind_positive_control_lmm_param_b
@@ -853,6 +866,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #' @param bootstrap_parallel Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.
 #' @param bootstrap_parallel_num_worker An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}parallel = TRUE}}}{\code{bootstrap_parallel = TRUE}}. Default is \code{parallel::detectCores() - 1}.
 #' @param CI_level A numeric value between 0 and 1 specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.
+#' @param store_bootstrap_rain Logical. If \code{TRUE}, retain bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations in every bootstrap replicate. If \code{FALSE}, these samples are not retained to reduce memory usage. Default is \code{FALSE}.
 #'
 #' @return A list containing all bootstrap options, suitable for passing to \code{\link{rain_attr}}.
 #'
@@ -892,7 +906,8 @@ bootstrap_opt = function(B_bootstrap = 10000,
                          bootstrap_seed = NULL,
                          bootstrap_parallel = F,
                          bootstrap_parallel_num_worker = parallel::detectCores() - 1,
-                         CI_level = 0.95){
+                         CI_level = 0.95,
+                         store_bootstrap_rain = FALSE){
   return(list(
     B_bootstrap = B_bootstrap,
     bootstrap_type = bootstrap_type,
@@ -906,7 +921,8 @@ bootstrap_opt = function(B_bootstrap = 10000,
     bootstrap_seed = bootstrap_seed,
     bootstrap_parallel = bootstrap_parallel,
     bootstrap_parallel_num_worker = bootstrap_parallel_num_worker,
-    CI_level = CI_level
+    CI_level = CI_level,
+    store_bootstrap_rain = store_bootstrap_rain
   ))
 }
 
