@@ -228,7 +228,8 @@ which is a list containing
   - downwind_LogRain: Matrix of bootstrap samples for the
     log-transformed rainfall of all downwind (second-stage)
     observations. Observations with zero bootstrapped rainfall are
-    represented as `NA`.
+    represented as `NA`. This element is `NULL` when
+    `bootstrap_option$store_bootstrap_rain = FALSE`
 
   This is `NULL` when `bootstrap = FALSE`.
 

@@ -52,6 +52,7 @@
 <span>  <span class="va">bootstrap_seed</span>,</span>
 <span>  <span class="va">bootstrap_parallel</span>,</span>
 <span>  <span class="va">bootstrap_parallel_num_worker</span>,</span>
+<span>  <span class="va">store_bootstrap_rain</span>,</span>
 <span>  <span class="va">ori_data</span>,</span>
 <span>  <span class="va">downwind</span>,</span>
 <span>  <span class="va">ori_positive</span>,</span>
@@ -133,6 +134,11 @@ Must be one of <code>"REB0"</code>, <code>"REB1"</code>, <code>"REB2"</code>, <c
 
 <dt id="arg-bootstrap-parallel-num-worker">bootstrap_parallel_num_worker<a class="anchor" aria-label="anchor" href="#arg-bootstrap-parallel-num-worker"></a></dt>
 <dd><p>An integer specifying the number of parallel workers to use when <code>bootstrap_parallel = TRUE</code>.
+(User-configurable bootstrap option using <code><a href="bootstrap_opt.html">bootstrap_opt</a></code>)</p></dd>
+
+
+<dt id="arg-store-bootstrap-rain">store_bootstrap_rain<a class="anchor" aria-label="anchor" href="#arg-store-bootstrap-rain"></a></dt>
+<dd><p>Logical. If <code>TRUE</code>, retain bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations in every bootstrap replicate. If <code>FALSE</code>, these samples are not retained to reduce memory usage.
 (User-configurable bootstrap option using <code><a href="bootstrap_opt.html">bootstrap_opt</a></code>)</p></dd>
 
 

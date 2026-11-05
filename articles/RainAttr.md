@@ -412,10 +412,10 @@ end_time = Sys.time()
 
 #
 end_time - start_time
-#> Time difference of 5.023722 mins
+#> Time difference of 5.236933 mins
 ```
 
-The total computational time was 5.02 minutes.
+The total computational time was 5.24 minutes.
 
 In the above example, we use the default PREB1 bootstrap proposed by Tho
 et al. (2025); hence, it is not necessary to explicitly specify
@@ -856,15 +856,15 @@ annual_map = eda(eda_type = "map_static",
 #> 
 #> ℹ Packaging rnaturalearthhires 1.0.0.9000
 #> 
-#> ✔ Packaged rnaturalearthhires 1.0.0.9000 (1.1s)
+#> ✔ Packaged rnaturalearthhires 1.0.0.9000 (1.3s)
 #> 
 #> ℹ Building rnaturalearthhires 1.0.0.9000
 #> 
-#> ✔ Built rnaturalearthhires 1.0.0.9000 (22.6s)
+#> ✔ Built rnaturalearthhires 1.0.0.9000 (20.7s)
 #> 
-#> ✔ Installed rnaturalearthhires 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) (115ms)
+#> ✔ Installed rnaturalearthhires 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) (109ms)
 #> 
-#> ✔ 1 pkg: added 1, dld 1 (NA B) [30.9s]
+#> ✔ 1 pkg: added 1, dld 1 (NA B) [29.1s]
 #> 
 #> Mosaicing & Projecting
 #> 
@@ -1102,7 +1102,7 @@ summary(headline)
 ```
 
 Chambers, Beare, et al. (2022) reported a 95% bootstrap CI for `apl` in
-Section 5.1 as (10.10%,23.09%), based on 10000 bootstrap replicates,
+Section 5.1 as (10.10%, 23.09%), based on 10000 bootstrap replicates,
 with a bootstrap p-value of less than 0.0001. In addition, they also
 reported a permutation p-value of 0.0007. Our bootstrap and permutation
 results for `apl` presented below differ for several reasons:
@@ -1673,7 +1673,7 @@ summary(jrssa$all_fitted_models$downwind_propensity_fit)
 #> 
 #> Call:
 #> stats::glm(formula = downwind_propensity_formula, family = "binomial", 
-#>     data = downwind_positive_data)
+#>     data = downwind_positive_data, na.action = stats::na.fail)
 #> 
 #> Coefficients:
 #>                            Estimate Std. Error z value Pr(>|z|)    

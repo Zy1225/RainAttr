@@ -21,6 +21,7 @@ bootstrap_downwind(
   bootstrap_seed,
   bootstrap_parallel,
   bootstrap_parallel_num_worker,
+  store_bootstrap_rain,
   ori_data,
   downwind,
   ori_positive,
@@ -128,6 +129,14 @@ bootstrap_downwind(
 
   An integer specifying the number of parallel workers to use when
   `bootstrap_parallel = TRUE`. (User-configurable bootstrap option using
+  [`bootstrap_opt`](https://zy1225.github.io/RainAttr/reference/bootstrap_opt.md))
+
+- store_bootstrap_rain:
+
+  Logical. If `TRUE`, retain bootstrap samples for the log-transformed
+  rainfall of all downwind (second-stage) observations in every
+  bootstrap replicate. If `FALSE`, these samples are not retained to
+  reduce memory usage. (User-configurable bootstrap option using
   [`bootstrap_opt`](https://zy1225.github.io/RainAttr/reference/bootstrap_opt.md))
 
 - ori_data:

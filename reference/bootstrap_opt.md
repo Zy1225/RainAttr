@@ -20,7 +20,8 @@ bootstrap_opt(
   bootstrap_seed = NULL,
   bootstrap_parallel = F,
   bootstrap_parallel_num_worker = parallel::detectCores() - 1,
-  CI_level = 0.95
+  CI_level = 0.95,
+  store_bootstrap_rain = FALSE
 )
 ```
 
@@ -110,6 +111,13 @@ bootstrap_opt(
   A numeric value between 0 and 1 specifying the confidence level of the
   bootstrap percentile confidence intervals. Default is 0.95.
 
+- store_bootstrap_rain:
+
+  Logical. If `TRUE`, retain bootstrap samples for the log-transformed
+  rainfall of all downwind (second-stage) observations in every
+  bootstrap replicate. If `FALSE`, these samples are not retained to
+  reduce memory usage. Default is `FALSE`.
+
 ## Value
 
 A list containing all bootstrap options, suitable for passing to
@@ -137,7 +145,7 @@ for more details on the two-level bootstrap procedure
 # arXiv:2510.07770.
 boot_options = bootstrap_opt()
 str(boot_options)
-#> List of 13
+#> List of 14
 #>  $ B_bootstrap                  : num 10000
 #>  $ bootstrap_type               : chr "PREB1"
 #>  $ bootstrap_zero               : logi TRUE
@@ -151,6 +159,7 @@ str(boot_options)
 #>  $ bootstrap_parallel           : logi FALSE
 #>  $ bootstrap_parallel_num_worker: num 3
 #>  $ CI_level                     : num 0.95
+#>  $ store_bootstrap_rain         : logi FALSE
 
 #Bootstrap option with parallelization over
 #(parallel::detectCores() - 1) number of workers
@@ -161,7 +170,7 @@ boot_options_parallel = bootstrap_opt(
   bootstrap_parallel_num_worker = parallel::detectCores() - 1
 )
 str(boot_options_parallel)
-#> List of 13
+#> List of 14
 #>  $ B_bootstrap                  : num 10000
 #>  $ bootstrap_type               : chr "PREB1"
 #>  $ bootstrap_zero               : logi TRUE
@@ -175,4 +184,5 @@ str(boot_options_parallel)
 #>  $ bootstrap_parallel           : logi TRUE
 #>  $ bootstrap_parallel_num_worker: num 3
 #>  $ CI_level                     : num 0.95
+#>  $ store_bootstrap_rain         : logi FALSE
 ```

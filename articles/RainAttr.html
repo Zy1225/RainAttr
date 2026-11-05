@@ -465,8 +465,8 @@ each with 500 replicates parallelized over 4 workers:</p>
 <span></span>
 <span><span class="co">#</span></span>
 <span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 5.023722 mins</span></span></code></pre></div>
-<p>The total computational time was 5.02 minutes.</p>
+<span><span class="co">#&gt; Time difference of 5.236933 mins</span></span></code></pre></div>
+<p>The total computational time was 5.24 minutes.</p>
 <p>In the above example, we use the default PREB1 bootstrap proposed by
 <span class="citation">Tho et al. (2025)</span>; hence, it is not
 necessary to explicitly specify
@@ -860,15 +860,15 @@ contour lines added using <code>elev_contour = TRUE</code>:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Packaging <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Packaged <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(1.1s)</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Packaged <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(1.3s)</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Building <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Built <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(22.6s)</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Built <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(20.7s)</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Installed <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) <span style="color: #9E9E9E;">(115ms)</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Installed <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) <span style="color: #9E9E9E;">(109ms)</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> 1 pkg: added 1, dld 1 (NA B) <span style="color: #B2B2B2;">[30.9s]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> 1 pkg: added 1, dld 1 (NA B) <span style="color: #B2B2B2;">[29.1s]</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Mosaicing &amp; Projecting</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -1088,10 +1088,10 @@ upwind (first-stage) and downwind (second-stage) LMM, respectively:</p>
 <span><span class="co">#&gt; Gauge.Elevation:Target.H.01  -0.0866     0.1437 -0.6029</span></span>
 <span><span class="co">#&gt; Gauge.Elevation:Target.H.02  -0.2166     0.1196 -1.8115</span></span></code></pre></div>
 <p><span class="citation">Chambers, Beare, et al. (2022)</span> reported
-a 95% bootstrap CI for <code>apl</code> in Section 5.1 as
-(10.10%,23.09%), based on 10000 bootstrap replicates, with a bootstrap
-p-value of less than 0.0001. In addition, they also reported a
-permutation p-value of 0.0007. Our bootstrap and permutation results for
+a 95% bootstrap CI for <code>apl</code> in Section 5.1 as (10.10%,
+23.09%), based on 10000 bootstrap replicates, with a bootstrap p-value
+of less than 0.0001. In addition, they also reported a permutation
+p-value of 0.0007. Our bootstrap and permutation results for
 <code>apl</code> presented below differ for several reasons:</p>
 <ul>
 <li><p>The inherent randomness of the bootstrap and permutation
@@ -1625,7 +1625,7 @@ reproduced using the code below.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call:</span></span>
 <span><span class="co">#&gt; stats::glm(formula = downwind_propensity_formula, family = "binomial", </span></span>
-<span><span class="co">#&gt;     data = downwind_positive_data)</span></span>
+<span><span class="co">#&gt;     data = downwind_positive_data, na.action = stats::na.fail)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;                            Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
