@@ -264,7 +264,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
 
   #Pre-compute hat{P}_{it} which will be used later on to simulate zero vs non-zero rainfall events
   if(bootstrap_zero){
-    init_downwind_positive_prob = stats::predict(ori_fitted_models$downwind_logistic_fit,type = 'response')
+    downwind_positive_prob = stats::predict(ori_fitted_models$downwind_logistic_fit,type = 'response')
     # if(!is.null(positive_prob_threshold)){
     #   downwind_positive_prob = init_downwind_positive_prob
     #   downwind_positive_prob[downwind_positive_prob < positive_prob_threshold] = 0
