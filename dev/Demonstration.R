@@ -193,7 +193,7 @@ testing_PREB1  = rain_attr(
     #Whether to bootstrap zeros (i.e., rainfall event indicators)
     bootstrap_zero = F,
     #Probability threshold used for bootstrapping rainfall event indicators
-    positive_prob_threshold = NULL,
+    # positive_prob_threshold = NULL,
     #Whether to discretize the bootstrapped rainfall (at raw scale)
     discretize_rain = T,
     #Whether to winsorize individual bootstrapped rainfall to ensure each of them is <= individual_rain_interval[2]

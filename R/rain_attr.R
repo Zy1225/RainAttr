@@ -288,11 +288,11 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   }
 
   if(bootstrap){
-    if(!is.null(bootstrap_option$positive_prob_threshold) ){
-      if(bootstrap_option$positive_prob_threshold < 0 | bootstrap_option$positive_prob_threshold > 1  ){
-        stop("bootstrap_option$positive_prob_threshold must be either NULL or between 0 and 1")
-      }
-    }
+    # if(!is.null(bootstrap_option$positive_prob_threshold) ){
+    #   if(bootstrap_option$positive_prob_threshold < 0 | bootstrap_option$positive_prob_threshold > 1  ){
+    #     stop("bootstrap_option$positive_prob_threshold must be either NULL or between 0 and 1")
+    #   }
+    # }
 
     if( bootstrap_option$winsorize_individual_rain &
         (!is.numeric(bootstrap_option$individual_rain_interval) | length(bootstrap_option$individual_rain_interval)!= 2 )
@@ -403,7 +403,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     bootstrap_result = bootstrap_downwind(B_bootstrap = bootstrap_option$B_bootstrap,
                                           bootstrap_type = bootstrap_option$bootstrap_type,
                                           bootstrap_zero = bootstrap_option$bootstrap_zero,
-                                          positive_prob_threshold = bootstrap_option$positive_prob_threshold,
+                                          # positive_prob_threshold = bootstrap_option$positive_prob_threshold,
                                           discretize_rain = bootstrap_option$discretize_rain,
                                           winsorize_individual_rain = bootstrap_option$winsorize_individual_rain,
                                           individual_rain_interval = bootstrap_option$individual_rain_interval,

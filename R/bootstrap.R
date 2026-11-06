@@ -12,7 +12,7 @@
 #'
 #' \strong{First-Level Bootstrap} \cr
 #' The first-level is an optional level that is only carried out when \code{bootstrap_zero = TRUE}. This level generates bootstrap samples of binary rainfall event indicator \eqn{L_{ij}^*} via \eqn{P(L_{ij}^* = 1) = \hat{\gamma}_{ij} } for the subset of observations from \code{ori_data} satisfying \code{downwind}, where \eqn{\hat{\gamma}_{ij}} are the predicted probabilities from the downwind logistic model fitted to the original binary rainfall event indicators \eqn{L_{ij}} i.e., \eqn{\hat{\gamma}_{ij}} = \code{predict(ori_fitted_models$downwind_logistic_fit,type = "response")}.
-#' It is worth noting that if \code{positive_prob_threshold} is supplied, then \eqn{\hat{\gamma}_{ij}} that are less than \ifelse{latex}{\out{\texttt{positive\_\discretionary{}{}{}prob\_\discretionary{}{}{}threshold}}}{\code{positive_prob_threshold}} are set to be zeros before being used to generate \eqn{L_{ij}^*}.
+# It is worth noting that if \code{positive_prob_threshold} is supplied, then \eqn{\hat{\gamma}_{ij}} that are less than \ifelse{latex}{\out{\texttt{positive\_\discretionary{}{}{}prob\_\discretionary{}{}{}threshold}}}{\code{positive_prob_threshold}} are set to be zeros before being used to generate \eqn{L_{ij}^*}.
 #' When \code{bootstrap_zero = FALSE}, the first-level bootstrap is not carried out and thus \eqn{L_{ij}^* = L_{ij}}.
 #'
 #' \strong{Second-Level Bootstrap} \cr
@@ -165,8 +165,8 @@
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param bootstrap_zero Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators.
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
-#' @param positive_prob_threshold An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero.
-#'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
+# @param positive_prob_threshold An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero.
+#   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param discretize_rain Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples.
 #'   (User-configurable bootstrap option using \code{\link{bootstrap_opt}})
 #' @param winsorize_individual_rain Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed the upper bound specified by \code{individual_rain_interval} are replaced with random draws from a uniform distribution over \code{[individual_rain_interval[1], individual_rain_interval[2]]}.
@@ -242,7 +242,9 @@
 #TODO: Consider to add another variation of 'PREB2' and 'REB2' for adjusting downwind_lmm_fit's fixef as well as random effects, and plug these corrected estimates to compute hatattr and hatsate, rather than directly centering hatattr and hatsate
 #TODO: Think if we really need to save the bootstrapped LogRain for each bootstrap run, as this would be a LARGE object when B_bootstrap is large since it is of dimension B_bootstrap x num_downwind (43276)
 
-bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, positive_prob_threshold = NULL, discretize_rain, winsorize_individual_rain, individual_rain_interval, winsorize_total_rain, total_rain_interval,
+bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
+                              # positive_prob_threshold = NULL,
+                              discretize_rain, winsorize_individual_rain, individual_rain_interval, winsorize_total_rain, total_rain_interval,
                               bootstrap_seed, bootstrap_parallel, bootstrap_parallel_num_worker, store_bootstrap_rain,
                               ori_data, downwind, ori_positive, rain_col_name, downwind_target_expr, downwind_control_expr, ori_fitted_models,
                               downwind_lmm_formula, attr_type, x_downwind_name, target_only,
@@ -263,13 +265,13 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero, posit
   #Pre-compute hat{P}_{it} which will be used later on to simulate zero vs non-zero rainfall events
   if(bootstrap_zero){
     init_downwind_positive_prob = stats::predict(ori_fitted_models$downwind_logistic_fit,type = 'response')
-    if(!is.null(positive_prob_threshold)){
-      downwind_positive_prob = init_downwind_positive_prob
-      downwind_positive_prob[downwind_positive_prob < positive_prob_threshold] = 0
-      downwind_positive_prob[downwind_positive_prob >= positive_prob_threshold] = downwind_positive_prob[downwind_positive_prob >= positive_prob_threshold]* sum(init_downwind_positive_prob)/ sum(downwind_positive_prob[downwind_positive_prob >= positive_prob_threshold])
-    }else{
-      downwind_positive_prob = init_downwind_positive_prob
-    }
+    # if(!is.null(positive_prob_threshold)){
+    #   downwind_positive_prob = init_downwind_positive_prob
+    #   downwind_positive_prob[downwind_positive_prob < positive_prob_threshold] = 0
+    #   downwind_positive_prob[downwind_positive_prob >= positive_prob_threshold] = downwind_positive_prob[downwind_positive_prob >= positive_prob_threshold]* sum(init_downwind_positive_prob)/ sum(downwind_positive_prob[downwind_positive_prob >= positive_prob_threshold])
+    # }else{
+    #   downwind_positive_prob = init_downwind_positive_prob
+    # }
   }
 
 
@@ -855,7 +857,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #'   \code{"PREB1"}, \code{"PREB2"}, or \code{"MREB1"}. See \ifelse{latex}{\link[=bootstrap_downwind]{\out{\texttt{bootstrap\_\discretionary{}{}{}downwind}}}}{\code{\link{bootstrap_downwind}}} for their differences.
 #'   Default is "PREB1".
 #' @param bootstrap_zero Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators. Default is \code{TRUE}.
-#' @param positive_prob_threshold An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero. Default is \code{NULL}.
+# @param positive_prob_threshold An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero. Default is \code{NULL}.
 #' @param discretize_rain Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples. Default is \code{TRUE}.
 #' @param winsorize_individual_rain Logical. If \code{TRUE}, individual rainfall values in bootstrap samples that exceed the upper bound specified by \code{individual_rain_interval} are replaced with random draws from a uniform distribution over \code{[individual_rain_interval[1], individual_rain_interval[2]]}. Default is \code{TRUE}.
 #' @param individual_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting bootstrapped individual rainfall values that are too large when \ifelse{latex}{\out{\texttt{winsorize\_\discretionary{}{}{}individual\_\discretionary{}{}{}rain = TRUE}}}{\code{winsorize_individual_rain = TRUE}}. Default is \code{c(100,175)}.
@@ -897,7 +899,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 bootstrap_opt = function(B_bootstrap = 10000,
                          bootstrap_type = 'PREB1',
                          bootstrap_zero = T,
-                         positive_prob_threshold = NULL,
+                         # positive_prob_threshold = NULL,
                          discretize_rain = T,
                          winsorize_individual_rain = T,
                          individual_rain_interval = c(100,175),
@@ -912,7 +914,7 @@ bootstrap_opt = function(B_bootstrap = 10000,
     B_bootstrap = B_bootstrap,
     bootstrap_type = bootstrap_type,
     bootstrap_zero = bootstrap_zero,
-    positive_prob_threshold = positive_prob_threshold,
+    # positive_prob_threshold = positive_prob_threshold,
     discretize_rain = discretize_rain,
     winsorize_individual_rain = winsorize_individual_rain,
     individual_rain_interval = individual_rain_interval,

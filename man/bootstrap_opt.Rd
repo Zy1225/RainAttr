@@ -8,7 +8,6 @@ bootstrap_opt(
   B_bootstrap = 10000,
   bootstrap_type = "PREB1",
   bootstrap_zero = T,
-  positive_prob_threshold = NULL,
   discretize_rain = T,
   winsorize_individual_rain = T,
   individual_rain_interval = c(100, 175),
@@ -30,8 +29,6 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 Default is "PREB1".}
 
 \item{bootstrap_zero}{Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators. Default is \code{TRUE}.}
-
-\item{positive_prob_threshold}{An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero. Default is \code{NULL}.}
 
 \item{discretize_rain}{Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples. Default is \code{TRUE}.}
 

@@ -8,7 +8,6 @@ bootstrap_downwind(
   B_bootstrap,
   bootstrap_type,
   bootstrap_zero,
-  positive_prob_threshold = NULL,
   discretize_rain,
   winsorize_individual_rain,
   individual_rain_interval,
@@ -44,9 +43,6 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 (User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
 
 \item{bootstrap_zero}{Logical. If \code{TRUE}, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators.
-(User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
-
-\item{positive_prob_threshold}{An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero.
 (User-configurable bootstrap option using \code{\link{bootstrap_opt}})}
 
 \item{discretize_rain}{Logical. If \code{TRUE}, rainfall values are discretized in bootstrap resamples.
@@ -143,7 +139,6 @@ directly. Instead, bootstrap inference should be performed by calling \code{\lin
 
 \strong{First-Level Bootstrap} \cr
 The first-level is an optional level that is only carried out when \code{bootstrap_zero = TRUE}. This level generates bootstrap samples of binary rainfall event indicator \eqn{L_{ij}^*} via \eqn{P(L_{ij}^* = 1) = \hat{\gamma}_{ij} } for the subset of observations from \code{ori_data} satisfying \code{downwind}, where \eqn{\hat{\gamma}_{ij}} are the predicted probabilities from the downwind logistic model fitted to the original binary rainfall event indicators \eqn{L_{ij}} i.e., \eqn{\hat{\gamma}_{ij}} = \code{predict(ori_fitted_models$downwind_logistic_fit,type = "response")}.
-It is worth noting that if \code{positive_prob_threshold} is supplied, then \eqn{\hat{\gamma}_{ij}} that are less than \ifelse{latex}{\out{\texttt{positive\_\discretionary{}{}{}prob\_\discretionary{}{}{}threshold}}}{\code{positive_prob_threshold}} are set to be zeros before being used to generate \eqn{L_{ij}^*}.
 When \code{bootstrap_zero = FALSE}, the first-level bootstrap is not carried out and thus \eqn{L_{ij}^* = L_{ij}}.
 
 \strong{Second-Level Bootstrap} \cr
