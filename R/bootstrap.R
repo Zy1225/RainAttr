@@ -88,7 +88,7 @@
 #' When \code{winsorize_total_rain = TRUE}, if \eqn{ \sum_{(i,j)} Rain_{ij}^* \notin [} \code{total_rain_interval[1]}, \ifelse{latex}{\out{\texttt{total\_\discretionary{}{}{}rain\_\discretionary{}{}{}interval[2]}}}{\code{total_rain_interval[2]}} \eqn{]} where the summation is over the subset of observations in \code{ori_data} satisfying \code{downwind} and \eqn{L_{ij}^* = 1}, then all bootstrap samples of \eqn{Rain_{ij}^*} are rescaled by a common factor of \code{runif(n = 1, min = total_rain_interval[1], max = total_rain_interval[2])} \eqn{ / \sum_{(i,j)} Rain_{ij}^*  }.
 #'
 #' The final adjusted \eqn{Rain_{ij}^*} are converted back to the log-scale based on the formula \eqn{y_{ij}^* = \log(Rain_{ij}^*)}. Therefore, these adjustments should only be used when modelling log-transformed rainfall in the two-stage LMM approach, but not raw rainfall.
-#' If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \code{downwind_lmm_formula = LogRain - Offset}, the above adjustments could still be used as the function would use the relationship \eqn{Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )} and \eqn{y_{ij}^* = \log(Rain_{ij}^*) + Offset_{ij} }.
+#' If an offset term is included on the LHS of \code{downwind_lmm_formula} e.g., \code{downwind_lmm_formula = LogRain - Offset}, the above adjustments could still be used as the function would use the relationship \eqn{Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )} and \eqn{y_{ij}^* = \log(Rain_{ij}^*) - Offset_{ij} }.
 #'
 #' \strong{Bootstrap Distributions of Attribution, SATE and other parameters} \cr
 #' The same procedure described in \code{\link{rain_attr}} is then repeated on the bootstrapped dataset, where the bootstrap samples of \eqn{y_{ij}^*} generated from the above two-level bootstrap procedure are used to replace the original observed \eqn{y_{ij}}.
@@ -381,10 +381,15 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
   downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
 
 
+
+
   if(!bootstrap_parallel){
     if(!is.null(bootstrap_seed)){
       set.seed(bootstrap_seed)
     }
+
+
+
     for(b in 1:B_bootstrap){
       tryCatch({
 
@@ -447,12 +452,13 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
         # b_raw_y = exp(b_y)
 
 
+
         #Perform (optional) adjustment of raw rainfall
         if(discretize_rain){
-          b_raw_y[b_raw_y<0.3] = 0.2
-          b_raw_y[(b_raw_y>0.3)&(b_raw_y<0.5)] = 0.4
-          b_raw_y[(b_raw_y>0.5)&(b_raw_y<0.7)] = 0.6
-          b_raw_y[(b_raw_y>0.7)&(b_raw_y<0.9)] = 0.8
+          b_raw_y[b_raw_y<=0.3] = 0.2
+          b_raw_y[(b_raw_y>0.3)&(b_raw_y<=0.5)] = 0.4
+          b_raw_y[(b_raw_y>0.5)&(b_raw_y<=0.7)] = 0.6
+          b_raw_y[(b_raw_y>0.7)&(b_raw_y<=0.9)] = 0.8
         }
 
 
@@ -547,6 +553,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
 
       },error=function(e){cat(b,"th","Bootstrap Run Skipped due to ERROR :",conditionMessage(e), "\n")})
     }
+
   }else{
     cl = parallel::makeCluster(bootstrap_parallel_num_worker)
     #No need to use parallel:clusterExport as it does not result in any significant computational gain, nor do using foreach::foreach(..., .exports = ...)
@@ -625,10 +632,10 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
 
       #Perform (optional) adjustment of raw rainfall
       if(discretize_rain){
-        b_raw_y[b_raw_y<0.3] = 0.2
-        b_raw_y[(b_raw_y>0.3)&(b_raw_y<0.5)] = 0.4
-        b_raw_y[(b_raw_y>0.5)&(b_raw_y<0.7)] = 0.6
-        b_raw_y[(b_raw_y>0.7)&(b_raw_y<0.9)] = 0.8
+        b_raw_y[b_raw_y<=0.3] = 0.2
+        b_raw_y[(b_raw_y>0.3)&(b_raw_y<=0.5)] = 0.4
+        b_raw_y[(b_raw_y>0.5)&(b_raw_y<=0.7)] = 0.6
+        b_raw_y[(b_raw_y>0.7)&(b_raw_y<=0.9)] = 0.8
       }
 
 

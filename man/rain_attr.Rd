@@ -91,7 +91,7 @@ This is \code{NULL} when \code{bootstrap = FALSE}.
 }
 
 \item{bootstrap_CI_result}{A list of matrices with same element names as in \code{bootstrap_result} (excluding \code{downwind_LogRain}), containing the corresponding bootstrap percentile confidence intervals. This is \code{NULL} when \code{bootstrap = FALSE}.}
-\item{bootstrap_p_value_result}{A list of numeric vectors with same element names as in \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}result}}}{\code{bootstrap_result}} (excluding \code{downwind_LogRain}), containing the corresponding proportion of bootstrap samples that are less than zero. This is \code{NULL} when \code{bootstrap = FALSE}.}
+\item{bootstrap_p_value_result}{A list of numeric vectors with same element names as in \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}result}}}{\code{bootstrap_result}} (excluding \code{downwind_LogRain}), containing the corresponding proportion of bootstrap samples that are less than or equal to zero. This is \code{NULL} when \code{bootstrap = FALSE}.}
 \item{bootstrap_plot_result}{A list with two elements:
 \itemize{
 \item hatattr: A list of \code{ggplot} objects, each showing the bootstrap distribution of attribution estimates. Each plot includes a dotted vertical line at zero and a solid vertical line at the original estimate based on the observed data.
