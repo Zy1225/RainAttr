@@ -693,6 +693,27 @@ summary.rain_attr <- function(object, ...) {
                            'Bootstrap P-Val','Permutation P-Val')
 
 
+  #Number of Successful Bootstrap and Permutation Counts
+  if(!is.null(object$bootstrap_result)){
+    successful_replicate_bootstrap = stats::complete.cases(object$bootstrap_result$hatattr, object$bootstrap_result$hatsate)
+    bootstrap_counts = c(requested = length(successful_replicate_bootstrap),
+                         successful = sum(successful_replicate_bootstrap))
+  }else{
+    bootstrap_counts = NULL
+  }
+
+  if(!is.null(object$permutation_result)){
+    successful_replicate_permutation = stats::complete.cases(object$permutation_result$hatattr, object$permutation_result$hatsate)
+    permutation_counts = c(requested = length(successful_replicate_permutation),
+                           successful = sum(successful_replicate_permutation))
+  }else{
+    permutation_counts = NULL
+  }
+
+  replicate_counts = list(Bootstrap = bootstrap_counts,
+                          Permutation = permutation_counts)
+
+
   summary_list <- list(
     data_name = data_name,
 
@@ -720,7 +741,8 @@ summary.rain_attr <- function(object, ...) {
 
     #
     attr_table = attr_table,
-    sate_table = sate_table
+    sate_table = sate_table,
+    replicate_counts = replicate_counts
   )
 
   class(summary_list) <- "summary.rain_attr"
@@ -735,6 +757,19 @@ summary.rain_attr <- function(object, ...) {
 print.summary.rain_attr <- function(x, ...) {
   cat("Summary of Two Stage LMM Rainfall Enhancement Analysis\n")
   cat("======================================================================\n\n")
+
+  for(method in names(x$replicate_counts)){
+    counts = x$replicate_counts[[method]]
+
+    if(!is.null(counts)){
+      cat(sprintf("%s replicates: %d requested, %d successful\n",
+                  method, counts["requested"], counts["successful"]))
+    }
+  }
+
+  if(!is.null(x$replicate_counts$Bootstrap) || !is.null(x$replicate_counts$Permutation)){
+    cat("======================================================================\n\n")
+  }
 
   signif_stars <- function(p) {
     stars <- rep("", length(p))
