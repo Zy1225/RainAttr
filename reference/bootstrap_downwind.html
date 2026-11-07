@@ -43,7 +43,6 @@
 <span>  <span class="va">B_bootstrap</span>,</span>
 <span>  <span class="va">bootstrap_type</span>,</span>
 <span>  <span class="va">bootstrap_zero</span>,</span>
-<span>  positive_prob_threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">discretize_rain</span>,</span>
 <span>  <span class="va">winsorize_individual_rain</span>,</span>
 <span>  <span class="va">individual_rain_interval</span>,</span>
@@ -88,11 +87,6 @@ Must be one of <code>"REB0"</code>, <code>"REB1"</code>, <code>"REB2"</code>, <c
 
 <dt id="arg-bootstrap-zero">bootstrap_zero<a class="anchor" aria-label="anchor" href="#arg-bootstrap-zero"></a></dt>
 <dd><p>Logical. If <code>TRUE</code>, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators.
-(User-configurable bootstrap option using <code><a href="bootstrap_opt.html">bootstrap_opt</a></code>)</p></dd>
-
-
-<dt id="arg-positive-prob-threshold">positive_prob_threshold<a class="anchor" aria-label="anchor" href="#arg-positive-prob-threshold"></a></dt>
-<dd><p>An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero.
 (User-configurable bootstrap option using <code><a href="bootstrap_opt.html">bootstrap_opt</a></code>)</p></dd>
 
 
@@ -188,7 +182,7 @@ Must be one of <code>"REB0"</code>, <code>"REB1"</code>, <code>"REB2"</code>, <c
 
 
 <dt id="arg-x-downwind-name">x_downwind_name<a class="anchor" aria-label="anchor" href="#arg-x-downwind-name"></a></dt>
-<dd><p>A character vector containing variable names from the right hand side of <code>downwind_lmm_formula</code>, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
+<dd><p>A character vector containing the names of variables on the fixed-effects right-hand side of <code>downwind_lmm_formula</code> that are unrelated to ionizers (treatment). A fixed-effect term is included in the non-treatment component if all its variables are listed in <code>x_downwind_name</code>. The remaining terms are included in the treatment component. The intercept, if present, is included in the non-treatment component automatically. For example, with <code>Gauge.Elevation * Target.H.01</code> and <code>x_downwind_name = "Gauge.Elevation"</code>, the elevation main effect is included in the non-treatment component, while the target main effect and its interaction with elevation are included in the treatment component.
 (Internal argument set automatically when using <code><a href="rain_attr.html">rain_attr</a></code>)</p></dd>
 
 
@@ -247,7 +241,6 @@ It is intended for internal use only. Users should not call this function
 directly. Instead, bootstrap inference should be performed by calling <code><a href="rain_attr.html">rain_attr</a></code> with <code>bootstrap = TRUE</code>.</p>
 <p><strong>First-Level Bootstrap</strong> <br>
 The first-level is an optional level that is only carried out when <code>bootstrap_zero = TRUE</code>. This level generates bootstrap samples of binary rainfall event indicator \(L_{ij}^*\) via \(P(L_{ij}^* = 1) = \hat{\gamma}_{ij} \) for the subset of observations from <code>ori_data</code> satisfying <code>downwind</code>, where \(\hat{\gamma}_{ij}\) are the predicted probabilities from the downwind logistic model fitted to the original binary rainfall event indicators \(L_{ij}\) i.e., \(\hat{\gamma}_{ij}\) = <code>predict(ori_fitted_models$downwind_logistic_fit,type = "response")</code>.
-It is worth noting that if <code>positive_prob_threshold</code> is supplied, then \(\hat{\gamma}_{ij}\) that are less than <code>positive_prob_threshold</code> are set to be zeros before being used to generate \(L_{ij}^*\).
 When <code>bootstrap_zero = FALSE</code>, the first-level bootstrap is not carried out and thus \(L_{ij}^* = L_{ij}\).</p>
 <p><strong>Second-Level Bootstrap</strong> <br>
 Recall that the original downwind (second stage) LMM is given as
@@ -313,7 +306,7 @@ When <code>discretize_rain = TRUE</code>, bootstrap samples that satisfy \( Rain
 <p>When <code>winsorize_individual_rain = TRUE</code>, bootstrap samples that satisfy \(Rain_{ij}^* &gt;  \) <code>individual_rain_interval[2]</code> are replaced by random numbers drawn from a uniform distribution over the interval \([\)<code>individual_rain_interval[1]</code>, <code>individual_rain_interval[2]</code>\(]\).</p>
 <p>When <code>winsorize_total_rain = TRUE</code>, if \( \sum_{(i,j)} Rain_{ij}^* \notin [\) <code>total_rain_interval[1]</code>, <code>total_rain_interval[2]</code> \(]\) where the summation is over the subset of observations in <code>ori_data</code> satisfying <code>downwind</code> and \(L_{ij}^* = 1\), then all bootstrap samples of \(Rain_{ij}^*\) are rescaled by a common factor of <code>runif(n = 1, min = total_rain_interval[1], max = total_rain_interval[2])</code> \( / \sum_{(i,j)} Rain_{ij}^*  \).</p>
 <p>The final adjusted \(Rain_{ij}^*\) are converted back to the log-scale based on the formula \(y_{ij}^* = \log(Rain_{ij}^*)\). Therefore, these adjustments should only be used when modelling log-transformed rainfall in the two-stage LMM approach, but not raw rainfall.
-If an offset term is included on the LHS of <code>downwind_lmm_formula</code> e.g., <code>downwind_lmm_formula = LogRain - Offset</code>, the above adjustments could still be used as the function would use the relationship \(Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )\) and \(y_{ij}^* = \log(Rain_{ij}^*) + Offset_{ij} \).</p>
+If an offset term is included on the LHS of <code>downwind_lmm_formula</code> e.g., <code>downwind_lmm_formula = LogRain - Offset</code>, the above adjustments could still be used as the function would use the relationship \(Rain_{ij}^* = \exp( y_{ij}^* + Offset_{ij} )\) and \(y_{ij}^* = \log(Rain_{ij}^*) - Offset_{ij} \).</p>
 <p><strong>Bootstrap Distributions of Attribution, SATE and other parameters</strong> <br>
 The same procedure described in <code><a href="rain_attr.html">rain_attr</a></code> is then repeated on the bootstrapped dataset, where the bootstrap samples of \(y_{ij}^*\) generated from the above two-level bootstrap procedure are used to replace the original observed \(y_{ij}\).
 This includes the fitting of the downwind (second stage) LMM, downwind (second-stage) target-only LMM, and downwind (second-stage) control-only LMM to the subset of observations from <code>ori_data</code> satisfying <code>downwind &amp;</code> \( L_{ij}^* = 1\). When <code>bootstrap_zero = TRUE</code>, two additional models are also fitted; namely,
@@ -341,7 +334,8 @@ where \(\hat{\theta}^*_b\) is the estimate from the \(b\)-th bootstrap sample an
 \(\hat{\theta}\) is the corresponding estimate from the original dataset.</p></li>
 <li><p>For LMM random effect variance components, the bootstrap distributions of random intercept
 variance (\(\sigma^2_u\)) and residual variance (\(\sigma^2_e\)) are first adjusted to be
-empirically uncorrelated (see Section 2.3.3 of Chambers &amp; Chandra (2013), and Section 2.3 of Tho et al. (2025)).</p></li>
+empirically uncorrelated on the log scale (see Section 2.3.3 of Chambers &amp; Chandra (2013), and Section 2.3 of Tho et al. (2025)).
+If the decorrelation adjustment cannot be computed, it is skipped with a warning.</p></li>
 <li><p>After adjustment, ratio corrections are applied:
 $$\hat{\sigma}^{2*}_{u,b} \leftarrow \hat{\sigma}^{2*}_{u,b} \times \frac{\hat{\sigma}^2_u}{\frac{1}{B}\sum_{b=1}^{B}\hat{\sigma}^{2*}_{u,b}}$$
 $$\hat{\sigma}^{2*}_{e,b} \leftarrow \hat{\sigma}^{2*}_{e,b} \times \frac{\hat{\sigma}^2_e}{\frac{1}{B}\sum_{b=1}^{B}\hat{\sigma}^{2*}_{e,b}}$$

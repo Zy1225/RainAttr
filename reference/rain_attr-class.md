@@ -285,9 +285,11 @@ LMM, and the specified arguments in the original call.
 
   Print the point estimates of attributions and SATE, along with their
   bootstrap confidence intervals, bootstrap p-values and permutation
-  p-values if bootstrap and permutation have been performed. Also print
-  the model formula, data subset, number of observations, number of
-  unique days (groups), variance component estimates, and fixed effect
+  p-values, and the numbers of requested and successful replicates if
+  bootstrap and permutation have been performed. Also print the model
+  formula, non-treatment (x) and treatment (z) components of the
+  downwind LMM, data subset, number of observations, number of unique
+  days (groups), variance component estimates, and fixed effect
   coefficient estimates along with their standard errors and t-values
   computed from
   [`summary.merMod`](https://rdrr.io/pkg/lme4/man/summary.merMod.html).
@@ -364,6 +366,19 @@ The following describes the output from `summary.rain_attr`:
 
   Data frames containing the estimated variance components for the
   upwind and downwind LMMs.
+
+- `downwind_components`:
+
+  A list with elements `x` and `z` containing the fitted coefficient
+  names for the non-treatment and treatment (ionizer-related) components
+  of the downwind LMM, respectively.
+
+- `replicate_counts`:
+
+  A list with elements `Bootstrap` and `Permutation`, each containing a
+  named vector with the numbers of `requested` and `successful`
+  replicates. The corresponding element is `NULL` if that procedure was
+  not performed.
 
 ## See also
 

@@ -126,7 +126,7 @@ result = rain_attr(
   instr_pred_type = 'Conditional',
 
   #LMM formula fitted to the downwind (second-stage) observations
-  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + (1|TrialDay),
 
   #Formula for fitting a logistic regression model to the indicator of rainfall event (used for bootstrapping of rainfall events)
   downwind_logistic_formula = NULL,
@@ -158,6 +158,8 @@ result = rain_attr(
   #Vector of variable names in downwind_lmm_formula to identify non-ionizer related covariates, whose effects are not included in the calculation of attribution and SATE
   x_downwind_name = c('Gauge.Elevation')
   )
+#> Warning: the 'nobars' function has moved to the reformulas package. Please
+#> update your imports, or ask an upstream package maintainer to do so.
 ```
 
 The `rain_attr` function fits two LMMs sequentially:
@@ -261,10 +263,9 @@ result
 #> ======================================================================
 #> 
 #> Downwind (Second Stage) LMM Formula:
-#> LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + 
+#> LogRain - natural_pred ~ Gauge.Elevation * (Target.H.01 + Target.H.02) + 
 #>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
-#>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + 
-#>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+#>     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 4168, Number of groups: 488
@@ -375,7 +376,7 @@ boot_perm_result = rain_attr(
   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
   instr_pred_name = 'natural_pred',
   instr_pred_type = 'Conditional',
-  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + (1|TrialDay),
   
   #Formula for fitting a logistic regression model to the indicator of rainfall event (used for bootstrapping of rainfall events when bootstrap_opt(bootstrap_zero) = TRUE)
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
@@ -412,10 +413,10 @@ end_time = Sys.time()
 
 #
 end_time - start_time
-#> Time difference of 5.236933 mins
+#> Time difference of 2.997311 mins
 ```
 
-The total computational time was 5.24 minutes.
+The total computational time was 3 minutes.
 
 In the above example, we use the default PREB1 bootstrap proposed by Tho
 et al. (2025); hence, it is not necessary to explicitly specify
@@ -440,6 +441,10 @@ obtained from the original data):
 
 summary(boot_perm_result)
 #> Summary of Two Stage LMM Rainfall Enhancement Analysis
+#> ======================================================================
+#> 
+#> Bootstrap replicates: 500 requested, 500 successful
+#> Permutation replicates: 500 requested, 500 successful
 #> ======================================================================
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
@@ -490,10 +495,11 @@ summary(boot_perm_result)
 #> 
 #> Downwind (Second Stage) LMM:
 #> Formula:
-#> LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + 
+#> LogRain - natural_pred ~ Gauge.Elevation * (Target.H.01 + Target.H.02) + 
 #>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
-#>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + 
-#>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+#>     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)
+#> Non-treatment components (x): (Intercept), Gauge.Elevation
+#> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 4168, Number of groups: 488
@@ -836,40 +842,8 @@ annual_map = eda(eda_type = "map_static",
               elev_resolution = 2,
               positive_subset = Rain.Gauge.Measurement > 0
 )
-#> The rnaturalearthhires package needs to be installed.
-#> Installing the rnaturalearthhires package.
-#>  
-#> 
-#> → Package library at /home/runner/work/_temp/Library.
-#> 
-#> → Will install 1 package.
-#> 
-#> → The package (0 B) is cached.
-#> 
-#> + rnaturalearthhires   1.0.0.9000 [bld][cmp] (GitHub: e4736f6)
-#> 
-#>   
-#> 
-#> ℹ No downloads are needed, 1 pkg is cached
-#> 
-#> ✔ Got rnaturalearthhires 1.0.0.9000 (source) (21.38 MB)
-#> 
-#> ℹ Packaging rnaturalearthhires 1.0.0.9000
-#> 
-#> ✔ Packaged rnaturalearthhires 1.0.0.9000 (1.3s)
-#> 
-#> ℹ Building rnaturalearthhires 1.0.0.9000
-#> 
-#> ✔ Built rnaturalearthhires 1.0.0.9000 (20.7s)
-#> 
-#> ✔ Installed rnaturalearthhires 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) (109ms)
-#> 
-#> ✔ 1 pkg: added 1, dld 1 (NA B) [29.1s]
-#> 
 #> Mosaicing & Projecting
-#> 
 #> Clipping DEM to bbox
-#> 
 #> Note: Elevation units are in meters.
 annual_map
 ```
@@ -987,7 +961,7 @@ headline = rain_attr(
   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
   instr_pred_name = 'natural_pred',
   instr_pred_type = 'Unconditional',
-  downwind_lmm_formula = LogRain  ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain  ~ natural_pred + Gauge.Elevation  * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + (1|TrialDay),
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
   rain_col_name = 'Rain.Gauge.Measurement',
@@ -1019,6 +993,10 @@ upwind (first-stage) and downwind (second-stage) LMM, respectively:
 
 summary(headline)
 #> Summary of Two Stage LMM Rainfall Enhancement Analysis
+#> ======================================================================
+#> 
+#> Bootstrap replicates: 500 requested, 500 successful
+#> Permutation replicates: 500 requested, 500 successful
 #> ======================================================================
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
@@ -1069,10 +1047,11 @@ summary(headline)
 #> 
 #> Downwind (Second Stage) LMM:
 #> Formula:
-#> LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + 
+#> LogRain ~ natural_pred + Gauge.Elevation * (Target.H.01 + Target.H.02) + 
 #>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
-#>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + 
-#>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+#>     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)
+#> Non-treatment components (x): (Intercept), natural_pred, Gauge.Elevation
+#> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 4168, Number of groups: 488
@@ -1085,8 +1064,8 @@ summary(headline)
 #> Fixed effects:
 #>                             Estimate Std. Error t value
 #> (Intercept)                   0.2797     0.0642  4.3603
-#> Gauge.Elevation              -0.1250     0.0657 -1.9034
 #> natural_pred                  0.8557     0.0581 14.7335
+#> Gauge.Elevation              -0.1250     0.0657 -1.9034
 #> Target.H.01                   0.2892     0.1361  2.1244
 #> Target.H.02                   0.2576     0.1236  2.0837
 #> Target.H.03                   0.2382     0.0925  2.5761
@@ -1163,7 +1142,7 @@ table6_2013_2018 = rain_attr(
   upwind_lmm_formula = LogRain ~  Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
   instr_pred_name = 'natural_pred',
   instr_pred_type = 'Unconditional',
-  downwind_lmm_formula = LogRain  ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain  ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018  + natural_pred + (Gauge.Elevation...1km + Gauge.Elevation...1km.1) * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + (1|TrialDay),
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02,
   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
   rain_col_name = 'Rain.Gauge.Measurement',
@@ -1189,6 +1168,10 @@ table6_2013_2018 = rain_attr(
 
 summary(table6_2013_2018)
 #> Summary of Two Stage LMM Rainfall Enhancement Analysis
+#> ======================================================================
+#> 
+#> Bootstrap replicates: 500 requested, 500 successful
+#> Permutation replicates: 500 requested, 500 successful
 #> ======================================================================
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
@@ -1246,12 +1229,12 @@ summary(table6_2013_2018)
 #> Downwind (Second Stage) LMM:
 #> Formula:
 #> LogRain ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + 
-#>     Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + 
-#>     natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + 
-#>     Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + 
-#>     Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + 
-#>     Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + 
-#>     Gauge.Elevation...1km.1:Target.H.02 + (1 | TrialDay)
+#>     Year...2018 + natural_pred + (Gauge.Elevation...1km + Gauge.Elevation...1km.1) * 
+#>     (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + 
+#>     Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + 
+#>     Target.H.10 + (1 | TrialDay)
+#> Non-treatment components (x): (Intercept), Year...2013, Year...2014, Year...2016, Year...2017, Year...2018, natural_pred, Gauge.Elevation...1km, Gauge.Elevation...1km.1
+#> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation...1km:Target.H.01, Gauge.Elevation...1km:Target.H.02, Gauge.Elevation...1km.1:Target.H.01, Gauge.Elevation...1km.1:Target.H.02
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 4168, Number of groups: 488
@@ -1269,9 +1252,9 @@ summary(table6_2013_2018)
 #> Year...2016                           0.2586     0.1153  2.2430
 #> Year...2017                           0.0923     0.1192  0.7743
 #> Year...2018                           0.0405     0.1463  0.2770
+#> natural_pred                          0.9451     0.0591 15.9968
 #> Gauge.Elevation...1km                -0.1996     0.1640 -1.2174
 #> Gauge.Elevation...1km.1              -0.0962     0.0709 -1.3577
-#> natural_pred                          0.9451     0.0591 15.9968
 #> Target.H.01                           0.4807     0.2470  1.9463
 #> Target.H.02                           0.8403     0.2930  2.8680
 #> Target.H.03                           0.2411     0.0922  2.6142
@@ -1298,7 +1281,7 @@ table6_2013_2015 = rain_attr(
   upwind_lmm_formula = LogRain ~  Year...2014  + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
   instr_pred_name = 'natural_pred',
   instr_pred_type = 'Unconditional',
-  downwind_lmm_formula = LogRain  ~ Year...2013 + Year...2014 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06  + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain  ~ Year...2013 + Year...2014 + natural_pred + (Gauge.Elevation...1km + Gauge.Elevation...1km.1)  * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06  + (1|TrialDay),
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Year...2013 + Year...2014 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06  + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02,
   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Year...2013 + Year...2014  + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
   rain_col_name = 'Rain.Gauge.Measurement',
@@ -1324,6 +1307,10 @@ table6_2013_2015 = rain_attr(
 
 summary(table6_2013_2015)
 #> Summary of Two Stage LMM Rainfall Enhancement Analysis
+#> ======================================================================
+#> 
+#> Bootstrap replicates: 500 requested, 500 successful
+#> Permutation replicates: 500 requested, 500 successful
 #> ======================================================================
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
@@ -1377,11 +1364,12 @@ summary(table6_2013_2015)
 #> 
 #> Downwind (Second Stage) LMM:
 #> Formula:
-#> LogRain ~ Year...2013 + Year...2014 + Gauge.Elevation...1km + 
-#>     Gauge.Elevation...1km.1 + natural_pred + Target.H.01 + Target.H.02 + 
-#>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Gauge.Elevation...1km:Target.H.01 + 
-#>     Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + 
-#>     Gauge.Elevation...1km.1:Target.H.02 + (1 | TrialDay)
+#> LogRain ~ Year...2013 + Year...2014 + natural_pred + (Gauge.Elevation...1km + 
+#>     Gauge.Elevation...1km.1) * (Target.H.01 + Target.H.02) + 
+#>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + (1 | 
+#>     TrialDay)
+#> Non-treatment components (x): (Intercept), Year...2013, Year...2014, natural_pred, Gauge.Elevation...1km, Gauge.Elevation...1km.1
+#> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Gauge.Elevation...1km:Target.H.01, Gauge.Elevation...1km:Target.H.02, Gauge.Elevation...1km.1:Target.H.01, Gauge.Elevation...1km.1:Target.H.02
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control") & Year %in% 2013:2015  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 2447, Number of groups: 286
@@ -1396,9 +1384,9 @@ summary(table6_2013_2015)
 #> (Intercept)                           0.0235     0.1515  0.1550
 #> Year...2013                           0.4771     0.1187  4.0179
 #> Year...2014                           0.2732     0.1093  2.5010
+#> natural_pred                          0.8833     0.0724 12.2056
 #> Gauge.Elevation...1km                -0.0608     0.2193 -0.2772
 #> Gauge.Elevation...1km.1              -0.0846     0.0983 -0.8611
-#> natural_pred                          0.8833     0.0724 12.2056
 #> Target.H.01                           0.5486     0.3020  1.8166
 #> Target.H.02                           0.9486     0.3633  2.6109
 #> Target.H.03                           0.4130     0.1255  3.2906
@@ -1447,6 +1435,10 @@ table6_2016_2018 = rain_attr(
 
 summary(table6_2016_2018)
 #> Summary of Two Stage LMM Rainfall Enhancement Analysis
+#> ======================================================================
+#> 
+#> Bootstrap replicates: 500 requested, 500 successful
+#> Permutation replicates: 500 requested, 500 successful
 #> ======================================================================
 #> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
@@ -1505,6 +1497,8 @@ summary(table6_2016_2018)
 #>     Gauge.Elevation...1km.1 + natural_pred + Target.H.01 + Target.H.02 + 
 #>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
 #>     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)
+#> Non-treatment components (x): (Intercept), Year...2016, Year...2018, Gauge.Elevation...1km, Gauge.Elevation...1km.1, natural_pred
+#> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control") & Year %in% 2016:2018  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 1721, Number of groups: 202
@@ -1639,7 +1633,7 @@ jrssa = rain_attr(
   upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
   instr_pred_name = 'natural_pred',
   instr_pred_type = 'Unconditional',
-  downwind_lmm_formula = LogRain ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + natural_pred + (Gauge.Elevation...1km + Gauge.Elevation...1km.1) *  (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + (1|TrialDay),
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02,
   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
   rain_col_name = 'Rain.Gauge.Measurement',
@@ -1703,6 +1697,10 @@ summary(jrssa)
 #> Summary of Two Stage LMM Rainfall Enhancement Analysis
 #> ======================================================================
 #> 
+#> Bootstrap replicates: 500 requested, 500 successful
+#> Permutation replicates: 500 requested, 500 successful
+#> ======================================================================
+#> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
 #>     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
 #> apo    6.84% (3.2052%, 10.53%)            0***            0.012*
@@ -1758,12 +1756,12 @@ summary(jrssa)
 #> Downwind (Second Stage) LMM:
 #> Formula:
 #> LogRain ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + 
-#>     Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + 
-#>     natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + 
-#>     Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + 
-#>     Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + 
-#>     Gauge.Elevation...1km:Target.H.02 + +Gauge.Elevation...1km.1:Target.H.01 + 
-#>     Gauge.Elevation...1km.1:Target.H.02 + (1 | TrialDay)
+#>     Year...2018 + natural_pred + (Gauge.Elevation...1km + Gauge.Elevation...1km.1) * 
+#>     (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + 
+#>     Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + 
+#>     Target.H.10 + (1 | TrialDay)
+#> Non-treatment components (x): (Intercept), Year...2013, Year...2014, Year...2016, Year...2017, Year...2018, natural_pred, Gauge.Elevation...1km, Gauge.Elevation...1km.1
+#> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation...1km:Target.H.01, Gauge.Elevation...1km:Target.H.02, Gauge.Elevation...1km.1:Target.H.01, Gauge.Elevation...1km.1:Target.H.02
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 4168, Number of groups: 488
@@ -1781,9 +1779,9 @@ summary(jrssa)
 #> Year...2016                           0.2586     0.1153  2.2430
 #> Year...2017                           0.0923     0.1192  0.7743
 #> Year...2018                           0.0405     0.1463  0.2770
+#> natural_pred                          0.9451     0.0591 15.9968
 #> Gauge.Elevation...1km                -0.1996     0.1640 -1.2174
 #> Gauge.Elevation...1km.1              -0.0962     0.0709 -1.3577
-#> natural_pred                          0.9451     0.0591 15.9968
 #> Target.H.01                           0.4807     0.2470  1.9463
 #> Target.H.02                           0.8403     0.2930  2.8680
 #> Target.H.03                           0.2411     0.0922  2.6142
@@ -1828,9 +1826,9 @@ summary(jrssa$all_fitted_models$downwind_positive_target_lmm_fit)$coef
 #> Year...2016              0.34712941 0.14762617  2.351408
 #> Year...2017              0.22160137 0.14688432  1.508680
 #> Year...2018              0.08477673 0.18455522  0.459357
+#> natural_pred             0.94174156 0.07587026 12.412526
 #> Gauge.Elevation...1km   -0.69363326 0.19798956 -3.503383
 #> Gauge.Elevation...1km.1 -0.29639368 0.08256077 -3.590006
-#> natural_pred             0.94174156 0.07587026 12.412526
 
 #Control model
 summary(jrssa$all_fitted_models$downwind_positive_control_lmm_fit)$coef
@@ -1841,9 +1839,9 @@ summary(jrssa$all_fitted_models$downwind_positive_control_lmm_fit)$coef
 #> Year...2016              0.27650431 0.14673274  1.8844077
 #> Year...2017              0.09564666 0.15260033  0.6267789
 #> Year...2018              0.09708881 0.19122863  0.5077106
+#> natural_pred             0.90292193 0.07879799 11.4586928
 #> Gauge.Elevation...1km   -0.06618146 0.20372709 -0.3248535
 #> Gauge.Elevation...1km.1 -0.06163347 0.08778100 -0.7021277
-#> natural_pred             0.90292193 0.07879799 11.4586928
 ```
 
 Table 5 is identical to:

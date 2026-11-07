@@ -166,7 +166,7 @@ The row order of this data frame must match that of <code>gaugeday_downwind_inpu
 
 
 <dt id="arg-x-downwind-name">x_downwind_name<a class="anchor" aria-label="anchor" href="#arg-x-downwind-name"></a></dt>
-<dd><p>A character vector containing variable names from the right hand side of <code>downwind_lmm_formula</code>, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
+<dd><p>A character vector containing the names of variables on the fixed-effects right-hand side of <code>downwind_lmm_formula</code> that are unrelated to ionizers (treatment). A fixed-effect term is included in the non-treatment component if all its variables are listed in <code>x_downwind_name</code>. The remaining terms are included in the treatment component. The intercept, if present, is included in the non-treatment component automatically. For example, with <code>Gauge.Elevation * Target.H.01</code> and <code>x_downwind_name = "Gauge.Elevation"</code>, the elevation main effect is included in the non-treatment component, while the target main effect and its interaction with elevation are included in the treatment component.
 (Internal argument set automatically when using <code><a href="rain_attr.html">rain_attr</a></code>)</p></dd>
 
 

@@ -132,10 +132,18 @@ rain_attr(
 
 - x_downwind_name:
 
-  A character vector containing variable names from the right hand side
-  of `downwind_lmm_formula`, for those variables that are not related to
-  ionizers (treatment). The intercept is always included and does not
-  need to be specified.
+  A character vector containing the names of variables on the
+  fixed-effects right-hand side of `downwind_lmm_formula` that are
+  unrelated to ionizers (treatment). A fixed-effect term is included in
+  the non-treatment component if all its variables are listed in
+  `x_downwind_name`. The remaining terms are included in the treatment
+  component. The intercept, if present, is included in the non-treatment
+  component automatically. For example, with
+  `Gauge.Elevation * Target.H.01` and
+  `x_downwind_name = "Gauge.Elevation"`, the elevation main effect is
+  included in the non-treatment component, while the target main effect
+  and its interaction with elevation are included in the treatment
+  component.
 
 - target_only:
 
@@ -188,6 +196,12 @@ which is a list containing
   specified) and the propensity score model for the treatment indicator
   of second stage (downwind) observations.
 
+- downwind_components:
+
+  A list with elements `x` and `z` containing the fitted coefficient
+  names for the non-treatment and treatment (ionizer-related) components
+  of the downwind LMM, respectively.
+
 - hatattr:
 
   A vector containing the attribution estimates.
@@ -229,7 +243,7 @@ which is a list containing
     log-transformed rainfall of all downwind (second-stage)
     observations. Observations with zero bootstrapped rainfall are
     represented as `NA`. This element is `NULL` when
-    `bootstrap_option$store_bootstrap_rain = FALSE`
+    `bootstrap_option$store_bootstrap_rain = FALSE`.
 
   This is `NULL` when `bootstrap = FALSE`.
 
@@ -244,8 +258,8 @@ which is a list containing
 
   A list of numeric vectors with same element names as in
   `bootstrap_result` (excluding `downwind_LogRain`), containing the
-  corresponding proportion of bootstrap samples that are less than zero.
-  This is `NULL` when `bootstrap = FALSE`.
+  corresponding proportion of bootstrap samples that are less than or
+  equal to zero. This is `NULL` when `bootstrap = FALSE`.
 
 - bootstrap_plot_result:
 
@@ -319,11 +333,12 @@ following steps:
     from `data` satisfying `downwind_subset & positive_subset`.
     \$\$y\_{ij} = x\_{ij}^\top \alpha + z\_{ij}^\top \beta + u_i +
     e\_{ij} \$\$ where \\i\\ indexes day (group) and \\j\\ indexes gauge
-    (unit within group), \\x\_{ij}\\ is a vector of covariates (with
-    names supplied in `x_downwind_name`, including intercept) that are
-    not related to the ionizers (treatment), \\z\_{ij}\\ is a vector of
-    ionizer (treatment) related covariates, \\u_i\\ are random
-    intercepts, and \\e\_{ij}\\ are error terms.
+    (unit within group), \\x\_{ij}\\ and \\z\_{ij}\\ are vectors of
+    model-matrix entries for the non-treatment and treatment (ionizer)
+    related covariates, respectively, as determined by
+    `x_downwind_name`. The intercept, if present, is included in
+    \\x\_{ij}\\. The term \\u_i\\ is the random intercept for day \\i\\,
+    and \\e\_{ij}\\ is the error term.
 
 The fitted values obtained from the upwind (first stage) LMM can either
 be:
@@ -593,6 +608,7 @@ result <- rain_attr(
   bootstrap = FALSE,
   permutation = FALSE
 )
+#> Warning: the ‘nobars’ function has moved to the reformulas package. Please update your imports, or ask an upstream package maintainer to do so.
 
 # Print and summarize the fitted analysis
 print(result)
@@ -724,6 +740,8 @@ summary(result)
 #>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
 #>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + 
 #>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+#> Non-treatment components (x): (Intercept), Gauge.Elevation
+#> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 4168, Number of groups: 488

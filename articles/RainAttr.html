@@ -182,7 +182,7 @@ approach employed in <span class="citation">Chambers, Beare, et al.
 <span>  instr_pred_type <span class="op">=</span> <span class="st">'Conditional'</span>,</span>
 <span></span>
 <span>  <span class="co">#LMM formula fitted to the downwind (second-stage) observations</span></span>
-<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">-</span> <span class="va">natural_pred</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
+<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">-</span> <span class="va">natural_pred</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span>  <span class="op">*</span> <span class="op">(</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span><span class="op">)</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span></span>
 <span>  <span class="co">#Formula for fitting a logistic regression model to the indicator of rainfall event (used for bootstrapping of rainfall events)</span></span>
 <span>  downwind_logistic_formula <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -213,7 +213,9 @@ approach employed in <span class="citation">Chambers, Beare, et al.
 <span></span>
 <span>  <span class="co">#Vector of variable names in downwind_lmm_formula to identify non-ionizer related covariates, whose effects are not included in the calculation of attribution and SATE</span></span>
 <span>  x_downwind_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Gauge.Elevation'</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: the 'nobars' function has moved to the reformulas package. Please</span></span>
+<span><span class="co">#&gt; update your imports, or ask an upstream package maintainer to do so.</span></span></code></pre></div>
 <p>The <code>rain_attr</code> function fits two LMMs sequentially:</p>
 <ol style="list-style-type: decimal">
 <li>An upwind (first-stage) LMM fitted using
@@ -322,10 +324,9 @@ observations and the estimated fixed effects.</p>
 <span><span class="co">#&gt; ======================================================================</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Downwind (Second Stage) LMM Formula:</span></span>
-<span><span class="co">#&gt; LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + </span></span>
+<span><span class="co">#&gt; LogRain - natural_pred ~ Gauge.Elevation * (Target.H.01 + Target.H.02) + </span></span>
 <span><span class="co">#&gt;     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + </span></span>
-<span><span class="co">#&gt;     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation:Target.H.02 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt;     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span></span>
 <span><span class="co">#&gt; Number of observations: 4168, Number of groups: 488</span></span>
@@ -428,7 +429,7 @@ each with 500 replicates parallelized over 4 workers:</p>
 <span>  upwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">~</span>  <span class="va">Gauge.Elevation</span> <span class="op">+</span> <span class="va">Steering.Wind.Speed</span> <span class="op">+</span> <span class="va">Total.Totals</span> <span class="op">+</span> <span class="va">PC2.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span> <span class="va">PC1.Ground.Level.Pressure</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  instr_pred_name <span class="op">=</span> <span class="st">'natural_pred'</span>,</span>
 <span>  instr_pred_type <span class="op">=</span> <span class="st">'Conditional'</span>,</span>
-<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">-</span> <span class="va">natural_pred</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
+<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">-</span> <span class="va">natural_pred</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span>  <span class="op">*</span> <span class="op">(</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span><span class="op">)</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  </span>
 <span>  <span class="co">#Formula for fitting a logistic regression model to the indicator of rainfall event (used for bootstrapping of rainfall events when bootstrap_opt(bootstrap_zero) = TRUE)</span></span>
 <span>  downwind_logistic_formula <span class="op">=</span> <span class="op">(</span><span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span> <span class="op">+</span> <span class="va">natural_pred</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.02</span>,</span>
@@ -465,8 +466,8 @@ each with 500 replicates parallelized over 4 workers:</p>
 <span></span>
 <span><span class="co">#</span></span>
 <span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 5.236933 mins</span></span></code></pre></div>
-<p>The total computational time was 5.24 minutes.</p>
+<span><span class="co">#&gt; Time difference of 2.997311 mins</span></span></code></pre></div>
+<p>The total computational time was 3 minutes.</p>
 <p>In the above example, we use the default PREB1 bootstrap proposed by
 <span class="citation">Tho et al. (2025)</span>; hence, it is not
 necessary to explicitly specify
@@ -488,6 +489,10 @@ data):</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">boot_perm_result</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Summary of Two Stage LMM Rainfall Enhancement Analysis</span></span>
+<span><span class="co">#&gt; ======================================================================</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Bootstrap replicates: 500 requested, 500 successful</span></span>
+<span><span class="co">#&gt; Permutation replicates: 500 requested, 500 successful</span></span>
 <span><span class="co">#&gt; ======================================================================</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
@@ -538,10 +543,11 @@ data):</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Downwind (Second Stage) LMM:</span></span>
 <span><span class="co">#&gt; Formula:</span></span>
-<span><span class="co">#&gt; LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + </span></span>
+<span><span class="co">#&gt; LogRain - natural_pred ~ Gauge.Elevation * (Target.H.01 + Target.H.02) + </span></span>
 <span><span class="co">#&gt;     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + </span></span>
-<span><span class="co">#&gt;     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation:Target.H.02 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt;     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt; Non-treatment components (x): (Intercept), Gauge.Elevation</span></span>
+<span><span class="co">#&gt; Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span></span>
 <span><span class="co">#&gt; Number of observations: 4168, Number of groups: 488</span></span>
@@ -840,40 +846,8 @@ contour lines added using <code>elev_contour = TRUE</code>:</p>
 <span>              elev_resolution <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>              positive_subset <span class="op">=</span> <span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; The <span style="color: #0000BB;">rnaturalearthhires</span> package needs to be installed.</span></span>
-<span><span class="co">#&gt; Installing the <span style="color: #0000BB;">rnaturalearthhires</span> package.</span></span>
-<span><span class="co">#&gt;  </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; → Package library at <span style="color: #0000BB;">/home/runner/work/_temp/Library</span>.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; → Will <span style="font-style: italic;">install</span> 1 package.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; → The package (0 B) is cached.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">+ </span><span style="color: #0000BB;">rnaturalearthhires</span>   1.0.0.9000 [bld][cmp] (GitHub: e4736f6)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No downloads are needed, 1 pkg is cached</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Got <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 (source) (21.38 MB)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Packaging <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Packaged <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(1.3s)</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Building <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Built <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 <span style="color: #9E9E9E;">(20.7s)</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Installed <span style="color: #0000BB;">rnaturalearthhires</span> 1.0.0.9000 (github::ropensci/rnaturalearthhires@e4736f6) <span style="color: #9E9E9E;">(109ms)</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> 1 pkg: added 1, dld 1 (NA B) <span style="color: #B2B2B2;">[29.1s]</span></span></span>
-<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Mosaicing &amp; Projecting</span></span>
-<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Clipping DEM to bbox</span></span>
-<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Note: Elevation units are in meters.</span></span>
 <span><span class="va">annual_map</span></span></code></pre></div>
 <p><img src="RainAttr_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" alt="" width="100%"></p>
@@ -979,7 +953,7 @@ of the <code>downwind_lmm_formula</code>.</p>
 <span>  upwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">~</span>  <span class="va">Gauge.Elevation</span> <span class="op">+</span> <span class="va">Steering.Wind.Speed</span> <span class="op">+</span> <span class="va">Total.Totals</span> <span class="op">+</span> <span class="va">PC2.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span> <span class="va">PC1.Ground.Level.Pressure</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  instr_pred_name <span class="op">=</span> <span class="st">'natural_pred'</span>,</span>
 <span>  instr_pred_type <span class="op">=</span> <span class="st">'Unconditional'</span>,</span>
-<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span>  <span class="op">~</span> <span class="va">Gauge.Elevation</span> <span class="op">+</span> <span class="va">natural_pred</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
+<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span>  <span class="op">~</span> <span class="va">natural_pred</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span>  <span class="op">*</span> <span class="op">(</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span><span class="op">)</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  downwind_logistic_formula <span class="op">=</span> <span class="op">(</span><span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span> <span class="op">+</span> <span class="va">natural_pred</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.02</span>,</span>
 <span>  downwind_propensity_formula <span class="op">=</span> <span class="op">(</span><span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">'Target'</span><span class="op">)</span> <span class="op">~</span> <span class="va">Total.Totals</span> <span class="op">+</span> <span class="va">PC1.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span> <span class="va">PC1.Ground.Level.Pressure</span>,</span>
 <span>  rain_col_name <span class="op">=</span> <span class="st">'Rain.Gauge.Measurement'</span>,</span>
@@ -1007,6 +981,10 @@ upwind (first-stage) and downwind (second-stage) LMM, respectively:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">headline</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Summary of Two Stage LMM Rainfall Enhancement Analysis</span></span>
+<span><span class="co">#&gt; ======================================================================</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Bootstrap replicates: 500 requested, 500 successful</span></span>
+<span><span class="co">#&gt; Permutation replicates: 500 requested, 500 successful</span></span>
 <span><span class="co">#&gt; ======================================================================</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
@@ -1057,10 +1035,11 @@ upwind (first-stage) and downwind (second-stage) LMM, respectively:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Downwind (Second Stage) LMM:</span></span>
 <span><span class="co">#&gt; Formula:</span></span>
-<span><span class="co">#&gt; LogRain ~ Gauge.Elevation + natural_pred + Target.H.01 + Target.H.02 + </span></span>
+<span><span class="co">#&gt; LogRain ~ natural_pred + Gauge.Elevation * (Target.H.01 + Target.H.02) + </span></span>
 <span><span class="co">#&gt;     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + </span></span>
-<span><span class="co">#&gt;     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation:Target.H.02 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt;     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt; Non-treatment components (x): (Intercept), natural_pred, Gauge.Elevation</span></span>
+<span><span class="co">#&gt; Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span></span>
 <span><span class="co">#&gt; Number of observations: 4168, Number of groups: 488</span></span>
@@ -1073,8 +1052,8 @@ upwind (first-stage) and downwind (second-stage) LMM, respectively:</p>
 <span><span class="co">#&gt; Fixed effects:</span></span>
 <span><span class="co">#&gt;                             Estimate Std. Error t value</span></span>
 <span><span class="co">#&gt; (Intercept)                   0.2797     0.0642  4.3603</span></span>
-<span><span class="co">#&gt; Gauge.Elevation              -0.1250     0.0657 -1.9034</span></span>
 <span><span class="co">#&gt; natural_pred                  0.8557     0.0581 14.7335</span></span>
+<span><span class="co">#&gt; Gauge.Elevation              -0.1250     0.0657 -1.9034</span></span>
 <span><span class="co">#&gt; Target.H.01                   0.2892     0.1361  2.1244</span></span>
 <span><span class="co">#&gt; Target.H.02                   0.2576     0.1236  2.0837</span></span>
 <span><span class="co">#&gt; Target.H.03                   0.2382     0.0925  2.5761</span></span>
@@ -1137,7 +1116,7 @@ in the original implementation.</p>
 <span>  upwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">~</span>  <span class="va">Year...2014</span> <span class="op">+</span>  <span class="va">Year...2016</span> <span class="op">+</span> <span class="va">Year...2017</span> <span class="op">+</span> <span class="va">Year...2018</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">Steering.Wind.Speed</span> <span class="op">+</span> <span class="va">Total.Totals</span> <span class="op">+</span> <span class="va">PC2.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span> <span class="va">PC1.Ground.Level.Pressure</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  instr_pred_name <span class="op">=</span> <span class="st">'natural_pred'</span>,</span>
 <span>  instr_pred_type <span class="op">=</span> <span class="st">'Unconditional'</span>,</span>
-<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span>  <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span> <span class="op">+</span> <span class="va">Year...2016</span> <span class="op">+</span> <span class="va">Year...2017</span> <span class="op">+</span> <span class="va">Year...2018</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">natural_pred</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
+<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span>  <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span> <span class="op">+</span> <span class="va">Year...2016</span> <span class="op">+</span> <span class="va">Year...2017</span> <span class="op">+</span> <span class="va">Year...2018</span>  <span class="op">+</span> <span class="va">natural_pred</span> <span class="op">+</span> <span class="op">(</span><span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span><span class="op">)</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  downwind_logistic_formula <span class="op">=</span> <span class="op">(</span><span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span> <span class="op">+</span> <span class="va">Year...2016</span> <span class="op">+</span> <span class="va">Year...2017</span> <span class="op">+</span> <span class="va">Year...2018</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">natural_pred</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.02</span>,</span>
 <span>  downwind_propensity_formula <span class="op">=</span> <span class="op">(</span><span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">'Target'</span><span class="op">)</span> <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span> <span class="op">+</span>  <span class="va">Year...2016</span> <span class="op">+</span> <span class="va">Year...2017</span> <span class="op">+</span> <span class="va">Year...2018</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">Steering.Wind.Speed</span> <span class="op">+</span> <span class="va">Total.Totals</span> <span class="op">+</span> <span class="va">PC2.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span> <span class="va">PC1.Ground.Level.Pressure</span>,</span>
 <span>  rain_col_name <span class="op">=</span> <span class="st">'Rain.Gauge.Measurement'</span>,</span>
@@ -1163,6 +1142,10 @@ in the original implementation.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">table6_2013_2018</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Summary of Two Stage LMM Rainfall Enhancement Analysis</span></span>
+<span><span class="co">#&gt; ======================================================================</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Bootstrap replicates: 500 requested, 500 successful</span></span>
+<span><span class="co">#&gt; Permutation replicates: 500 requested, 500 successful</span></span>
 <span><span class="co">#&gt; ======================================================================</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
@@ -1220,12 +1203,12 @@ in the original implementation.</p>
 <span><span class="co">#&gt; Downwind (Second Stage) LMM:</span></span>
 <span><span class="co">#&gt; Formula:</span></span>
 <span><span class="co">#&gt; LogRain ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + </span></span>
-<span><span class="co">#&gt;     Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + </span></span>
-<span><span class="co">#&gt;     natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + </span></span>
-<span><span class="co">#&gt;     Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + </span></span>
-<span><span class="co">#&gt;     Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation...1km.1:Target.H.02 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt;     Year...2018 + natural_pred + (Gauge.Elevation...1km + Gauge.Elevation...1km.1) * </span></span>
+<span><span class="co">#&gt;     (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + </span></span>
+<span><span class="co">#&gt;     Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + </span></span>
+<span><span class="co">#&gt;     Target.H.10 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt; Non-treatment components (x): (Intercept), Year...2013, Year...2014, Year...2016, Year...2017, Year...2018, natural_pred, Gauge.Elevation...1km, Gauge.Elevation...1km.1</span></span>
+<span><span class="co">#&gt; Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation...1km:Target.H.01, Gauge.Elevation...1km:Target.H.02, Gauge.Elevation...1km.1:Target.H.01, Gauge.Elevation...1km.1:Target.H.02</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span></span>
 <span><span class="co">#&gt; Number of observations: 4168, Number of groups: 488</span></span>
@@ -1243,9 +1226,9 @@ in the original implementation.</p>
 <span><span class="co">#&gt; Year...2016                           0.2586     0.1153  2.2430</span></span>
 <span><span class="co">#&gt; Year...2017                           0.0923     0.1192  0.7743</span></span>
 <span><span class="co">#&gt; Year...2018                           0.0405     0.1463  0.2770</span></span>
+<span><span class="co">#&gt; natural_pred                          0.9451     0.0591 15.9968</span></span>
 <span><span class="co">#&gt; Gauge.Elevation...1km                -0.1996     0.1640 -1.2174</span></span>
 <span><span class="co">#&gt; Gauge.Elevation...1km.1              -0.0962     0.0709 -1.3577</span></span>
-<span><span class="co">#&gt; natural_pred                          0.9451     0.0591 15.9968</span></span>
 <span><span class="co">#&gt; Target.H.01                           0.4807     0.2470  1.9463</span></span>
 <span><span class="co">#&gt; Target.H.02                           0.8403     0.2930  2.8680</span></span>
 <span><span class="co">#&gt; Target.H.03                           0.2411     0.0922  2.6142</span></span>
@@ -1268,7 +1251,7 @@ in the original implementation.</p>
 <span>  upwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">~</span>  <span class="va">Year...2014</span>  <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">Steering.Wind.Speed</span> <span class="op">+</span> <span class="va">Total.Totals</span> <span class="op">+</span> <span class="va">PC2.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span> <span class="va">PC1.Ground.Level.Pressure</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  instr_pred_name <span class="op">=</span> <span class="st">'natural_pred'</span>,</span>
 <span>  instr_pred_type <span class="op">=</span> <span class="st">'Unconditional'</span>,</span>
-<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span>  <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">natural_pred</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span>  <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
+<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span>  <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span> <span class="op">+</span> <span class="va">natural_pred</span> <span class="op">+</span> <span class="op">(</span><span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">)</span>  <span class="op">*</span> <span class="op">(</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span><span class="op">)</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span>  <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  downwind_logistic_formula <span class="op">=</span> <span class="op">(</span><span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">natural_pred</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span>  <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.02</span>,</span>
 <span>  downwind_propensity_formula <span class="op">=</span> <span class="op">(</span><span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">'Target'</span><span class="op">)</span> <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span>  <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">Steering.Wind.Speed</span> <span class="op">+</span> <span class="va">Total.Totals</span> <span class="op">+</span> <span class="va">PC2.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span> <span class="va">PC1.Ground.Level.Pressure</span>,</span>
 <span>  rain_col_name <span class="op">=</span> <span class="st">'Rain.Gauge.Measurement'</span>,</span>
@@ -1294,6 +1277,10 @@ in the original implementation.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">table6_2013_2015</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Summary of Two Stage LMM Rainfall Enhancement Analysis</span></span>
+<span><span class="co">#&gt; ======================================================================</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Bootstrap replicates: 500 requested, 500 successful</span></span>
+<span><span class="co">#&gt; Permutation replicates: 500 requested, 500 successful</span></span>
 <span><span class="co">#&gt; ======================================================================</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
@@ -1347,11 +1334,12 @@ in the original implementation.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Downwind (Second Stage) LMM:</span></span>
 <span><span class="co">#&gt; Formula:</span></span>
-<span><span class="co">#&gt; LogRain ~ Year...2013 + Year...2014 + Gauge.Elevation...1km + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation...1km.1 + natural_pred + Target.H.01 + Target.H.02 + </span></span>
-<span><span class="co">#&gt;     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Gauge.Elevation...1km:Target.H.01 + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation...1km.1:Target.H.02 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt; LogRain ~ Year...2013 + Year...2014 + natural_pred + (Gauge.Elevation...1km + </span></span>
+<span><span class="co">#&gt;     Gauge.Elevation...1km.1) * (Target.H.01 + Target.H.02) + </span></span>
+<span><span class="co">#&gt;     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + (1 | </span></span>
+<span><span class="co">#&gt;     TrialDay)</span></span>
+<span><span class="co">#&gt; Non-treatment components (x): (Intercept), Year...2013, Year...2014, natural_pred, Gauge.Elevation...1km, Gauge.Elevation...1km.1</span></span>
+<span><span class="co">#&gt; Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Gauge.Elevation...1km:Target.H.01, Gauge.Elevation...1km:Target.H.02, Gauge.Elevation...1km.1:Target.H.01, Gauge.Elevation...1km.1:Target.H.02</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control") &amp; Year %in% 2013:2015  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span></span>
 <span><span class="co">#&gt; Number of observations: 2447, Number of groups: 286</span></span>
@@ -1366,9 +1354,9 @@ in the original implementation.</p>
 <span><span class="co">#&gt; (Intercept)                           0.0235     0.1515  0.1550</span></span>
 <span><span class="co">#&gt; Year...2013                           0.4771     0.1187  4.0179</span></span>
 <span><span class="co">#&gt; Year...2014                           0.2732     0.1093  2.5010</span></span>
+<span><span class="co">#&gt; natural_pred                          0.8833     0.0724 12.2056</span></span>
 <span><span class="co">#&gt; Gauge.Elevation...1km                -0.0608     0.2193 -0.2772</span></span>
 <span><span class="co">#&gt; Gauge.Elevation...1km.1              -0.0846     0.0983 -0.8611</span></span>
-<span><span class="co">#&gt; natural_pred                          0.8833     0.0724 12.2056</span></span>
 <span><span class="co">#&gt; Target.H.01                           0.5486     0.3020  1.8166</span></span>
 <span><span class="co">#&gt; Target.H.02                           0.9486     0.3633  2.6109</span></span>
 <span><span class="co">#&gt; Target.H.03                           0.4130     0.1255  3.2906</span></span>
@@ -1413,6 +1401,10 @@ in the original implementation.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">table6_2016_2018</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Summary of Two Stage LMM Rainfall Enhancement Analysis</span></span>
+<span><span class="co">#&gt; ======================================================================</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Bootstrap replicates: 500 requested, 500 successful</span></span>
+<span><span class="co">#&gt; Permutation replicates: 500 requested, 500 successful</span></span>
 <span><span class="co">#&gt; ======================================================================</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
@@ -1471,6 +1463,8 @@ in the original implementation.</p>
 <span><span class="co">#&gt;     Gauge.Elevation...1km.1 + natural_pred + Target.H.01 + Target.H.02 + </span></span>
 <span><span class="co">#&gt;     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + </span></span>
 <span><span class="co">#&gt;     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt; Non-treatment components (x): (Intercept), Year...2016, Year...2018, Gauge.Elevation...1km, Gauge.Elevation...1km.1, natural_pred</span></span>
+<span><span class="co">#&gt; Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control") &amp; Year %in% 2016:2018  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span></span>
 <span><span class="co">#&gt; Number of observations: 1721, Number of groups: 202</span></span>
@@ -1595,7 +1589,7 @@ reproduced using the code below.</p>
 <span>  upwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">~</span> <span class="va">Year...2014</span> <span class="op">+</span>  <span class="va">Year...2016</span> <span class="op">+</span> <span class="va">Year...2017</span> <span class="op">+</span> <span class="va">Year...2018</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">Steering.Wind.Speed</span> <span class="op">+</span> <span class="va">Total.Totals</span> <span class="op">+</span> <span class="va">PC2.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span> <span class="va">PC1.Ground.Level.Pressure</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  instr_pred_name <span class="op">=</span> <span class="st">'natural_pred'</span>,</span>
 <span>  instr_pred_type <span class="op">=</span> <span class="st">'Unconditional'</span>,</span>
-<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span> <span class="op">+</span>  <span class="va">Year...2016</span> <span class="op">+</span> <span class="va">Year...2017</span> <span class="op">+</span> <span class="va">Year...2018</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">natural_pred</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
+<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span> <span class="op">+</span>  <span class="va">Year...2016</span> <span class="op">+</span> <span class="va">Year...2017</span> <span class="op">+</span> <span class="va">Year...2018</span> <span class="op">+</span> <span class="va">natural_pred</span> <span class="op">+</span> <span class="op">(</span><span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">)</span> <span class="op">*</span>  <span class="op">(</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span><span class="op">)</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  downwind_logistic_formula <span class="op">=</span> <span class="op">(</span><span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">~</span> <span class="va">Year...2013</span> <span class="op">+</span> <span class="va">Year...2014</span> <span class="op">+</span> <span class="va">Year...2016</span> <span class="op">+</span> <span class="va">Year...2017</span> <span class="op">+</span> <span class="va">Year...2018</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span> <span class="op">+</span> <span class="va">natural_pred</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation...1km.1</span><span class="op">:</span><span class="va">Target.H.02</span>,</span>
 <span>  downwind_propensity_formula <span class="op">=</span> <span class="op">(</span><span class="va">Gauge.Day.Type</span> <span class="op">==</span> <span class="st">'Target'</span><span class="op">)</span> <span class="op">~</span> <span class="va">Total.Totals</span> <span class="op">+</span> <span class="va">PC1.Dry.Temperature</span> <span class="op">+</span> <span class="va">PC1.Relative.Humidity</span> <span class="op">+</span> <span class="va">PC1.Ground.Level.Pressure</span>,</span>
 <span>  rain_col_name <span class="op">=</span> <span class="st">'Rain.Gauge.Measurement'</span>,</span>
@@ -1649,6 +1643,10 @@ reproduced using the code below.</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jrssa</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Summary of Two Stage LMM Rainfall Enhancement Analysis</span></span>
+<span><span class="co">#&gt; ======================================================================</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Bootstrap replicates: 500 requested, 500 successful</span></span>
+<span><span class="co">#&gt; Permutation replicates: 500 requested, 500 successful</span></span>
 <span><span class="co">#&gt; ======================================================================</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
@@ -1706,12 +1704,12 @@ reproduced using the code below.</p>
 <span><span class="co">#&gt; Downwind (Second Stage) LMM:</span></span>
 <span><span class="co">#&gt; Formula:</span></span>
 <span><span class="co">#&gt; LogRain ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + </span></span>
-<span><span class="co">#&gt;     Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + </span></span>
-<span><span class="co">#&gt;     natural_pred + Target.H.01 + Target.H.02 + Target.H.03 + </span></span>
-<span><span class="co">#&gt;     Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + </span></span>
-<span><span class="co">#&gt;     Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation...1km:Target.H.02 + +Gauge.Elevation...1km.1:Target.H.01 + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation...1km.1:Target.H.02 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt;     Year...2018 + natural_pred + (Gauge.Elevation...1km + Gauge.Elevation...1km.1) * </span></span>
+<span><span class="co">#&gt;     (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + </span></span>
+<span><span class="co">#&gt;     Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + </span></span>
+<span><span class="co">#&gt;     Target.H.10 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt; Non-treatment components (x): (Intercept), Year...2013, Year...2014, Year...2016, Year...2017, Year...2018, natural_pred, Gauge.Elevation...1km, Gauge.Elevation...1km.1</span></span>
+<span><span class="co">#&gt; Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation...1km:Target.H.01, Gauge.Elevation...1km:Target.H.02, Gauge.Elevation...1km.1:Target.H.01, Gauge.Elevation...1km.1:Target.H.02</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span></span>
 <span><span class="co">#&gt; Number of observations: 4168, Number of groups: 488</span></span>
@@ -1729,9 +1727,9 @@ reproduced using the code below.</p>
 <span><span class="co">#&gt; Year...2016                           0.2586     0.1153  2.2430</span></span>
 <span><span class="co">#&gt; Year...2017                           0.0923     0.1192  0.7743</span></span>
 <span><span class="co">#&gt; Year...2018                           0.0405     0.1463  0.2770</span></span>
+<span><span class="co">#&gt; natural_pred                          0.9451     0.0591 15.9968</span></span>
 <span><span class="co">#&gt; Gauge.Elevation...1km                -0.1996     0.1640 -1.2174</span></span>
 <span><span class="co">#&gt; Gauge.Elevation...1km.1              -0.0962     0.0709 -1.3577</span></span>
-<span><span class="co">#&gt; natural_pred                          0.9451     0.0591 15.9968</span></span>
 <span><span class="co">#&gt; Target.H.01                           0.4807     0.2470  1.9463</span></span>
 <span><span class="co">#&gt; Target.H.02                           0.8403     0.2930  2.8680</span></span>
 <span><span class="co">#&gt; Target.H.03                           0.2411     0.0922  2.6142</span></span>
@@ -1768,9 +1766,9 @@ reproduced using the code below.</p>
 <span><span class="co">#&gt; Year...2016              0.34712941 0.14762617  2.351408</span></span>
 <span><span class="co">#&gt; Year...2017              0.22160137 0.14688432  1.508680</span></span>
 <span><span class="co">#&gt; Year...2018              0.08477673 0.18455522  0.459357</span></span>
+<span><span class="co">#&gt; natural_pred             0.94174156 0.07587026 12.412526</span></span>
 <span><span class="co">#&gt; Gauge.Elevation...1km   -0.69363326 0.19798956 -3.503383</span></span>
 <span><span class="co">#&gt; Gauge.Elevation...1km.1 -0.29639368 0.08256077 -3.590006</span></span>
-<span><span class="co">#&gt; natural_pred             0.94174156 0.07587026 12.412526</span></span>
 <span></span>
 <span><span class="co">#Control model</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jrssa</span><span class="op">$</span><span class="va">all_fitted_models</span><span class="op">$</span><span class="va">downwind_positive_control_lmm_fit</span><span class="op">)</span><span class="op">$</span><span class="va">coef</span></span>
@@ -1781,9 +1779,9 @@ reproduced using the code below.</p>
 <span><span class="co">#&gt; Year...2016              0.27650431 0.14673274  1.8844077</span></span>
 <span><span class="co">#&gt; Year...2017              0.09564666 0.15260033  0.6267789</span></span>
 <span><span class="co">#&gt; Year...2018              0.09708881 0.19122863  0.5077106</span></span>
+<span><span class="co">#&gt; natural_pred             0.90292193 0.07879799 11.4586928</span></span>
 <span><span class="co">#&gt; Gauge.Elevation...1km   -0.06618146 0.20372709 -0.3248535</span></span>
-<span><span class="co">#&gt; Gauge.Elevation...1km.1 -0.06163347 0.08778100 -0.7021277</span></span>
-<span><span class="co">#&gt; natural_pred             0.90292193 0.07879799 11.4586928</span></span></code></pre></div>
+<span><span class="co">#&gt; Gauge.Elevation...1km.1 -0.06163347 0.08778100 -0.7021277</span></span></code></pre></div>
 <p>Table 5 is identical to:</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">downwind_target_varcomp</span> <span class="op">=</span> <span class="fu"><a href="../reference/rain_attr-class.html">varcomp</a></span><span class="op">(</span><span class="va">jrssa</span><span class="op">)</span><span class="op">[</span><span class="st">'downwind_target_lmm'</span>,<span class="op">]</span></span>

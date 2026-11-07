@@ -43,7 +43,6 @@
 <span>  B_bootstrap <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>  bootstrap_type <span class="op">=</span> <span class="st">"PREB1"</span>,</span>
 <span>  bootstrap_zero <span class="op">=</span> <span class="cn">T</span>,</span>
-<span>  positive_prob_threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  discretize_rain <span class="op">=</span> <span class="cn">T</span>,</span>
 <span>  winsorize_individual_rain <span class="op">=</span> <span class="cn">T</span>,</span>
 <span>  individual_rain_interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">175</span><span class="op">)</span>,</span>
@@ -74,10 +73,6 @@ Default is "PREB1".</p></dd>
 
 <dt id="arg-bootstrap-zero">bootstrap_zero<a class="anchor" aria-label="anchor" href="#arg-bootstrap-zero"></a></dt>
 <dd><p>Logical. If <code>TRUE</code>, the optional first-level bootstrap is performed to generate bootstrap samples of binary rainfall event indicators. Default is <code>TRUE</code>.</p></dd>
-
-
-<dt id="arg-positive-prob-threshold">positive_prob_threshold<a class="anchor" aria-label="anchor" href="#arg-positive-prob-threshold"></a></dt>
-<dd><p>An optional numeric value between 0 and 1 specifying the probability threshold for generating bootstrap samples of binary rainfall event indicators. Probabilities below this threshold are set to zero. Default is <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-discretize-rain">discretize_rain<a class="anchor" aria-label="anchor" href="#arg-discretize-rain"></a></dt>
@@ -142,11 +137,10 @@ Default is "PREB1".</p></dd>
 <span class="r-in"><span><span class="co"># arXiv:2510.07770.</span></span></span>
 <span class="r-in"><span><span class="va">boot_options</span> <span class="op">=</span> <span class="fu">bootstrap_opt</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">boot_options</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> List of 14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> List of 13</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ B_bootstrap                  : num 10000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ bootstrap_type               : chr "PREB1"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ bootstrap_zero               : logi TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ positive_prob_threshold      : NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ discretize_rain              : logi TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ winsorize_individual_rain    : logi TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ individual_rain_interval     : num [1:2] 100 175</span>
@@ -167,11 +161,10 @@ Default is "PREB1".</p></dd>
 <span class="r-in"><span>  bootstrap_parallel_num_worker <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">boot_options_parallel</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> List of 14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> List of 13</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ B_bootstrap                  : num 10000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ bootstrap_type               : chr "PREB1"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ bootstrap_zero               : logi TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ positive_prob_threshold      : NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ discretize_rain              : logi TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ winsorize_individual_rain    : logi TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ individual_rain_interval     : num [1:2] 100 175</span>

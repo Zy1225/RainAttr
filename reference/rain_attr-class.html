@@ -218,8 +218,8 @@ Moreover, the validity of GLMs does not require normally distributed residuals.<
 <dd><p>Returns a list of summary statistics of the two-stage LMM approach, which is an <b>R</b> object of class <code>summary.rain_attr</code>. For details of this list, see the "Value from <code>summary.rain_attr</code>" section below.</p></dd>
 
 <dt><code>print.summary</code></dt>
-<dd><p>Print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values if bootstrap and permutation have been performed.
-Also print the model formula, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard errors and t-values computed from <code><a href="https://rdrr.io/pkg/lme4/man/summary.merMod.html" class="external-link">summary.merMod</a></code>.</p></dd>
+<dd><p>Print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values, and the numbers of requested and successful replicates if bootstrap and permutation have been performed.
+Also print the model formula, non-treatment (x) and treatment (z) components of the downwind LMM, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard errors and t-values computed from <code><a href="https://rdrr.io/pkg/lme4/man/summary.merMod.html" class="external-link">summary.merMod</a></code>.</p></dd>
 
 
 </dl></div>
@@ -262,6 +262,12 @@ Also print the model formula, data subset, number of observations, number of uni
 
 <dt><code>upwind_lmm_varcomp</code>, <code>downwind_lmm_varcomp</code></dt>
 <dd><p>Data frames containing the estimated variance components for the upwind and downwind LMMs.</p></dd>
+
+<dt><code>downwind_components</code></dt>
+<dd><p>A list with elements <code>x</code> and <code>z</code> containing the fitted coefficient names for the non-treatment and treatment (ionizer-related) components of the downwind LMM, respectively.</p></dd>
+
+<dt><code>replicate_counts</code></dt>
+<dd><p>A list with elements <code>Bootstrap</code> and <code>Permutation</code>, each containing a named vector with the numbers of <code>requested</code> and <code>successful</code> replicates. The corresponding element is <code>NULL</code> if that procedure was not performed.</p></dd>
 
 
 </dl></div>

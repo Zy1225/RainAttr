@@ -12,7 +12,6 @@ bootstrap_downwind(
   B_bootstrap,
   bootstrap_type,
   bootstrap_zero,
-  positive_prob_threshold = NULL,
   discretize_rain,
   winsorize_individual_rain,
   individual_rain_interval,
@@ -58,14 +57,6 @@ bootstrap_downwind(
 
   Logical. If `TRUE`, the optional first-level bootstrap is performed to
   generate bootstrap samples of binary rainfall event indicators.
-  (User-configurable bootstrap option using
-  [`bootstrap_opt`](https://zy1225.github.io/RainAttr/reference/bootstrap_opt.md))
-
-- positive_prob_threshold:
-
-  An optional numeric value between 0 and 1 specifying the probability
-  threshold for generating bootstrap samples of binary rainfall event
-  indicators. Probabilities below this threshold are set to zero.
   (User-configurable bootstrap option using
   [`bootstrap_opt`](https://zy1225.github.io/RainAttr/reference/bootstrap_opt.md))
 
@@ -217,10 +208,18 @@ bootstrap_downwind(
 
 - x_downwind_name:
 
-  A character vector containing variable names from the right hand side
-  of `downwind_lmm_formula`, for those variables that are not related to
-  ionizers (treatment). The intercept is always included and does not
-  need to be specified. (Internal argument set automatically when using
+  A character vector containing the names of variables on the
+  fixed-effects right-hand side of `downwind_lmm_formula` that are
+  unrelated to ionizers (treatment). A fixed-effect term is included in
+  the non-treatment component if all its variables are listed in
+  `x_downwind_name`. The remaining terms are included in the treatment
+  component. The intercept, if present, is included in the non-treatment
+  component automatically. For example, with
+  `Gauge.Elevation * Target.H.01` and
+  `x_downwind_name = "Gauge.Elevation"`, the elevation main effect is
+  included in the non-treatment component, while the target main effect
+  and its interaction with elevation are included in the treatment
+  component. (Internal argument set automatically when using
   [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md))
 
 - target_only:
@@ -319,12 +318,9 @@ satisfying `downwind`, where \\\hat{\gamma}\_{ij}\\ are the predicted
 probabilities from the downwind logistic model fitted to the original
 binary rainfall event indicators \\L\_{ij}\\ i.e.,
 \\\hat{\gamma}\_{ij}\\ =
-`predict(ori_fitted_models$downwind_logistic_fit,type = "response")`. It
-is worth noting that if `positive_prob_threshold` is supplied, then
-\\\hat{\gamma}\_{ij}\\ that are less than `positive_prob_threshold` are
-set to be zeros before being used to generate \\L\_{ij}^\*\\. When
-`bootstrap_zero = FALSE`, the first-level bootstrap is not carried out
-and thus \\L\_{ij}^\* = L\_{ij}\\.
+`predict(ori_fitted_models$downwind_logistic_fit,type = "response")`.
+When `bootstrap_zero = FALSE`, the first-level bootstrap is not carried
+out and thus \\L\_{ij}^\* = L\_{ij}\\.
 
 **Second-Level Bootstrap**  
 Recall that the original downwind (second stage) LMM is given as
@@ -473,7 +469,7 @@ offset term is included on the LHS of `downwind_lmm_formula` e.g.,
 `downwind_lmm_formula = LogRain - Offset`, the above adjustments could
 still be used as the function would use the relationship \\Rain\_{ij}^\*
 = \exp( y\_{ij}^\* + Offset\_{ij} )\\ and \\y\_{ij}^\* =
-\log(Rain\_{ij}^\*) + Offset\_{ij} \\.
+\log(Rain\_{ij}^\*) - Offset\_{ij} \\.
 
 **Bootstrap Distributions of Attribution, SATE and other parameters**  
 The same procedure described in
@@ -553,9 +549,10 @@ Specifically:
 
 - For LMM random effect variance components, the bootstrap distributions
   of random intercept variance (\\\sigma^2_u\\) and residual variance
-  (\\\sigma^2_e\\) are first adjusted to be empirically uncorrelated
-  (see Section 2.3.3 of Chambers & Chandra (2013), and Section 2.3 of
-  Tho et al. (2025)).
+  (\\\sigma^2_e\\) are first adjusted to be empirically uncorrelated on
+  the log scale (see Section 2.3.3 of Chambers & Chandra (2013), and
+  Section 2.3 of Tho et al. (2025)). If the decorrelation adjustment
+  cannot be computed, it is skipped with a warning.
 
 - After adjustment, ratio corrections are applied:
   \$\$\hat{\sigma}^{2\*}\_{u,b} \leftarrow \hat{\sigma}^{2\*}\_{u,b}

@@ -11,7 +11,6 @@ bootstrap_opt(
   B_bootstrap = 10000,
   bootstrap_type = "PREB1",
   bootstrap_zero = T,
-  positive_prob_threshold = NULL,
   discretize_rain = T,
   winsorize_individual_rain = T,
   individual_rain_interval = c(100, 175),
@@ -45,13 +44,6 @@ bootstrap_opt(
   Logical. If `TRUE`, the optional first-level bootstrap is performed to
   generate bootstrap samples of binary rainfall event indicators.
   Default is `TRUE`.
-
-- positive_prob_threshold:
-
-  An optional numeric value between 0 and 1 specifying the probability
-  threshold for generating bootstrap samples of binary rainfall event
-  indicators. Probabilities below this threshold are set to zero.
-  Default is `NULL`.
 
 - discretize_rain:
 
@@ -145,11 +137,10 @@ for more details on the two-level bootstrap procedure
 # arXiv:2510.07770.
 boot_options = bootstrap_opt()
 str(boot_options)
-#> List of 14
+#> List of 13
 #>  $ B_bootstrap                  : num 10000
 #>  $ bootstrap_type               : chr "PREB1"
 #>  $ bootstrap_zero               : logi TRUE
-#>  $ positive_prob_threshold      : NULL
 #>  $ discretize_rain              : logi TRUE
 #>  $ winsorize_individual_rain    : logi TRUE
 #>  $ individual_rain_interval     : num [1:2] 100 175
@@ -170,11 +161,10 @@ boot_options_parallel = bootstrap_opt(
   bootstrap_parallel_num_worker = parallel::detectCores() - 1
 )
 str(boot_options_parallel)
-#> List of 14
+#> List of 13
 #>  $ B_bootstrap                  : num 10000
 #>  $ bootstrap_type               : chr "PREB1"
 #>  $ bootstrap_zero               : logi TRUE
-#>  $ positive_prob_threshold      : NULL
 #>  $ discretize_rain              : logi TRUE
 #>  $ winsorize_individual_rain    : logi TRUE
 #>  $ individual_rain_interval     : num [1:2] 100 175

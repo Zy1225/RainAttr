@@ -125,7 +125,7 @@ It should also contain variables named in <code>rain_col_name</code>, <code>upwi
 
 
 <dt id="arg-x-downwind-name">x_downwind_name<a class="anchor" aria-label="anchor" href="#arg-x-downwind-name"></a></dt>
-<dd><p>A character vector containing variable names from the right hand side of <code>downwind_lmm_formula</code>, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.</p></dd>
+<dd><p>A character vector containing the names of variables on the fixed-effects right-hand side of <code>downwind_lmm_formula</code> that are unrelated to ionizers (treatment). A fixed-effect term is included in the non-treatment component if all its variables are listed in <code>x_downwind_name</code>. The remaining terms are included in the treatment component. The intercept, if present, is included in the non-treatment component automatically. For example, with <code>Gauge.Elevation * Target.H.01</code> and <code>x_downwind_name = "Gauge.Elevation"</code>, the elevation main effect is included in the non-treatment component, while the target main effect and its interaction with elevation are included in the treatment component.</p></dd>
 
 
 <dt id="arg-target-only">target_only<a class="anchor" aria-label="anchor" href="#arg-target-only"></a></dt>
@@ -153,6 +153,9 @@ It should also contain variables named in <code>rain_col_name</code>, <code>upwi
     <p>An object of class <code><a href="rain_attr-class.html">rain_attr</a></code>, which is a list containing</p><dl><dt>all_fitted_models</dt>
 <dd><p>A list of model objects from <code><a href="https://rdrr.io/pkg/lme4/man/lmer.html" class="external-link">lmer</a></code> for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm</a></code> for the logistic model of rainfall event indicator (<code>NULL</code> if <code>downwind_logistic_formula</code> is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.</p></dd>
 
+<dt>downwind_components</dt>
+<dd><p>A list with elements <code>x</code> and <code>z</code> containing the fitted coefficient names for the non-treatment and treatment (ionizer-related) components of the downwind LMM, respectively.</p></dd>
+
 <dt>hatattr</dt>
 <dd><p>A vector containing the attribution estimates.</p></dd>
 
@@ -167,7 +170,7 @@ It should also contain variables named in <code>rain_col_name</code>, <code>upwi
 <li><p>downwind_propensity_param: Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators.</p></li>
 <li><p>downwind_positive_target_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.</p></li>
 <li><p>downwind_positive_control_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.</p></li>
-<li><p>downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as <code>NA</code>. This element is <code>NULL</code> when <code>bootstrap_option$store_bootstrap_rain = FALSE</code></p></li>
+<li><p>downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as <code>NA</code>. This element is <code>NULL</code> when <code>bootstrap_option$store_bootstrap_rain = FALSE</code>.</p></li>
 </ul><p>This is <code>NULL</code> when <code>bootstrap = FALSE</code>.</p></dd>
 
 
@@ -175,7 +178,7 @@ It should also contain variables named in <code>rain_col_name</code>, <code>upwi
 <dd><p>A list of matrices with same element names as in <code>bootstrap_result</code> (excluding <code>downwind_LogRain</code>), containing the corresponding bootstrap percentile confidence intervals. This is <code>NULL</code> when <code>bootstrap = FALSE</code>.</p></dd>
 
 <dt>bootstrap_p_value_result</dt>
-<dd><p>A list of numeric vectors with same element names as in <code>bootstrap_result</code> (excluding <code>downwind_LogRain</code>), containing the corresponding proportion of bootstrap samples that are less than zero. This is <code>NULL</code> when <code>bootstrap = FALSE</code>.</p></dd>
+<dd><p>A list of numeric vectors with same element names as in <code>bootstrap_result</code> (excluding <code>downwind_LogRain</code>), containing the corresponding proportion of bootstrap samples that are less than or equal to zero. This is <code>NULL</code> when <code>bootstrap = FALSE</code>.</p></dd>
 
 <dt>bootstrap_plot_result</dt>
 <dd><p>A list with two elements:</p><ul><li><p>hatattr: A list of <code>ggplot</code> objects, each showing the bootstrap distribution of attribution estimates. Each plot includes a dotted vertical line at zero and a solid vertical line at the original estimate based on the observed data.</p></li>
@@ -213,7 +216,7 @@ This is <code>NULL</code> when <code>bootstrap = FALSE</code>.</p></li>
     <p>This function implements a two-stage modelling procedure via the following steps:</p><ol><li><p>Fit an upwind (first stage) LMM using <code>lme4::lmer(upwind_lmm_formula)</code> to the subset of observations from <code>data</code> satisfying <code>upwind_subset &amp; positive_subset</code>. This fitted LMM is used to obtain fitted values (named as <code>instr_pred_name</code>) to be used in the downwind (second stage) LMM.</p></li>
 <li><p>Fit a downwind (second stage) LMM using  <code>lme4::lmer(downwind_lmm_formula)</code> to the subset of observations from <code>data</code> satisfying <code>downwind_subset &amp; positive_subset</code>.
 $$y_{ij} =  x_{ij}^\top \alpha + z_{ij}^\top \beta + u_i + e_{ij}  $$
-where \(i\) indexes day (group) and \(j\) indexes gauge (unit within group), \(x_{ij}\) is a vector of covariates (with names supplied in <code>x_downwind_name</code>, including intercept) that are not related to the ionizers (treatment), \(z_{ij}\) is a vector of ionizer (treatment) related covariates, \(u_i\) are random intercepts, and \(e_{ij}\) are error terms.</p></li>
+where \(i\) indexes day (group) and \(j\) indexes gauge (unit within group), \(x_{ij}\) and \(z_{ij}\) are vectors of model-matrix entries for the non-treatment and treatment (ionizer) related covariates, respectively, as determined by <code>x_downwind_name</code>. The intercept, if present, is included in \(x_{ij}\). The term \(u_i\) is the random intercept for day \(i\), and \(e_{ij}\) is the error term.</p></li>
 </ol><p>The fitted values obtained from the upwind (first stage) LMM can either be:</p><ul><li><p>Included as a covariate on the right-hand side of <code>downwind_lmm_formula</code>, e.g., <code>instr_pred_name = "natural_pred"</code> and <code>downwind_lmm_formula = LogRain ~ natural_pred + ...</code>, or</p></li>
 <li><p>Included as an offset term by subtracting it from the response on the left-hand side, e.g., <code>instr_pred_name = "natural_pred"</code> and <code>downwind_lmm_formula = LogRain - natural_pred ~ ...</code>.</p></li>
 </ul><p><strong>Attribution</strong> <br>
@@ -340,6 +343,7 @@ These permutation distributions are used to compute permutation p-values (propor
 <span class="r-in"><span>  bootstrap <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>  permutation <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>the ‘nobars’ function has moved to the reformulas package. Please update your imports, or ask an upstream package maintainer to do so.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Print and summarize the fitted analysis</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
@@ -471,6 +475,8 @@ These permutation distributions are used to compute permutation p-values (propor
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Non-treatment components (x): (Intercept), Gauge.Elevation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 4168, Number of groups: 488</span>

@@ -190,10 +190,18 @@ permutation_ionizer(
 
 - x_downwind_name:
 
-  A character vector containing variable names from the right hand side
-  of `downwind_lmm_formula`, for those variables that are not related to
-  ionizers (treatment). The intercept is always included and does not
-  need to be specified. (Internal argument set automatically when using
+  A character vector containing the names of variables on the
+  fixed-effects right-hand side of `downwind_lmm_formula` that are
+  unrelated to ionizers (treatment). A fixed-effect term is included in
+  the non-treatment component if all its variables are listed in
+  `x_downwind_name`. The remaining terms are included in the treatment
+  component. The intercept, if present, is included in the non-treatment
+  component automatically. For example, with
+  `Gauge.Elevation * Target.H.01` and
+  `x_downwind_name = "Gauge.Elevation"`, the elevation main effect is
+  included in the non-treatment component, while the target main effect
+  and its interaction with elevation are included in the treatment
+  component. (Internal argument set automatically when using
   [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md))
 
 - target_only:
