@@ -63,7 +63,7 @@ result = rain_attr(
   instr_pred_type = 'Conditional',
 
   #LMM formula fitted to the downwind (second-stage) observations
-  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + (1|TrialDay),
 
   #Formula for fitting a logistic regression model to the indicator of rainfall event (used for bootstrapping of rainfall events)
   downwind_logistic_formula = NULL,
@@ -172,7 +172,7 @@ boot_perm_result = rain_attr(
   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
   instr_pred_name = 'natural_pred',
   instr_pred_type = 'Conditional',
-  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + (1|TrialDay),
   
   #Formula for fitting a logistic regression model to the indicator of rainfall event (used for bootstrapping of rainfall events when bootstrap_opt(bootstrap_zero) = TRUE)
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
@@ -424,7 +424,7 @@ headline = rain_attr(
   upwind_lmm_formula = LogRain ~  Gauge.Elevation + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
   instr_pred_name = 'natural_pred',
   instr_pred_type = 'Unconditional',
-  downwind_lmm_formula = LogRain  ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain  ~ natural_pred + Gauge.Elevation  * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + (1|TrialDay),
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
   rain_col_name = 'Rain.Gauge.Measurement',
@@ -484,7 +484,7 @@ table6_2013_2018 = rain_attr(
   upwind_lmm_formula = LogRain ~  Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
   instr_pred_name = 'natural_pred',
   instr_pred_type = 'Unconditional',
-  downwind_lmm_formula = LogRain  ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain  ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018  + natural_pred + (Gauge.Elevation...1km + Gauge.Elevation...1km.1) * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + (1|TrialDay),
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02,
   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
   rain_col_name = 'Rain.Gauge.Measurement',
@@ -520,7 +520,7 @@ table6_2013_2015 = rain_attr(
   upwind_lmm_formula = LogRain ~  Year...2014  + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
   instr_pred_name = 'natural_pred',
   instr_pred_type = 'Unconditional',
-  downwind_lmm_formula = LogRain  ~ Year...2013 + Year...2014 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06  + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain  ~ Year...2013 + Year...2014 + natural_pred + (Gauge.Elevation...1km + Gauge.Elevation...1km.1)  * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06  + (1|TrialDay),
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Year...2013 + Year...2014 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06  + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02,
   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Year...2013 + Year...2014  + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
   rain_col_name = 'Rain.Gauge.Measurement',
@@ -669,7 +669,7 @@ jrssa = rain_attr(
   upwind_lmm_formula = LogRain ~ Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + Steering.Wind.Speed + Total.Totals + PC2.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure + (1|TrialDay),
   instr_pred_name = 'natural_pred',
   instr_pred_type = 'Unconditional',
-  downwind_lmm_formula = LogRain ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain ~ Year...2013 + Year...2014 +  Year...2016 + Year...2017 + Year...2018 + natural_pred + (Gauge.Elevation...1km + Gauge.Elevation...1km.1) *  (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + (1|TrialDay),
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Year...2013 + Year...2014 + Year...2016 + Year...2017 + Year...2018 + Gauge.Elevation...1km + Gauge.Elevation...1km.1 + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation...1km:Target.H.01 + Gauge.Elevation...1km:Target.H.02 + Gauge.Elevation...1km.1:Target.H.01 + Gauge.Elevation...1km.1:Target.H.02,
   downwind_propensity_formula = (Gauge.Day.Type == 'Target') ~ Total.Totals + PC1.Dry.Temperature + PC1.Relative.Humidity + PC1.Ground.Level.Pressure,
   rain_col_name = 'Rain.Gauge.Measurement',

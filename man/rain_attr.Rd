@@ -57,7 +57,7 @@ It should also contain variables named in \code{rain_col_name}, \ifelse{latex}{\
 
 \item{attr_type}{An optional character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"} (default), or \code{"No"}. See "Details" for more information.}
 
-\item{x_downwind_name}{A character vector containing variable names from the right hand side of \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}lmm\_\discretionary{}{}{}formula}}}{\code{downwind_lmm_formula}}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.}
+\item{x_downwind_name}{A character vector containing the names of variables on the fixed-effects right-hand side of \code{downwind_lmm_formula} that are unrelated to ionizers (treatment). A fixed-effect term is included in the non-treatment component if all its variables are listed in \code{x_downwind_name}. The remaining terms are included in the treatment component. The intercept, if present, is included in the non-treatment component automatically. For example, with \code{Gauge.Elevation * Target.H.01} and \code{x_downwind_name = "Gauge.Elevation"}, the elevation main effect is included in the non-treatment component, while the target main effect and its interaction with elevation are included in the treatment component.}
 
 \item{target_only}{An optional logical. If \code{TRUE} the attribution estimates are computed based on only treated observations. If \code{FALSE} the attribution estimates are computed based on both treated and control observations.}
 
@@ -73,6 +73,7 @@ It should also contain variables named in \code{rain_col_name}, \ifelse{latex}{\
 An object of class \code{\link[=rain_attr-class]{rain_attr}}, which is a list containing
 \describe{
 \item{all_fitted_models}{A list of model objects from \code{\link[lme4]{lmer}} for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from \code{\link{glm}} for the logistic model of rainfall event indicator (\code{NULL} if \code{downwind_logistic_formula} is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.}
+\item{downwind_components}{A list with elements \code{x} and \code{z} containing the fitted coefficient names for the non-treatment and treatment (ionizer-related) components of the downwind LMM, respectively.}
 \item{hatattr}{A vector containing the attribution estimates.}
 \item{hatsate}{A vector containing the sample average treatment effect estimates.}
 \item{bootstrap_result}{A list of matrices with the following elements:
@@ -84,7 +85,7 @@ An object of class \code{\link[=rain_attr-class]{rain_attr}}, which is a list co
 \item downwind_propensity_param: Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators.
 \item downwind_positive_target_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.
 \item downwind_positive_control_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.
-\item downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}. This element is \code{NULL} when \code{bootstrap_option$store_bootstrap_rain = FALSE}
+\item downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}. This element is \code{NULL} when \code{bootstrap_option$store_bootstrap_rain = FALSE}.
 }
 
 This is \code{NULL} when \code{bootstrap = FALSE}.
@@ -134,7 +135,7 @@ This function implements a two-stage modelling procedure via the following steps
 
 \item Fit a downwind (second stage) LMM using  \code{lme4::lmer(downwind_lmm_formula)} to the subset of observations from \code{data} satisfying \code{downwind_subset & positive_subset}.
 \deqn{y_{ij} =  x_{ij}^\top \alpha + z_{ij}^\top \beta + u_i + e_{ij}  }
-where \eqn{i} indexes day (group) and \eqn{j} indexes gauge (unit within group), \eqn{x_{ij}} is a vector of covariates (with names supplied in \code{x_downwind_name}, including intercept) that are not related to the ionizers (treatment), \eqn{z_{ij}} is a vector of ionizer (treatment) related covariates, \eqn{u_i} are random intercepts, and \eqn{e_{ij}} are error terms.
+where \eqn{i} indexes day (group) and \eqn{j} indexes gauge (unit within group), \eqn{x_{ij}} and \eqn{z_{ij}} are vectors of model-matrix entries for the non-treatment and treatment (ionizer) related covariates, respectively, as determined by \code{x_downwind_name}. The intercept, if present, is included in \eqn{x_{ij}}. The term \eqn{u_i} is the random intercept for day \eqn{i}, and \eqn{e_{ij}} is the error term.
 }
 The fitted values obtained from the upwind (first stage) LMM can either be:
 \itemize{

@@ -48,7 +48,7 @@
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param x_downwind_name A character vector containing variable names from the right hand side of \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}lmm\_\discretionary{}{}{}formula}}}{\code{downwind_lmm_formula}}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
+#' @param x_downwind_name A character vector containing the names of variables on the fixed-effects right-hand side of \code{downwind_lmm_formula} that are unrelated to ionizers (treatment). A fixed-effect term is included in the non-treatment component if all its variables are listed in \code{x_downwind_name}. The remaining terms are included in the treatment component. The intercept, if present, is included in the non-treatment component automatically. For example, with \code{Gauge.Elevation * Target.H.01} and \code{x_downwind_name = "Gauge.Elevation"}, the elevation main effect is included in the non-treatment component, while the target main effect and its interaction with elevation are included in the treatment component.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -138,7 +138,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 
   year_ionizer_list = lapply(
     unique(ionizer_operation_input[,ionizer_operation_year_column_name]), function(x){
-      deployed_ionizers_x = which(colMeans(!is.na(ionizer_operation_input[ ionizer_operation_input[,ionizer_operation_year_column_name] == x  , -which(colnames(ionizer_operation_input) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))])) == 1)
+      deployed_ionizers_x = which(colMeans(!is.na(ionizer_operation_input[ ionizer_operation_input[,ionizer_operation_year_column_name] == x  , -which(colnames(ionizer_operation_input) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name)), drop = FALSE])) == 1)
       return(
         setdiff(colnames(ionizer_operation_input),c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))[deployed_ionizers_x]
       )
@@ -164,9 +164,12 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
     }
 
 
-    test_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
-    z_downwind_name = setdiff(names(lme4::fixef(test_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
-    perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+    test_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,], na.action = stats::na.fail)
+    # z_downwind_name = setdiff(names(lme4::fixef(test_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
+    # perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+    parts = split_downwind_fixed_effects(test_downwind_lmm_fit, x_downwind_name)
+    perm_downwind_separate_formula = remove_fixed_terms( input_formula = downwind_lmm_formula,vars_to_remove = parts$z_terms)
+
     perm_downwind_propensity_formula = stats::update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
 
 
@@ -182,8 +185,16 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
         perm_ionizer_operation_day = ionizer_operation_input
         if(permute_between_ionizer){
           for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
-            temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
             deployed_ionizers = year_ionizer_list[[as.character(unique_year)]]
+
+            #No need to permute if there is 0 or 1 deployed ionizer for that year
+            if(length(deployed_ionizers) <= 1L){
+              next
+            }
+
+            temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name)), drop = FALSE]
+
+
             perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
               t(apply(temp,1, FUN = function(x){
                 x[colnames(temp) %in% deployed_ionizers] = sample(x[colnames(temp) %in% deployed_ionizers])
@@ -194,7 +205,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 
         if(permute_all_ionizers_between_day){
           for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
-            temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
+            temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name)), drop = FALSE]
             perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
               temp[sample(1:nrow(temp)),]
           }
@@ -205,7 +216,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 
         if(permute_between_gaugeday){
           for(unique_year in unique(perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name])){
-            temp = perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_day_column_name, ionizer_operation_year_column_name))  ]
+            temp = perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_day_column_name, ionizer_operation_year_column_name)), drop = FALSE  ]
             perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name))  ] =
               temp[sample(1: nrow(temp)),]
           }
@@ -216,11 +227,16 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
         perm_data[,data_target_column_names][is.na(perm_data[,data_target_column_names])] = 0
 
         #Refit downwind LMM to permuted data, and then compute hatattr and hatsate, noting we need to be careful with the definition of downwind_positive_target, downwind_positive_control, and downwind_propensity_formula
-        perm_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = perm_data[downwind & positive,])
+        perm_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = perm_data[downwind & positive,], na.action = stats::na.fail)
 
         perm_downwind_positive_data = perm_data[downwind & positive,]
-        target_vec = apply(perm_data[,data_target_column_names],1, sum) > 0
-        nontarget_vec = apply(perm_data[,data_target_column_names],1, sum) ==  0
+        # target_vec = apply(perm_data[,data_target_column_names],1, sum) > 0
+        # nontarget_vec = apply(perm_data[,data_target_column_names],1, sum) ==  0
+
+        target_count = rowSums(perm_data[, data_target_column_names, drop = FALSE])
+        target_vec = target_count > 0
+        nontarget_vec = target_count == 0
+
         perm_downwind_positive_target = target_vec[downwind & positive]
         perm_downwind_positive_control = nontarget_vec[downwind & positive]
 
@@ -240,13 +256,17 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
     }
   }else{
 
-    test_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,])
-    z_downwind_name = setdiff(names(lme4::fixef(test_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
-    perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+    test_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = data[downwind & positive,], na.action = stats::na.fail)
+    # z_downwind_name = setdiff(names(lme4::fixef(test_downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
+    # perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+
+    parts = split_downwind_fixed_effects(test_downwind_lmm_fit, x_downwind_name)
+    perm_downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula,vars_to_remove = parts$z_terms)
+
     perm_downwind_propensity_formula = stats::update.formula(downwind_propensity_formula, permuted_target_indicator ~ . )
 
     permutation_cl = parallel::makeCluster(permutation_parallel_num_worker)
-    parallel::clusterExport(permutation_cl, varlist = c('attr_est', 'sate_est'), envir = asNamespace("RainAttr"))
+    parallel::clusterExport(permutation_cl, varlist = c('attr_est', 'sate_est','split_downwind_fixed_effects'), envir = asNamespace("RainAttr"))
     doParallel::registerDoParallel(permutation_cl)
     if(!is.null(permutation_seed)){
       doRNG::registerDoRNG(seed = permutation_seed)
@@ -262,8 +282,16 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
       perm_ionizer_operation_day = ionizer_operation_input
       if(permute_between_ionizer){
         for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
-          temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
+
           deployed_ionizers = year_ionizer_list[[as.character(unique_year)]]
+
+          #No need to permute if there is 0 or 1 deployed ionizer for that year
+          if(length(deployed_ionizers) <= 1L){
+            next
+          }
+
+          temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name)), drop = FALSE]
+
           perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
             t(apply(temp,1, FUN = function(x){
               x[colnames(temp) %in% deployed_ionizers] = sample(x[colnames(temp) %in% deployed_ionizers])
@@ -274,7 +302,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 
       if(permute_all_ionizers_between_day){
         for(unique_year in unique(perm_ionizer_operation_day[, ionizer_operation_year_column_name])){
-          temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))]
+          temp = perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name)), drop = FALSE]
           perm_ionizer_operation_day[perm_ionizer_operation_day[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_day) %in% c(ionizer_operation_day_column_name,ionizer_operation_year_column_name))] =
             temp[sample(1:nrow(temp)),]
         }
@@ -286,7 +314,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 
       if(permute_between_gaugeday){
         for(unique_year in unique(perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name])){
-          temp = perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_day_column_name, ionizer_operation_year_column_name))  ]
+          temp = perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_day_column_name, ionizer_operation_year_column_name)), drop = FALSE  ]
           perm_ionizer_operation_gaugeday[perm_ionizer_operation_gaugeday[, ionizer_operation_year_column_name] == unique_year, -which(colnames(perm_ionizer_operation_gaugeday) %in% c(ionizer_operation_year_column_name, ionizer_operation_day_column_name))  ] =
             temp[sample(1: nrow(temp)),]
         }
@@ -297,11 +325,16 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
       perm_data[,data_target_column_names][is.na(perm_data[,data_target_column_names])] = 0
 
       #Refit downwind LMM to permuted data, and then compute hatattr and hatsate, noting we need to becareful with the definition of downwind_positive_target, downwind_positive_control, and downwind_propensity_formula
-      perm_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = perm_data[downwind & positive,])
+      perm_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula, data = perm_data[downwind & positive,], na.action = stats::na.fail)
 
       perm_downwind_positive_data = perm_data[downwind & positive,]
-      target_vec = apply(perm_data[,data_target_column_names],1, sum) > 0
-      nontarget_vec = apply(perm_data[,data_target_column_names],1, sum) ==  0
+      # target_vec = apply(perm_data[,data_target_column_names],1, sum) > 0
+      # nontarget_vec = apply(perm_data[,data_target_column_names],1, sum) ==  0
+
+      target_count = rowSums(perm_data[, data_target_column_names, drop = FALSE])
+      target_vec = target_count > 0
+      nontarget_vec = target_count == 0
+
       perm_downwind_positive_target = target_vec[downwind & positive]
       perm_downwind_positive_control = nontarget_vec[downwind & positive]
 

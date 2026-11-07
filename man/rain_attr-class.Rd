@@ -132,7 +132,7 @@ Diagnostic plots for GLM-type \code{model} should be interpreted with caution. I
 Moreover, the validity of GLMs does not require normally distributed residuals.}
 \item{\code{summary}}{Returns a list of summary statistics of the two-stage LMM approach, which is an \bold{R} object of class \code{\link[=summary.rain_attr-class]{summary.rain_attr}}. For details of this list, see the "Value from \code{summary.rain_attr}" section below. }
 \item{\code{print.summary}}{Print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values, and the numbers of requested and successful replicates if bootstrap and permutation have been performed.
-Also print the model formula, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard errors and t-values computed from \code{\link[lme4]{summary.merMod}}.}
+Also print the model formula, non-treatment (x) and treatment (z) components of the downwind LMM, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard errors and t-values computed from \code{\link[lme4]{summary.merMod}}.}
 }
 }
 
@@ -152,6 +152,8 @@ The following describes the output from \code{summary.rain_attr}:
 \item{\code{upwind_residuals}, \code{downwind_residuals}}{Scaled residuals of the upwind and downwind LMMs, which take the general form of (observed - fitted)/\eqn{\hat{\sigma}_e}, where the fitted values are either \ifelse{latex}{\out{\texttt{upwind\_\discretionary{}{}{}fitted}}}{\code{upwind_fitted}} or \code{downwind_fitted} and \eqn{\hat{\sigma}_e} denote the corresponding residual standard deviation. }
 \item{\code{upwind_lmm_fixef}, \code{downwind_lmm_fixef}}{Matrices of fixed effect coefficients for the upwind and downwind LMMs, along with their corresponding standard error estimates and t-value computed from \code{\link[lme4]{summary.merMod}}.}
 \item{\code{upwind_lmm_varcomp}, \code{downwind_lmm_varcomp}}{Data frames containing the estimated variance components for the upwind and downwind LMMs.}
+\item{\code{downwind_components}}{A list with elements \code{x} and \code{z} containing the fitted coefficient names for the non-treatment and treatment (ionizer-related) components of the downwind LMM, respectively.}
+\item{\code{replicate_counts}}{A list with elements \code{Bootstrap} and \code{Permutation}, each containing a named vector with the numbers of \code{requested} and \code{successful} replicates. The corresponding element is \code{NULL} if that procedure was not performed.}
 }
 }
 

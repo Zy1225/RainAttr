@@ -731,6 +731,7 @@ summary.rain_attr <- function(object, ...) {
     #downwind
     downwind_subset_expr = downwind_subset_expr,
     downwind_formula = object$args$downwind_lmm_formula,
+    downwind_components = object$downwind_components,
     downwind_n_obs= stats::nobs(downwind_fit),
     downwind_n_groups = length(unique(lme4::getME(downwind_fit, "flist")[[1]])),
     downwind_summary = summary(downwind_fit),
@@ -833,6 +834,25 @@ print.summary.rain_attr <- function(x, ...) {
   cat("Downwind (Second Stage) LMM:\n")
   cat("Formula:\n")
   print(x$downwind_formula)
+  if(!is.null(x$downwind_components)){
+    x_names = x$downwind_components$x
+    z_names = x$downwind_components$z
+
+    cat("Non-treatment components (x): ",
+        if(length(x_names)){
+          paste(x_names, collapse = ", ")
+        } else{
+          "(none)"
+          },
+        "\n", sep = "")
+    cat("Treatment components (z): ",
+        if(length(z_names)){
+          paste(z_names, collapse = ", ")
+        } else{
+          "(none)"
+        },
+        "\n", sep = "")
+  }
   cat('\n')
   cat("Data subset used: ")
   cat(x$data_name, "[", x$downwind_subset_expr, ", ]\n")

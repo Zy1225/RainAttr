@@ -101,7 +101,7 @@ Must be one of \code{"REB0"}, \code{"REB1"}, \code{"REB2"}, \code{"PREB0"},
 \item{attr_type}{A character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
-\item{x_downwind_name}{A character vector containing variable names from the right hand side of \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}lmm\_\discretionary{}{}{}formula}}}{\code{downwind_lmm_formula}}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
+\item{x_downwind_name}{A character vector containing the names of variables on the fixed-effects right-hand side of \code{downwind_lmm_formula} that are unrelated to ionizers (treatment). A fixed-effect term is included in the non-treatment component if all its variables are listed in \code{x_downwind_name}. The remaining terms are included in the treatment component. The intercept, if present, is included in the non-treatment component automatically. For example, with \code{Gauge.Elevation * Target.H.01} and \code{x_downwind_name = "Gauge.Elevation"}, the elevation main effect is included in the non-treatment component, while the target main effect and its interaction with elevation are included in the treatment component.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{target_only}{Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
@@ -253,7 +253,8 @@ where \eqn{\hat{\theta}^*_b} is the estimate from the \eqn{b}-th bootstrap sampl
 
 \item For LMM random effect variance components, the bootstrap distributions of random intercept
 variance (\eqn{\sigma^2_u}) and residual variance (\eqn{\sigma^2_e}) are first adjusted to be
-empirically uncorrelated (see Section 2.3.3 of Chambers & Chandra (2013), and Section 2.3 of Tho et al. (2025)).
+empirically uncorrelated on the log scale (see Section 2.3.3 of Chambers & Chandra (2013), and Section 2.3 of Tho et al. (2025)).
+If the decorrelation adjustment cannot be computed, it is skipped with a warning.
 
 \item After adjustment, ratio corrections are applied:
 \deqn{\hat{\sigma}^{2*}_{u,b} \leftarrow \hat{\sigma}^{2*}_{u,b} \times \frac{\hat{\sigma}^2_u}{\frac{1}{B}\sum_{b=1}^{B}\hat{\sigma}^{2*}_{u,b}}}

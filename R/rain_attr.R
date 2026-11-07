@@ -11,7 +11,7 @@
 #'
 #'  \item Fit a downwind (second stage) LMM using  \code{lme4::lmer(downwind_lmm_formula)} to the subset of observations from \code{data} satisfying \code{downwind_subset & positive_subset}.
 #'  \deqn{y_{ij} =  x_{ij}^\top \alpha + z_{ij}^\top \beta + u_i + e_{ij}  }
-#'  where \eqn{i} indexes day (group) and \eqn{j} indexes gauge (unit within group), \eqn{x_{ij}} is a vector of covariates (with names supplied in \code{x_downwind_name}, including intercept) that are not related to the ionizers (treatment), \eqn{z_{ij}} is a vector of ionizer (treatment) related covariates, \eqn{u_i} are random intercepts, and \eqn{e_{ij}} are error terms.
+#'  where \eqn{i} indexes day (group) and \eqn{j} indexes gauge (unit within group), \eqn{x_{ij}} and \eqn{z_{ij}} are vectors of model-matrix entries for the non-treatment and treatment (ionizer) related covariates, respectively, as determined by \code{x_downwind_name}. The intercept, if present, is included in \eqn{x_{ij}}. The term \eqn{u_i} is the random intercept for day \eqn{i}, and \eqn{e_{ij}} is the error term.
 #' }
 #' The fitted values obtained from the upwind (first stage) LMM can either be:
 #' \itemize{
@@ -133,7 +133,7 @@
 #' @param downwind_control_subset A logical expression used to extract the relevant subset of downwind (second stage) observations from \code{data} that were not exposed to treatment (operating ionizers). For example, \code{Gauge.Day.Type == "Control"}.
 #' @param positive_subset A logical expression used to extract the relevant subset of observations from \code{data} with positive rainfall - these are the observations that are used in the fitting of upwind (first stage) LMM, downwind (second stage) LMM, downwind (second stage) treatment-only LMM, downwind (second stage) control-only LMM, and the downwind (second stage) propensity score model.
 #' @param attr_type An optional character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"} (default), or \code{"No"}. See "Details" for more information.
-#' @param x_downwind_name A character vector containing variable names from the right hand side of \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}lmm\_\discretionary{}{}{}formula}}}{\code{downwind_lmm_formula}}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
+#' @param x_downwind_name A character vector containing the names of variables on the fixed-effects right-hand side of \code{downwind_lmm_formula} that are unrelated to ionizers (treatment). A fixed-effect term is included in the non-treatment component if all its variables are listed in \code{x_downwind_name}. The remaining terms are included in the treatment component. The intercept, if present, is included in the non-treatment component automatically. For example, with \code{Gauge.Elevation * Target.H.01} and \code{x_downwind_name = "Gauge.Elevation"}, the elevation main effect is included in the non-treatment component, while the target main effect and its interaction with elevation are included in the treatment component.
 #' @param target_only An optional logical. If \code{TRUE} the attribution estimates are computed based on only treated observations. If \code{FALSE} the attribution estimates are computed based on both treated and control observations.
 #' @param bootstrap An optional logical. If \code{TRUE} bootstrap is carried out to perform inference on the attribution and sample average treatment effect. If \code{FALSE} (default) no bootstrap is carried out.
 #' @param bootstrap_option An optional list containing all bootstrap settings, used only when \code{bootstrap = TRUE}. See \code{\link{bootstrap_opt}} for the default list elements and their usage.
@@ -144,6 +144,7 @@
 #' @returns An object of class \code{\link[=rain_attr-class]{rain_attr}}, which is a list containing
 #' \describe{
 #' \item{all_fitted_models}{A list of model objects from \code{\link[lme4]{lmer}} for the first stage (upwind), second stage (downwind) LMM, second stage (downwind) treatment-only LMM, and second stage (downwind) control-only LMM, along with model objects from \code{\link{glm}} for the logistic model of rainfall event indicator (\code{NULL} if \code{downwind_logistic_formula} is not specified) and the propensity score model for the treatment indicator of second stage (downwind) observations.}
+#' \item{downwind_components}{A list with elements \code{x} and \code{z} containing the fitted coefficient names for the non-treatment and treatment (ionizer-related) components of the downwind LMM, respectively.}
 #' \item{hatattr}{A vector containing the attribution estimates.}
 #' \item{hatsate}{A vector containing the sample average treatment effect estimates.}
 #' \item{bootstrap_result}{A list of matrices with the following elements:
@@ -155,7 +156,7 @@
 #'  - downwind_propensity_param: Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators.
 #'  - downwind_positive_target_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.
 #'  - downwind_positive_control_lmm_param: Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.
-#'  - downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}. This element is \code{NULL} when \code{bootstrap_option$store_bootstrap_rain = FALSE}
+#'  - downwind_LogRain: Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}. This element is \code{NULL} when \code{bootstrap_option$store_bootstrap_rain = FALSE}.
 #'
 #'  This is \code{NULL} when \code{bootstrap = FALSE}.
 #' }
@@ -278,9 +279,11 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     }
   }
 
+  fixed_formula = lme4::nobars(downwind_lmm_formula)
+  fixed_rhs_vars = all.vars(formula.tools::rhs(fixed_formula))
 
-  if(mean(x_downwind_name %in% all.vars(formula.tools::rhs(downwind_lmm_formula)) )!=1 ){
-    stop("At least one variable in x_downwind_name cannot be found on RHS of downwind_lmm_formula")
+  if(!all(x_downwind_name %in% fixed_rhs_vars)){
+    stop("At least one variable in x_downwind_name cannot be found on the fixed-effects RHS of downwind_lmm_formula")
   }
 
   if(!attr_type %in% c('ChambersEtAl', 'ChambersEtAl_No_Winsorize','ThoEtAl', 'No')){
@@ -380,8 +383,11 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 
 
   #Compute Points Estimates for SATE - using different types of SATE estimates
-  z_downwind_name = setdiff(names(lme4::fixef(fitted_models$downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
-  downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+  # z_downwind_name = setdiff(names(lme4::fixef(fitted_models$downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
+  # downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+  parts = split_downwind_fixed_effects(fitted_models$downwind_lmm_fit, x_downwind_name)
+  downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = parts$z_terms)
+
   hatsate = sate_est(downwind_positive_data, downwind_positive_target, downwind_positive_control, downwind_propensity_formula, downwind_separate_formula,
                      x_downwind_name, downwind_lmm_fit = fitted_models$downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
@@ -488,6 +494,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
 
   output = list(
     all_fitted_models = all_fitted_models,
+    downwind_components = list(x = parts$x_names, z = parts$z_names),
     hatattr = hatattr,
     hatsate = hatsate$estimates,
     bootstrap_result = bootstrap_result,
@@ -523,16 +530,29 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
   }
 
   y_vec = downwind_positive_data[downwind_positive_useful_row,rain_col_name]
-  x_z_mat = stats::model.matrix(downwind_lmm_fit, data = downwind_positive_data, type = 'fixed')[downwind_positive_useful_row, ,drop=FALSE]
+  # x_z_mat = stats::model.matrix(downwind_lmm_fit, data = downwind_positive_data, type = 'fixed')[downwind_positive_useful_row, ,drop=FALSE]
+
+  # if(is.null(hatalphabeta)){
+  #   hatalpha_downwind = lme4::fixef(downwind_lmm_fit)[c('(Intercept)',x_downwind_name)]
+  #   hatbeta_downwind = lme4::fixef(downwind_lmm_fit)[setdiff(names(lme4::fixef(downwind_lmm_fit)), c('(Intercept)',x_downwind_name))]
+  # }else{
+  #   hatalpha_downwind = hatalphabeta[c('(Intercept)',x_downwind_name)]
+  #   hatbeta_downwind = hatalphabeta[setdiff(names(hatalphabeta), c('(Intercept)',x_downwind_name))]
+  # }
+
+  parts = split_downwind_fixed_effects(downwind_lmm_fit, x_downwind_name)
+
+  x_mat = parts$model_matrix[downwind_positive_useful_row,parts$x_names, drop = FALSE]
+  z_mat = parts$model_matrix[downwind_positive_useful_row,parts$z_names, drop = FALSE]
 
   if(is.null(hatalphabeta)){
-    hatalpha_downwind = lme4::fixef(downwind_lmm_fit)[c('(Intercept)',x_downwind_name)]
-    hatbeta_downwind = lme4::fixef(downwind_lmm_fit)[setdiff(names(lme4::fixef(downwind_lmm_fit)), c('(Intercept)',x_downwind_name))]
-  }else{
-    hatalpha_downwind = hatalphabeta[c('(Intercept)',x_downwind_name)]
-    hatbeta_downwind = hatalphabeta[setdiff(names(hatalphabeta), c('(Intercept)',x_downwind_name))]
+    hatalphabeta = lme4::fixef(downwind_lmm_fit)
   }
 
+  hatalpha_downwind = hatalphabeta[parts$x_names]
+  hatbeta_downwind = hatalphabeta[parts$z_names]
+
+  log_hatd = as.vector(z_mat %*% hatbeta_downwind)
 
 
   if(attr_type == 'ChambersEtAl'){
@@ -543,24 +563,24 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
     #compute log_hatw = (1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t, for PDR (i,t) or PDR Target (i,t)
     #Depends on if there is offset term on LHS of formula(downwind_lmm_fit)
     if(length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))) == 1){
-      log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row])
+      log_hatw = as.vector(x_mat %*% hatalpha_downwind + hatu[downwind_positive_useful_row])
     }
 
     if(length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))) > 1){
       all_offset_terms = formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))[2:length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit)))]
       if(length(all_offset_terms) > 1){
-        log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + apply(downwind_positive_data[downwind_positive_useful_row,all_offset_terms],1,sum)
+        log_hatw = as.vector(x_mat %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + apply(downwind_positive_data[downwind_positive_useful_row,all_offset_terms],1,sum)
       }
 
       if(length(all_offset_terms) == 1){
-        log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + as.vector(downwind_positive_data[downwind_positive_useful_row,all_offset_terms])
+        log_hatw = as.vector(x_mat %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + as.vector(downwind_positive_data[downwind_positive_useful_row,all_offset_terms])
       }
     }
 
 
 
     #compute log_hatd = z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
-    log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
+    # log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
 
     #compute log_haty_naive = (1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t + z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
     log_haty_naive = log_hatw + log_hatd
@@ -595,23 +615,23 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
     #compute log_hatw = (1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t, for PDR (i,t) or PDR Target (i,t)
     #Depends on if there is offset term on LHS of formula(downwind_lmm_fit)
     if(length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))) == 1){
-      log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row])
+      log_hatw = as.vector(x_mat %*% hatalpha_downwind + hatu[downwind_positive_useful_row])
     }
 
     if(length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))) > 1){
       all_offset_terms = formula.tools::lhs.vars(stats::formula(downwind_lmm_fit))[2:length(formula.tools::lhs.vars(stats::formula(downwind_lmm_fit)))]
       if(length(all_offset_terms) > 1){
-        log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + apply(downwind_positive_data[downwind_positive_useful_row,all_offset_terms],1,sum)
+        log_hatw = as.vector(x_mat %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + apply(downwind_positive_data[downwind_positive_useful_row,all_offset_terms],1,sum)
       }
 
       if(length(all_offset_terms) == 1){
-        log_hatw = as.vector(x_z_mat[,c('(Intercept)',x_downwind_name)] %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + as.vector(downwind_positive_data[downwind_positive_useful_row,all_offset_terms])
+        log_hatw = as.vector(x_mat %*% hatalpha_downwind + hatu[downwind_positive_useful_row]) + as.vector(downwind_positive_data[downwind_positive_useful_row,all_offset_terms])
       }
     }
 
 
     #compute log_hatd = z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
-    log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
+    # log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
 
     #compute log_haty_naive = (1, elevation, natural_pred) %*% hatalpha_downwind + hatu_t + z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
     log_haty_naive = log_hatw + log_hatd
@@ -639,16 +659,17 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
 
   if(attr_type == 'ThoEtAl'){
     #compute log_hatd = z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
-    log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
+    # log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
 
     #Sigma_full is the full covariance matrix of (hatintercept, hatalpha, hatbeta)
     Sigma_full = as.matrix(stats::vcov(downwind_lmm_fit))
 
     #Sigma_beta = covariance matrix of only hatbeta
-    Sigma_beta = Sigma_full[- which(rownames(Sigma_full) %in% c('(Intercept)', x_downwind_name)), -  which(rownames(Sigma_full) %in% c('(Intercept)',x_downwind_name)), drop = FALSE]
+    # Sigma_beta = Sigma_full[- which(rownames(Sigma_full) %in% c('(Intercept)', x_downwind_name)), -  which(rownames(Sigma_full) %in% c('(Intercept)',x_downwind_name)), drop = FALSE]
+    Sigma_beta = Sigma_full[parts$z_names, parts$z_names, drop = FALSE]
 
     #Extracting the z_it matrix, for PDR (i,t) or PDR Target (i,t)
-    z_mat = x_z_mat[,-which(colnames(x_z_mat) %in%  c('(Intercept)',x_downwind_name) ), drop = FALSE]
+    # z_mat = x_z_mat[,-which(colnames(x_z_mat) %in%  c('(Intercept)',x_downwind_name) ), drop = FALSE]
 
     #Compute the vector of z_it^T %*% Sigma_beta %*% z_it for all PDR (i,t) or PDR Target (i,t)
     # zT_Sigma_beta_z = diag(z_mat %*% Sigma_beta %*% t(z_mat))
@@ -665,7 +686,7 @@ attr_est = function(attr_type, downwind_positive_data, rain_col_name, downwind_p
 
   if(attr_type == 'No'){
     #compute log_hatd = z_it %*% hatbeta, for PDR (i,t) or PDR Target (i,t)
-    log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
+    # log_hatd = as.vector(x_z_mat[,setdiff(colnames(x_z_mat),c('(Intercept)',x_downwind_name))] %*% hatbeta_downwind )
 
     lambda = 1
 
@@ -717,18 +738,26 @@ sate_est = function(downwind_positive_data, downwind_positive_target, downwind_p
   hatw_0 = (1/(1-hatpi))/( sum( (1/ (1-hatpi)  ) * (1-as.numeric(downwind_propensity_fit$y))  )   )
 
 
-  x_z_mat = stats::model.matrix(downwind_lmm_fit, data = downwind_positive_data, type = 'fixed')
-  z_mat = x_z_mat[,-which(colnames(x_z_mat) %in%  c('(Intercept)',x_downwind_name) )]
+  # x_z_mat = stats::model.matrix(downwind_lmm_fit, data = downwind_positive_data, type = 'fixed')
+  # z_mat = x_z_mat[,-which(colnames(x_z_mat) %in%  c('(Intercept)',x_downwind_name) )]
+  #
+  #
+  # if(is.null(hatalphabeta)){
+  #   hatalpha_downwind = lme4::fixef(downwind_lmm_fit)[c('(Intercept)',x_downwind_name)]
+  #   hatbeta_downwind = lme4::fixef(downwind_lmm_fit)[setdiff(names(lme4::fixef(downwind_lmm_fit)), c('(Intercept)',x_downwind_name))]
+  # }else{
+  #   hatalpha_downwind = hatalphabeta[c('(Intercept)',x_downwind_name)]
+  #   hatbeta_downwind = hatalphabeta[setdiff(names(hatalphabeta), c('(Intercept)',x_downwind_name))]
+  # }
 
+  parts = split_downwind_fixed_effects(downwind_lmm_fit, x_downwind_name)
+  z_mat = parts$model_matrix[, parts$z_names, drop = FALSE]
 
   if(is.null(hatalphabeta)){
-    hatalpha_downwind = lme4::fixef(downwind_lmm_fit)[c('(Intercept)',x_downwind_name)]
-    hatbeta_downwind = lme4::fixef(downwind_lmm_fit)[setdiff(names(lme4::fixef(downwind_lmm_fit)), c('(Intercept)',x_downwind_name))]
-  }else{
-    hatalpha_downwind = hatalphabeta[c('(Intercept)',x_downwind_name)]
-    hatbeta_downwind = hatalphabeta[setdiff(names(hatalphabeta), c('(Intercept)',x_downwind_name))]
+    hatalphabeta = lme4::fixef(downwind_lmm_fit)
   }
 
+  hatbeta_downwind = hatalphabeta[parts$z_names]
 
   sate.mb = sum( as.numeric(downwind_propensity_fit$y) * as.vector(z_mat %*% hatbeta_downwind))/sum( as.numeric(downwind_propensity_fit$y)  )
   sate.ipw = sum( hatw_1 * as.numeric(downwind_propensity_fit$y) * lme4::getME(downwind_lmm_fit, 'y')  ) - sum( hatw_0 * ( 1- as.numeric(downwind_propensity_fit$y)) * lme4::getME(downwind_lmm_fit, 'y'  ) )
@@ -795,23 +824,53 @@ fit_upwind_downwind_models = function(data, upwind_lmm_formula, instr_pred_name,
 
 
 
-remove_fixed_terms <- function(input_formula, vars_to_remove){
-  #Function to remove some variables from a given formula - this is used to obtain the formula for fitting separate LMM to downwind_positive_target and downwind_positive_control
+# remove_fixed_terms <- function(input_formula, vars_to_remove){
+#   #Function to remove some variables from a given formula - this is used to obtain the formula for fitting separate LMM to downwind_positive_target and downwind_positive_control
+#
+#   # Note that this function requires downwind_lmm_formula to not use the interaction syntax such as x1*x2, but instead it should always use x1 + x2 + x1:x2
+#
+#
+#   # Flatten input_formula to a single string
+#   rhs_str = paste(deparse(formula.tools::rhs(input_formula)), collapse = "")
+#   rhs_terms = trimws(unlist(strsplit(rhs_str,'\\+')))
+#   rhs_terms = rhs_terms[!rhs_terms %in% vars_to_remove]
+#
+#   new_rhs_str = paste(rhs_terms, collapse = ' + ')
+#   lhs_str = paste(deparse(formula.tools::lhs(input_formula)), collapse = "")
+#
+#   # Build new input_formula
+#   return(stats::as.formula(paste(lhs_str, "~", new_rhs_str)))
+# }
 
-  # Note that this function requires downwind_lmm_formula to not use the interaction syntax such as x1*x2, but instead it should always use x1 + x2 + x1:x2
+split_downwind_fixed_effects = function(downwind_lmm_fit, x_downwind_name){
+  term_labels = attr(stats::terms(downwind_lmm_fit, fixed.only = TRUE),'term.labels')
 
+  x_terms = vapply(term_labels, function(term){all(all.vars(str2lang(term)) %in% x_downwind_name)}, logical(1))
 
-  # Flatten input_formula to a single string
-  rhs_str = paste(deparse(formula.tools::rhs(input_formula)), collapse = "")
-  rhs_terms = trimws(unlist(strsplit(rhs_str,'\\+')))
-  rhs_terms = rhs_terms[!rhs_terms %in% vars_to_remove]
+  model_matrix = stats::model.matrix(downwind_lmm_fit, type = 'fixed')
+  term_index = attr(model_matrix, 'assign')
 
-  new_rhs_str = paste(rhs_terms, collapse = ' + ')
-  lhs_str = paste(deparse(formula.tools::lhs(input_formula)), collapse = "")
+  # An assignment of 0 identifies the intercept.
+  x_cols = (term_index == 0) | (term_index %in% which(x_terms))
 
-  # Build new input_formula
-  return(stats::as.formula(paste(lhs_str, "~", new_rhs_str)))
+  list(model_matrix = model_matrix,
+       x_names = colnames(model_matrix)[x_cols],
+       z_names = colnames(model_matrix)[!x_cols],
+       z_terms = term_labels[!x_terms])
 }
+
+remove_fixed_terms = function(input_formula, vars_to_remove){
+  if(length(vars_to_remove) == 0){
+    return(input_formula)
+  }
+
+  update_formula = stats::as.formula(
+    paste('. ~ .', paste0(' - (', vars_to_remove, ')', collapse = ''))
+  )
+
+  stats::update.formula(input_formula, update_formula)
+}
+
 
 
 

@@ -127,7 +127,8 @@
 #'
 #'   \item For LMM random effect variance components, the bootstrap distributions of random intercept
 #'   variance (\eqn{\sigma^2_u}) and residual variance (\eqn{\sigma^2_e}) are first adjusted to be
-#'   empirically uncorrelated (see Section 2.3.3 of Chambers & Chandra (2013), and Section 2.3 of Tho et al. (2025)).
+#'   empirically uncorrelated on the log scale (see Section 2.3.3 of Chambers & Chandra (2013), and Section 2.3 of Tho et al. (2025)).
+#'   If the decorrelation adjustment cannot be computed, it is skipped with a warning.
 #'
 #'   \item After adjustment, ratio corrections are applied:
 #'   \deqn{\hat{\sigma}^{2*}_{u,b} \leftarrow \hat{\sigma}^{2*}_{u,b} \times \frac{\hat{\sigma}^2_u}{\frac{1}{B}\sum_{b=1}^{B}\hat{\sigma}^{2*}_{u,b}}}
@@ -205,7 +206,7 @@
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param attr_type A character string specifying the type of attribution estimates. Must be one of \code{"ChambersEtAl"}, \code{"ChambersEtAl_No_Winsorize"}, \code{"ThoEtAl"}, or \code{"No"}. See \code{\link{rain_attr}} for more information.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#' @param x_downwind_name A character vector containing variable names from the right hand side of \ifelse{latex}{\out{\texttt{downwind\_\discretionary{}{}{}lmm\_\discretionary{}{}{}formula}}}{\code{downwind_lmm_formula}}, for those variables that are not related to ionizers (treatment). The intercept is always included and does not need to be specified.
+#' @param x_downwind_name A character vector containing the names of variables on the fixed-effects right-hand side of \code{downwind_lmm_formula} that are unrelated to ionizers (treatment). A fixed-effect term is included in the non-treatment component if all its variables are listed in \code{x_downwind_name}. The remaining terms are included in the treatment component. The intercept, if present, is included in the non-treatment component automatically. For example, with \code{Gauge.Elevation * Target.H.01} and \code{x_downwind_name = "Gauge.Elevation"}, the elevation main effect is included in the non-treatment component, while the target main effect and its interaction with elevation are included in the treatment component.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param target_only Logical. If \code{TRUE} the attribution estimates are computed based on only target observations. If \code{FALSE} the attribution estimates are computed based on both treatment and control observations.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -240,7 +241,6 @@
 
 
 #TODO: Consider to add another variation of 'PREB2' and 'REB2' for adjusting downwind_lmm_fit's fixef as well as random effects, and plug these corrected estimates to compute hatattr and hatsate, rather than directly centering hatattr and hatsate
-#TODO: Think if we really need to save the bootstrapped LogRain for each bootstrap run, as this would be a LARGE object when B_bootstrap is large since it is of dimension B_bootstrap x num_downwind (43276)
 
 bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
                               # positive_prob_threshold = NULL,
@@ -377,11 +377,15 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
     bootstrap_downwind_LogRain_matrix = NULL
   }
 
-  z_downwind_name = setdiff(names(lme4::fixef(ori_fitted_models$downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
-  downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
+  # z_downwind_name = setdiff(names(lme4::fixef(ori_fitted_models$downwind_lmm_fit)), c('(Intercept)',x_downwind_name))
+  # downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula, vars_to_remove = z_downwind_name)
 
+  parts = split_downwind_fixed_effects(ori_fitted_models$downwind_lmm_fit,x_downwind_name)
+  downwind_separate_formula = remove_fixed_terms(input_formula = downwind_lmm_formula,vars_to_remove = parts$z_terms)
 
-
+  downwind_fixef_names = names(lme4::fixef(ori_fitted_models$downwind_lmm_fit))
+  target_fixef_names = names(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))
+  control_fixef_names = names(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))
 
   if(!bootstrap_parallel){
     if(!is.null(bootstrap_seed)){
@@ -395,7 +399,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
 
         if(bootstrap_zero){
           b_downwind_positive = (stats::runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
-          b_downwind_logistic_fit = stats::glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, family = 'binomial')
+          b_downwind_logistic_fit = stats::glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, family = 'binomial', na.action = stats::na.fail)
           bootstrap_downwind_logistic_param_matrix[b,] = stats::coef(b_downwind_logistic_fit)
         }else{
           b_downwind_positive = ori_positive[downwind]
@@ -508,9 +512,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
         #                                 data = b_downwind_positive_data)
 
         b_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula,
-                                        data = b_downwind_positive_data)
+                                        data = b_downwind_positive_data, na.action = stats::na.fail)
 
-        bootstrap_downwind_lmm_param_matrix[b,] = c(lme4::fixef(b_downwind_lmm_fit, add.dropped = TRUE),
+        bootstrap_downwind_lmm_param_matrix[b,] = c(lme4::fixef(b_downwind_lmm_fit)[downwind_fixef_names],
                                                     as.data.frame(lme4::VarCorr(b_downwind_lmm_fit))[,'vcov'])
 
 
@@ -538,9 +542,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
                              x_downwind_name, downwind_lmm_fit = b_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
         if(bootstrap_zero){bootstrap_downwind_propensity_param_matrix[b,] = stats::coef(b_hatsate$fitted_models$downwind_propensity_fit)}
-        bootstrap_downwind_positive_target_lmm_param_matrix[b,] = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_target_lmm_fit, add.dropped = TRUE),
+        bootstrap_downwind_positive_target_lmm_param_matrix[b,] = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_target_lmm_fit)[target_fixef_names],
                                                                     as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])
-        bootstrap_downwind_positive_control_lmm_param_matrix[b,] = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_control_lmm_fit, add.dropped = TRUE),
+        bootstrap_downwind_positive_control_lmm_param_matrix[b,] = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_control_lmm_fit)[control_fixef_names],
                                                                      as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])
 
 
@@ -565,7 +569,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
     #                                           'attr_type', 'x_downwind_name', 'target_only', 'downwind_propensity_formula', 'downwind_separate_formula'),
     #                           envir = environment())
     # }
-    parallel::clusterExport(cl, varlist = c('attr_est', 'sate_est'), envir = asNamespace("RainAttr"))
+    parallel::clusterExport(cl, varlist = c('attr_est', 'sate_est', 'split_downwind_fixed_effects'), envir = asNamespace("RainAttr"))
     doParallel::registerDoParallel(cl)
     if(!is.null(bootstrap_seed)){
       doRNG::registerDoRNG(seed = bootstrap_seed)
@@ -575,7 +579,7 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
     results = foreach::foreach(b = 1:B_bootstrap, .packages = c("lme4","rlang","formula.tools"), .errorhandling = 'remove') %dopar% {
       if(bootstrap_zero){
         b_downwind_positive = (stats::runif(num_downwind, min = 0, max = 1) < downwind_positive_prob)
-        b_downwind_logistic_fit = stats::glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, family = 'binomial')
+        b_downwind_logistic_fit = stats::glm(b_downwind_positive ~ model.matrix(ori_fitted_models$downwind_logistic_fit$formula, data = ori_data[downwind,]) - 1, family = 'binomial', na.action = stats::na.fail)
         downwind_logistic_param_b = stats::coef(b_downwind_logistic_fit)
       }else{
         b_downwind_positive = ori_positive[downwind]
@@ -657,9 +661,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
       b_downwind_positive_data[,formula.tools::lhs.vars(downwind_lmm_formula)[1]] = log(b_raw_y)
 
       b_downwind_lmm_fit = lme4::lmer(downwind_lmm_formula,
-                                      data = b_downwind_positive_data)
+                                      data = b_downwind_positive_data,na.action = stats::na.fail)
 
-      downwind_lmm_param_b = c(lme4::fixef(b_downwind_lmm_fit, add.dropped = TRUE),
+      downwind_lmm_param_b = c(lme4::fixef(b_downwind_lmm_fit)[downwind_fixef_names],
                                as.data.frame(lme4::VarCorr(b_downwind_lmm_fit))[,'vcov'])
 
 
@@ -683,9 +687,9 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
                            x_downwind_name, downwind_lmm_fit = b_downwind_lmm_fit, hatalphabeta = NULL, hatu = NULL)
 
       if(bootstrap_zero){downwind_propensity_param_b = stats::coef(b_hatsate$fitted_models$downwind_propensity_fit)}
-      downwind_positive_target_lmm_param_b = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_target_lmm_fit, add.dropped = TRUE),
+      downwind_positive_target_lmm_param_b = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_target_lmm_fit)[target_fixef_names],
                                                as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])
-      downwind_positive_control_lmm_param_b = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_control_lmm_fit, add.dropped = TRUE),
+      downwind_positive_control_lmm_param_b = c(lme4::fixef(b_hatsate$fitted_models$downwind_positive_control_lmm_fit)[control_fixef_names],
                                                 as.data.frame(lme4::VarCorr(b_hatsate$fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])
 
 
@@ -744,13 +748,13 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
   if(bootstrap_type %in% c('REB2','PREB2')){
 
     bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) )] =
-      adjust_bootstrap_var_components(bootstrapped_var_components = bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) )])
+      adjust_bootstrap_var_components(bootstrapped_var_components = bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) ), drop = FALSE])
 
     bootstrap_downwind_positive_target_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])   )] =
-      adjust_bootstrap_var_components(bootstrapped_var_components = bootstrap_downwind_positive_target_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])   )])
+      adjust_bootstrap_var_components(bootstrapped_var_components = bootstrap_downwind_positive_target_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])   ), drop = FALSE])
 
     bootstrap_downwind_positive_control_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])   )] =
-      adjust_bootstrap_var_components(bootstrapped_var_components = bootstrap_downwind_positive_control_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])   )])
+      adjust_bootstrap_var_components(bootstrapped_var_components = bootstrap_downwind_positive_control_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])   ), drop = FALSE])
 
 
     #Perform correction based on the original estimates for each bootstrapped estimates matrix
@@ -760,16 +764,27 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
     bootstrap_sate_matrix = bootstrap_sate_matrix + matrix( data = rep(ori_sate_est - apply(bootstrap_sate_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
                                                             nrow = B_bootstrap, ncol = ncol(bootstrap_sate_matrix), byrow = TRUE)
 
-    bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) ] =
-      bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit))] +
-      matrix( data = rep( lme4::fixef(ori_fitted_models$downwind_lmm_fit) - apply(bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit))],2, function(x){mean(x, na.rm = T)}), B_bootstrap),
-              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit))]), byrow = TRUE)
+    # bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) ] =
+    #   bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit))] +
+    #   matrix( data = rep( lme4::fixef(ori_fitted_models$downwind_lmm_fit) - apply(bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit))],2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+    #           nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_lmm_param_matrix[,1: length(lme4::fixef(ori_fitted_models$downwind_lmm_fit))]), byrow = TRUE)
 
+    ori_fixef = lme4::fixef(ori_fitted_models$downwind_lmm_fit)
+    fixef_cols = seq_along(ori_fixef)
+
+    if(length(fixef_cols) > 0){
+      boot_fixef = bootstrap_downwind_lmm_param_matrix[, fixef_cols, drop = FALSE]
+      correction = ori_fixef - apply(boot_fixef, 2, function(x){mean(x, na.rm = TRUE)})
+
+      bootstrap_downwind_lmm_param_matrix[, fixef_cols] =
+        boot_fixef + matrix(data = rep(correction, B_bootstrap),
+                            nrow = B_bootstrap, ncol = ncol(boot_fixef), byrow = TRUE)
+    }
 
     bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) )] =
-      bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) )] *
-      matrix( data = rep( as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov'] / apply(bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) )], 2, function(x){mean(x,na.rm = T)}), B_bootstrap  ),
-              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) )]), byrow = TRUE)
+      bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) ), drop = FALSE] *
+      matrix( data = rep( as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov'] / apply(bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) ), drop = FALSE], 2, function(x){mean(x,na.rm = T)}), B_bootstrap  ),
+              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_lmm_param_matrix[,(length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + 1): (length(lme4::fixef(ori_fitted_models$downwind_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_lmm_fit))[,'vcov']) ), drop = FALSE]), byrow = TRUE)
 
     if(bootstrap_zero){
       bootstrap_downwind_logistic_param_matrix = bootstrap_downwind_logistic_param_matrix + matrix(data = rep( stats::coef(ori_fitted_models$downwind_logistic_fit) - apply(bootstrap_downwind_logistic_param_matrix,2, function(x){mean(x, na.rm = T)}), B_bootstrap),
@@ -781,25 +796,51 @@ bootstrap_downwind = function(B_bootstrap, bootstrap_type, bootstrap_zero,
 
 
 
-    bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))] =
-      bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))] +
-      matrix( data = rep( lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit) - apply(bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))], 2, function(x){mean(x, na.rm = T)}), B_bootstrap),
-              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))]), byrow = TRUE)
+    # bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))] =
+    #   bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))] +
+    #   matrix( data = rep( lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit) - apply(bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))], 2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+    #           nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_positive_target_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit))]), byrow = TRUE)
+
+    ori_target_fixef = lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)
+    target_fixef_cols = seq_along(ori_target_fixef)
+
+    if(length(target_fixef_cols) > 0){
+      boot_target_fixef = bootstrap_downwind_positive_target_lmm_param_matrix[, target_fixef_cols, drop = FALSE]
+      target_fixef_correction = ori_target_fixef -
+        apply(boot_target_fixef, 2, function(x){mean(x, na.rm = TRUE)})
+
+      bootstrap_downwind_positive_target_lmm_param_matrix[, target_fixef_cols] =
+        boot_target_fixef + matrix(data = rep(target_fixef_correction, B_bootstrap),
+                                   nrow = B_bootstrap, ncol = ncol(boot_target_fixef), byrow = TRUE)
+    }
 
     bootstrap_downwind_positive_target_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])   )] =
-      bootstrap_downwind_positive_target_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])   )] *
-      matrix( data = rep( as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov']  / apply(bootstrap_downwind_positive_target_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])   )], 2, function(x){mean(x,na.rm=T)}), B_bootstrap),
-              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_positive_target_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])   )]), byrow = TRUE)
+      bootstrap_downwind_positive_target_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])   ), drop = FALSE] *
+      matrix( data = rep( as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov']  / apply(bootstrap_downwind_positive_target_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])   ), drop = FALSE], 2, function(x){mean(x,na.rm=T)}), B_bootstrap),
+              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_positive_target_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_target_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_target_lmm_fit))[,'vcov'])   ), drop = FALSE]), byrow = TRUE)
 
-    bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))] =
-      bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))] +
-      matrix( data = rep( lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit) - apply(bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))], 2, function(x){mean(x, na.rm = T)}), B_bootstrap),
-              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))]), byrow = TRUE)
+    # bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))] =
+    #   bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))] +
+    #   matrix( data = rep( lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit) - apply(bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))], 2, function(x){mean(x, na.rm = T)}), B_bootstrap),
+    #           nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_positive_control_lmm_param_matrix[, 1: length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit))]), byrow = TRUE)
+
+    ori_control_fixef = lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)
+    control_fixef_cols = seq_along(ori_control_fixef)
+
+    if(length(control_fixef_cols) > 0){
+      boot_control_fixef = bootstrap_downwind_positive_control_lmm_param_matrix[, control_fixef_cols, drop = FALSE]
+      control_fixef_correction = ori_control_fixef -
+        apply(boot_control_fixef, 2, function(x){mean(x, na.rm = TRUE)})
+
+      bootstrap_downwind_positive_control_lmm_param_matrix[, control_fixef_cols] =
+        boot_control_fixef + matrix(data = rep(control_fixef_correction, B_bootstrap),
+                                    nrow = B_bootstrap, ncol = ncol(boot_control_fixef), byrow = TRUE)
+    }
 
     bootstrap_downwind_positive_control_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])   )] =
-      bootstrap_downwind_positive_control_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])   )] *
-      matrix( data = rep( as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov']  / apply(bootstrap_downwind_positive_control_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])   )], 2, function(x){mean(x,na.rm=T)}), B_bootstrap),
-              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_positive_control_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])   )]), byrow = TRUE)
+      bootstrap_downwind_positive_control_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])   ), drop = FALSE] *
+      matrix( data = rep( as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov']  / apply(bootstrap_downwind_positive_control_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])   ), drop = FALSE], 2, function(x){mean(x,na.rm=T)}), B_bootstrap),
+              nrow = B_bootstrap, ncol = ncol(bootstrap_downwind_positive_control_lmm_param_matrix[,( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + 1 ): ( length(lme4::fixef(ori_fitted_models$downwind_positive_control_lmm_fit)) + length(as.data.frame(lme4::VarCorr(ori_fitted_models$downwind_positive_control_lmm_fit))[,'vcov'])   ), drop = FALSE]), byrow = TRUE)
 
   }
 
@@ -834,22 +875,41 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
     stop('There should be only 2 columns in bootstrapped_var_components corresponding to the variance components of cluster and residuals')
   }
 
+  complete_rows = stats::complete.cases(bootstrapped_var_components)
+  complete_var_components = bootstrapped_var_components[complete_rows, , drop = FALSE]
 
-  L.mat.b <- log(bootstrapped_var_components)
+  if(nrow(complete_var_components) < 3){
+    warning("Skipping decorrelation of the bootstrapped variance components because fewer than three complete bootstrap replicates are available.")
+    return(bootstrapped_var_components)
+  }
+
+  if(any(!is.finite(complete_var_components) | complete_var_components <= 0)){
+    warning("Skipping decorrelation of the bootstrapped variance components because some bootstrap variance estimates are non-positive or non-finite.")
+    return(bootstrapped_var_components)
+  }
+
+
+  L.mat.b <- log(complete_var_components)
   mu.me <- apply(L.mat.b,2,mean)
   C.mat.b <- stats::cov(L.mat.b)
+
+  if(rcond(C.mat.b) <= sqrt(.Machine$double.eps)){
+    warning("Skipping decorrelation of the bootstrapped variance components because the covariance matrix of the log-transformed bootstrapped variance components is singular or nearly singular.")
+    return(bootstrapped_var_components)
+  }
+
   su.se <- sqrt(diag(C.mat.b))
 
   temp <- eigen(solve(C.mat.b),symmetric=T)
   C.mat.b.neg.half <- temp$vectors%*%diag(sqrt(temp$values))
-  M.mat.b <- cbind(rep(mu.me[1],nrow(bootstrapped_var_components)),rep(mu.me[2],nrow(bootstrapped_var_components)))
+  M.mat.b <- cbind(rep(mu.me[1],nrow(complete_var_components)),rep(mu.me[2],nrow(complete_var_components)))
 
   Sbmod <- (L.mat.b- M.mat.b) %*% C.mat.b.neg.half
   Sbmod[,1] <- Sbmod[,1]* su.se[1]
   Sbmod[,2] <- Sbmod[,2]* su.se[2]
 
-  output <- exp(M.mat.b + Sbmod)
-  return(output)
+  bootstrapped_var_components[complete_rows, ] = exp(M.mat.b + Sbmod)
+  return(bootstrapped_var_components)
 }
 
 
