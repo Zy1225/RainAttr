@@ -225,10 +225,11 @@ LMM, and the specified arguments in the original call.
 - `print`:
 
   Print the point estimates of attributions and SATE and indicate
-  whether bootstrap and permutation have been performed. Also print the
-  model formula, data subset, number of observations, number of days
-  (groups), and point estimates of fixed effect coefficients for the
-  upwind (first stage) and downwind (second stage) LMMs.
+  whether bootstrap and permutation have been performed. For both the
+  upwind (first stage) and downwind (second stage) LMMs, print the model
+  formula, data subset, number of observations, number of days (groups),
+  and point estimates of fixed effect coefficients. For the downwind
+  LMM, also list the non-treatment (x) and treatment (z) components.
 
 - `residuals`:
 
@@ -286,13 +287,14 @@ LMM, and the specified arguments in the original call.
   Print the point estimates of attributions and SATE, along with their
   bootstrap confidence intervals, bootstrap p-values and permutation
   p-values, and the numbers of requested and successful replicates if
-  bootstrap and permutation have been performed. Also print the model
-  formula, non-treatment (x) and treatment (z) components of the
-  downwind LMM, data subset, number of observations, number of unique
-  days (groups), variance component estimates, and fixed effect
-  coefficient estimates along with their standard errors and t-values
-  computed from
+  bootstrap and permutation have been performed. For both the upwind
+  (first stage) and downwind (second stage) LMMs, print the model
+  formula, data subset, number of observations, number of unique days
+  (groups), variance component estimates, and fixed effect coefficient
+  estimates along with their standard errors and t-values computed from
   [`summary.merMod`](https://rdrr.io/pkg/lme4/man/summary.merMod.html).
+  For the downwind LMM, also list the non-treatment (x) and
+  treatment (z) components.
 
 ## Value from `summary.rain_attr`
 

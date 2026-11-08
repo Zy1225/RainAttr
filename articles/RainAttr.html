@@ -213,9 +213,7 @@ approach employed in <span class="citation">Chambers, Beare, et al.
 <span></span>
 <span>  <span class="co">#Vector of variable names in downwind_lmm_formula to identify non-ionizer related covariates, whose effects are not included in the calculation of attribution and SATE</span></span>
 <span>  x_downwind_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Gauge.Elevation'</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: the 'nobars' function has moved to the reformulas package. Please</span></span>
-<span><span class="co">#&gt; update your imports, or ask an upstream package maintainer to do so.</span></span></code></pre></div>
+<span>  <span class="op">)</span></span></code></pre></div>
 <p>The <code>rain_attr</code> function fits two LMMs sequentially:</p>
 <ol style="list-style-type: decimal">
 <li>An upwind (first-stage) LMM fitted using
@@ -327,6 +325,8 @@ observations and the estimated fixed effects.</p>
 <span><span class="co">#&gt; LogRain - natural_pred ~ Gauge.Elevation * (Target.H.01 + Target.H.02) + </span></span>
 <span><span class="co">#&gt;     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + </span></span>
 <span><span class="co">#&gt;     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt; Non-treatment components (x): (Intercept), Gauge.Elevation</span></span>
+<span><span class="co">#&gt; Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span></span>
 <span><span class="co">#&gt; Number of observations: 4168, Number of groups: 488</span></span>
@@ -466,8 +466,8 @@ each with 500 replicates parallelized over 4 workers:</p>
 <span></span>
 <span><span class="co">#</span></span>
 <span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 2.997311 mins</span></span></code></pre></div>
-<p>The total computational time was 3 minutes.</p>
+<span><span class="co">#&gt; Time difference of 3.815031 mins</span></span></code></pre></div>
+<p>The total computational time was 3.82 minutes.</p>
 <p>In the above example, we use the default PREB1 bootstrap proposed by
 <span class="citation">Tho et al. (2025)</span>; hence, it is not
 necessary to explicitly specify

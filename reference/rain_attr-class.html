@@ -192,7 +192,8 @@ or <code>permutation = TRUE</code> were specified in the original <code><a href=
 <dd><p>Computes the fixed effect coefficients and the empirical best linear unbiased predictors (EBLUPs) of random intercepts if the selected <code>model</code> is one of the LMMs, or the regression coefficients if the selected <code>model</code> is one of the GLMs.</p></dd>
 
 <dt><code>print</code></dt>
-<dd><p>Print the point estimates of attributions and SATE and indicate whether bootstrap and permutation have been performed. Also print the model formula, data subset, number of observations, number of days (groups), and point estimates of fixed effect coefficients for the upwind (first stage) and downwind (second stage) LMMs.</p></dd>
+<dd><p>Print the point estimates of attributions and SATE and indicate whether bootstrap and permutation have been performed. For both the upwind (first stage) and downwind (second stage) LMMs, print the model formula, data subset, number of observations, number of days (groups), and point estimates of fixed effect coefficients.
+For the downwind LMM, also list the non-treatment (x) and treatment (z) components.</p></dd>
 
 <dt><code>residuals</code></dt>
 <dd><p>Compute residuals of the selected <code>model</code>. Residual type is controlled by <code>residual_type</code>, while scaling (only for LMMs) is controlled by <code>residual_scaled</code>.</p></dd>
@@ -219,7 +220,8 @@ Moreover, the validity of GLMs does not require normally distributed residuals.<
 
 <dt><code>print.summary</code></dt>
 <dd><p>Print the point estimates of attributions and SATE, along with their bootstrap confidence intervals, bootstrap p-values and permutation p-values, and the numbers of requested and successful replicates if bootstrap and permutation have been performed.
-Also print the model formula, non-treatment (x) and treatment (z) components of the downwind LMM, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard errors and t-values computed from <code><a href="https://rdrr.io/pkg/lme4/man/summary.merMod.html" class="external-link">summary.merMod</a></code>.</p></dd>
+For both the upwind (first stage) and downwind (second stage) LMMs, print the model formula, data subset, number of observations, number of unique days (groups), variance component estimates, and fixed effect coefficient estimates along with their standard errors and t-values computed from <code><a href="https://rdrr.io/pkg/lme4/man/summary.merMod.html" class="external-link">summary.merMod</a></code>.
+For the downwind LMM, also list the non-treatment (x) and treatment (z) components.</p></dd>
 
 
 </dl></div>

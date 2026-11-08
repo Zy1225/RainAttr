@@ -608,7 +608,6 @@ result <- rain_attr(
   bootstrap = FALSE,
   permutation = FALSE
 )
-#> Warning: the ‘nobars’ function has moved to the reformulas package. Please update your imports, or ask an upstream package maintainer to do so.
 
 # Print and summarize the fitted analysis
 print(result)
@@ -660,6 +659,8 @@ print(result)
 #>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
 #>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + 
 #>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+#> Non-treatment components (x): (Intercept), Gauge.Elevation
+#> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 4168, Number of groups: 488

@@ -343,7 +343,6 @@ These permutation distributions are used to compute permutation p-values (propor
 <span class="r-in"><span>  bootstrap <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>  permutation <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>the ‘nobars’ function has moved to the reformulas package. Please update your imports, or ask an upstream package maintainer to do so.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Print and summarize the fitted analysis</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
@@ -395,6 +394,8 @@ These permutation distributions are used to compute permutation p-values (propor
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Non-treatment components (x): (Intercept), Gauge.Elevation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Number of observations: 4168, Number of groups: 488</span>

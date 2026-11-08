@@ -158,8 +158,6 @@ result = rain_attr(
   #Vector of variable names in downwind_lmm_formula to identify non-ionizer related covariates, whose effects are not included in the calculation of attribution and SATE
   x_downwind_name = c('Gauge.Elevation')
   )
-#> Warning: the 'nobars' function has moved to the reformulas package. Please
-#> update your imports, or ask an upstream package maintainer to do so.
 ```
 
 The `rain_attr` function fits two LMMs sequentially:
@@ -266,6 +264,8 @@ result
 #> LogRain - natural_pred ~ Gauge.Elevation * (Target.H.01 + Target.H.02) + 
 #>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
 #>     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)
+#> Non-treatment components (x): (Intercept), Gauge.Elevation
+#> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 4168, Number of groups: 488
@@ -413,10 +413,10 @@ end_time = Sys.time()
 
 #
 end_time - start_time
-#> Time difference of 2.997311 mins
+#> Time difference of 3.815031 mins
 ```
 
-The total computational time was 3 minutes.
+The total computational time was 3.82 minutes.
 
 In the above example, we use the default PREB1 bootstrap proposed by Tho
 et al. (2025); hence, it is not necessary to explicitly specify
