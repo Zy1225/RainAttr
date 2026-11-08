@@ -39,6 +39,7 @@ Imports:
     parallel,
     plotly,
     raster,
+    reformulas,
     rlang,
     sf,
     viridis

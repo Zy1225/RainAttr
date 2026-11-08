@@ -115,6 +115,18 @@ print.rain_attr <- function(x, ...) {
   cat("Downwind (Second Stage) LMM Formula:\n")
   print(downwind_formula)
 
+  if(!is.null(x$downwind_components)){
+    x_names = x$downwind_components$x
+    z_names = x$downwind_components$z
+
+    cat("Non-treatment components (x): ",
+        if(length(x_names)) paste(x_names, collapse = ", ") else "(none)",
+        "\n", sep = "")
+    cat("Treatment components (z): ",
+        if(length(z_names)) paste(z_names, collapse = ", ") else "(none)",
+        "\n", sep = "")
+  }
+
   cat('\n')
   cat("Data subset used: ")
   cat(deparse(x$args$data),"[", deparse(x$args$downwind_subset), " & ", deparse(x$args$positive_subset), ", ]\n")

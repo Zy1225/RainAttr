@@ -279,7 +279,7 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     }
   }
 
-  fixed_formula = lme4::nobars(downwind_lmm_formula)
+  fixed_formula = reformulas::nobars(downwind_lmm_formula)
   fixed_rhs_vars = all.vars(formula.tools::rhs(fixed_formula))
 
   if(!all(x_downwind_name %in% fixed_rhs_vars)){
