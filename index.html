@@ -81,7 +81,7 @@
 <span>  instr_pred_type <span class="op">=</span> <span class="st">'Conditional'</span>,</span>
 <span>  </span>
 <span>  <span class="co">#LMM formula fitted to the downwind (second-stage) observations</span></span>
-<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">-</span> <span class="va">natural_pred</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.02</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
+<span>  downwind_lmm_formula <span class="op">=</span> <span class="va">LogRain</span> <span class="op">-</span> <span class="va">natural_pred</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span>  <span class="op">*</span> <span class="op">(</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span><span class="op">)</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span>  <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">TrialDay</span><span class="op">)</span>,</span>
 <span>  </span>
 <span>  <span class="co">#Formula for fitting a logistic regression model to the indicator of rainfall event (used for bootstrapping of rainfall events when bootstrap_opt(bootstrap_zero) = TRUE)</span></span>
 <span>  downwind_logistic_formula <span class="op">=</span> <span class="op">(</span><span class="va">Rain.Gauge.Measurement</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">~</span> <span class="va">Gauge.Elevation</span> <span class="op">+</span> <span class="va">natural_pred</span>  <span class="op">+</span> <span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Target.H.02</span> <span class="op">+</span> <span class="va">Target.H.03</span> <span class="op">+</span> <span class="va">Target.H.04</span> <span class="op">+</span> <span class="va">Target.H.05</span> <span class="op">+</span> <span class="va">Target.H.06</span> <span class="op">+</span> <span class="va">Target.H.07</span> <span class="op">+</span> <span class="va">Target.H.08</span> <span class="op">+</span> <span class="va">Target.H.09</span> <span class="op">+</span> <span class="va">Target.H.10</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.01</span> <span class="op">+</span> <span class="va">Gauge.Elevation</span><span class="op">:</span><span class="va">Target.H.02</span>,</span>
@@ -137,6 +137,10 @@
 <span><span class="co">#&gt; Summary of Two Stage LMM Rainfall Enhancement Analysis</span></span>
 <span><span class="co">#&gt; ======================================================================</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Bootstrap replicates: 50 requested, 50 successful</span></span>
+<span><span class="co">#&gt; Permutation replicates: 50 requested, 50 successful</span></span>
+<span><span class="co">#&gt; ======================================================================</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attribution Results (Assuming Log-Rainfall being Modelled):</span></span>
 <span><span class="co">#&gt;     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val</span></span>
 <span><span class="co">#&gt; apo    6.27%  (1.2503%, 10.8%)            0***              0***</span></span>
@@ -185,10 +189,11 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Downwind (Second Stage) LMM:</span></span>
 <span><span class="co">#&gt; Formula:</span></span>
-<span><span class="co">#&gt; LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + </span></span>
+<span><span class="co">#&gt; LogRain - natural_pred ~ Gauge.Elevation * (Target.H.01 + Target.H.02) + </span></span>
 <span><span class="co">#&gt;     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + </span></span>
-<span><span class="co">#&gt;     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + </span></span>
-<span><span class="co">#&gt;     Gauge.Elevation:Target.H.02 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt;     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)</span></span>
+<span><span class="co">#&gt; Non-treatment components (x): (Intercept), Gauge.Elevation</span></span>
+<span><span class="co">#&gt; Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &amp;  Rain.Gauge.Measurement &gt; 0 , ]</span></span>
 <span><span class="co">#&gt; Number of observations: 4168, Number of groups: 488</span></span>

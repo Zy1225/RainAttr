@@ -45,7 +45,7 @@ result = rain_attr(
   instr_pred_type = 'Conditional',
   
   #LMM formula fitted to the downwind (second-stage) observations
-  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02 + (1|TrialDay),
+  downwind_lmm_formula = LogRain - natural_pred ~ Gauge.Elevation  * (Target.H.01 + Target.H.02) + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10  + (1|TrialDay),
   
   #Formula for fitting a logistic regression model to the indicator of rainfall event (used for bootstrapping of rainfall events when bootstrap_opt(bootstrap_zero) = TRUE)
   downwind_logistic_formula = (Rain.Gauge.Measurement > 0) ~ Gauge.Elevation + natural_pred  + Target.H.01 + Target.H.02 + Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + Gauge.Elevation:Target.H.02,
@@ -106,6 +106,10 @@ summary(result)
 #> Summary of Two Stage LMM Rainfall Enhancement Analysis
 #> ======================================================================
 #> 
+#> Bootstrap replicates: 50 requested, 50 successful
+#> Permutation replicates: 50 requested, 50 successful
+#> ======================================================================
+#> 
 #> Attribution Results (Assuming Log-Rainfall being Modelled):
 #>     Estimate  95% Bootstrap CI Bootstrap P-Val Permutation P-Val
 #> apo    6.27%  (1.2503%, 10.8%)            0***              0***
@@ -154,10 +158,11 @@ summary(result)
 #> 
 #> Downwind (Second Stage) LMM:
 #> Formula:
-#> LogRain - natural_pred ~ Gauge.Elevation + Target.H.01 + Target.H.02 + 
+#> LogRain - natural_pred ~ Gauge.Elevation * (Target.H.01 + Target.H.02) + 
 #>     Target.H.03 + Target.H.04 + Target.H.05 + Target.H.06 + Target.H.07 + 
-#>     Target.H.08 + Target.H.09 + Target.H.10 + Gauge.Elevation:Target.H.01 + 
-#>     Gauge.Elevation:Target.H.02 + (1 | TrialDay)
+#>     Target.H.08 + Target.H.09 + Target.H.10 + (1 | TrialDay)
+#> Non-treatment components (x): (Intercept), Gauge.Elevation
+#> Treatment components (z): Target.H.01, Target.H.02, Target.H.03, Target.H.04, Target.H.05, Target.H.06, Target.H.07, Target.H.08, Target.H.09, Target.H.10, Gauge.Elevation:Target.H.01, Gauge.Elevation:Target.H.02
 #> 
 #> Data subset used: oman [ Gauge.Day.Type %in% c("Target", "Control")  &  Rain.Gauge.Measurement > 0 , ]
 #> Number of observations: 4168, Number of groups: 488
