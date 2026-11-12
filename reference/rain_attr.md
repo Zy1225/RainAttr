@@ -572,6 +572,7 @@ observed estimates) and generate their respective plots.
 
 - Tho, Z. Y., Chambers, R., and Welsh, A. H. (2026) Bias-Adjusted
   Attribution Estimation for Rainfall Enhancement Trials.
+  [arXiv:2607.21991](https://arxiv.org/abs/2607.21991).
 
 ## Examples
 

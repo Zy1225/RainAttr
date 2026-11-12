@@ -215,7 +215,7 @@ citation("RainAttr")
 #> 
 #>   Tho Z, Chambers R, Welsh A (2026). _RainAttr: Attribution and Sample
 #>   Average Treatment Effect for Rainfall Enhancement Trial Data_. R
-#>   package version 0.0.0.9001, <https://github.com/Zy1225/RainAttr>.
+#>   package version 0.1.0, <https://github.com/Zy1225/RainAttr>.
 #> 
 #> A BibTeX entry for LaTeX users is
 #> 
@@ -223,7 +223,7 @@ citation("RainAttr")
 #>     title = {RainAttr: Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data},
 #>     author = {Zhi Yang Tho and Raymond Chambers and A. H. Welsh},
 #>     year = {2026},
-#>     note = {R package version 0.0.0.9001},
+#>     note = {R package version 0.1.0},
 #>     url = {https://github.com/Zy1225/RainAttr},
 #>   }
 ```

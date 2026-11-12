@@ -18,7 +18,7 @@ bootstrap_opt(
   total_rain_interval = c(6000, 60000),
   bootstrap_seed = NULL,
   bootstrap_parallel = F,
-  bootstrap_parallel_num_worker = parallel::detectCores() - 1,
+  bootstrap_parallel_num_worker = max(1, parallel::detectCores() - 1, na.rm = TRUE),
   CI_level = 0.95,
   store_bootstrap_rain = FALSE
 )
@@ -96,7 +96,12 @@ bootstrap_opt(
 - bootstrap_parallel_num_worker:
 
   An integer specifying the number of parallel workers to use when
-  `bootstrap_parallel = TRUE`. Default is `parallel::detectCores() - 1`.
+  `bootstrap_parallel = TRUE`. By default, one fewer worker than the
+  number of cores returned by
+  [`parallel::detectCores()`](https://rdrr.io/r/parallel/detectCores.html)
+  is used, with a minimum of one worker. If
+  [`parallel::detectCores()`](https://rdrr.io/r/parallel/detectCores.html)
+  returns `NA`, one worker is used.
 
 - CI_level:
 
@@ -152,13 +157,14 @@ str(boot_options)
 #>  $ CI_level                     : num 0.95
 #>  $ store_bootstrap_rain         : logi FALSE
 
-#Bootstrap option with parallelization over
-#(parallel::detectCores() - 1) number of workers
-#and seed = 1 for reproducibility
+#Bootstrap option with parallelization using one fewer worker than the
+# number of detected cores, with a minimum of one worker.
+# Use one worker if the number of cores cannot be detected.
+# Set bootstrap_seed = 1 for reproducibility.
 boot_options_parallel = bootstrap_opt(
   bootstrap_seed = 1,
   bootstrap_parallel = TRUE,
-  bootstrap_parallel_num_worker = parallel::detectCores() - 1
+  bootstrap_parallel_num_worker = max(1L, parallel::detectCores() - 1L, na.rm = TRUE)
 )
 str(boot_options_parallel)
 #> List of 13
@@ -172,7 +178,7 @@ str(boot_options_parallel)
 #>  $ total_rain_interval          : num [1:2] 6000 60000
 #>  $ bootstrap_seed               : num 1
 #>  $ bootstrap_parallel           : logi TRUE
-#>  $ bootstrap_parallel_num_worker: num 3
+#>  $ bootstrap_parallel_num_worker: int 3
 #>  $ CI_level                     : num 0.95
 #>  $ store_bootstrap_rain         : logi FALSE
 ```

@@ -297,7 +297,8 @@ A list containing
 
   Matrix of bootstrap samples for the log-transformed rainfall of all
   downwind (second-stage) observations. Observations with zero
-  bootstrapped rainfall are represented as `NA`.
+  bootstrapped rainfall are represented as `NA`. This element is `NULL`
+  when `store_bootstrap_rain = FALSE`.
 
 ## Details
 
@@ -341,7 +342,7 @@ x\_{ij}^\top \hat{\alpha} - z\_{ij}^\top \hat{\beta}\\ be the marginal
 residuals for the subset of observations from `ori_data` satisfying
 `downwind & ori_positive`, \\\hat{u}\_i = \sum\_{j=1}^{n_i}
 \hat{r}\_{ij}/n_i \\ be the day(group)-level average residuals, and
-\\\hat{e}\_{ij} = r\_{ij} - \hat{u}\_i \\ be the gauge(unit)-level
+\\\hat{e}\_{ij} = \hat{r}\_{ij} - \hat{u}\_i \\ be the gauge(unit)-level
 residuals, where \\n_i\\ denotes the total number of observations in day
 (group) \\i\\ from `ori_data` satisfying `downwind & ori_positive`.
 Depending on the chosen `bootstrap_type`, bootstrap samples of
@@ -368,8 +369,8 @@ Depending on the chosen `bootstrap_type`, bootstrap samples of
 - `REB1`:
 
   Replaces \\\hat{u}\_i\\ and \\\hat{e}\_{ij}\\ in `REB0` with
-  \$\$\hat{u}\_{ij}^{cs} = \hat{\sigma}\_u \hat{u}\_i^{c} \\ D^{-1}
-  \sum\_{i' =1}^{D} \hat{u}\_i^2 \\^{-1/2} \$\$ and
+  \$\$\hat{u}\_{i}^{cs} = \hat{\sigma}\_u \hat{u}\_i^{c} \\ D^{-1}
+  \sum\_{i' =1}^{D} \hat{u}\_{i'}^2 \\^{-1/2} \$\$ and
   \$\$\hat{e}\_{ij}^{s} = \hat{\sigma}\_e \hat{e}\_{ij} \\ N^{-1}
   \sum\_{i' = 1}^{D} \sum\_{j' = 1}^{n\_{i'} } \hat{e}\_{i'j'}^2
   \\^{-1/2},\$\$ respectively, where \\ \hat{u}\_i^c = \hat{u}\_i -
@@ -390,8 +391,8 @@ Depending on the chosen `bootstrap_type`, bootstrap samples of
   - \\u_i^\* = SRSWR( (\hat{u}\_1, \ldots, \hat{u}\_D ), 1 )\\ for
     \\i=1,\ldots, D^\*\\.
 
-  - First, sample the donor cluster \\d_i^\* = PPSWR{ (1,\ldots,D),
-    (n_1,\cdots, n_D), 1 } \\ for \\i = 1,\ldots, D^\*\\, where
+  - First, sample the donor cluster \\d_i^\* = PPSWR( (1,\ldots,D),
+    (n_1,\cdots, n_D), 1 ) \\ for \\i = 1,\ldots, D^\*\\, where
     \\PPSWR(a,b,c)\\ denotes the outcome of \\c\\ independent draws
     based on probability-proportional-to-size sampling with replacement
     from the vector \\a = (a_1,\ldots, a_D)\\ with corresponding sizes
@@ -404,8 +405,8 @@ Depending on the chosen `bootstrap_type`, bootstrap samples of
 - `PREB1`:
 
   Replaces \\\hat{u}\_i\\ and \\\hat{e}\_{ij}\\ in `PREB0` with
-  \$\$\hat{u}\_{ij}^{sc} = \hat{\sigma}\_u \hat{u}\_i^{c} \\ D^{-1}
-  \sum\_{i' =1}^{D} (\hat{u}\_i^c)^2 \\^{-1/2} \$\$ and
+  \$\$\hat{u}\_{i}^{sc} = \hat{\sigma}\_u \hat{u}\_i^{c} \\ D^{-1}
+  \sum\_{i' =1}^{D} (\hat{u}\_{i'}^c)^2 \\^{-1/2} \$\$ and
   \$\$\hat{e}\_{ij}^{s} = \hat{\sigma}\_e \hat{e}\_{ij} \\ N^{-1}
   \sum\_{i' = 1}^{D} \sum\_{j' = 1}^{n\_{i'} } \hat{e}\_{i'j'}^2
   \\^{-1/2},\$\$ respectively.
@@ -419,7 +420,7 @@ Depending on the chosen `bootstrap_type`, bootstrap samples of
 - `MREB1`:
 
   Replaces \\\hat{u}\_i\\ and \\\hat{e}\_{ij}\\ in `REB0` with
-  \\\hat{u}\_{ij}^{sc}\\ defined under `PREB1` and
+  \\\hat{u}\_{i}^{sc}\\ defined under `PREB1` and
   \$\$\tilde{e}\_{ij}^{s} = \hat{\sigma}\_e \hat{e}\_{ij} \\ \sum\_{i' =
   1}^{D} \sum\_{j' = 1}^{n\_{i'} } D^{-1} n\_{i'}^{-1} \hat{e}\_{i'j'}^2
   \\^{-1/2},\$\$ respectively.

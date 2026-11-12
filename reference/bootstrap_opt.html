@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +50,7 @@
 <span>  total_rain_interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6000</span>, <span class="fl">60000</span><span class="op">)</span>,</span>
 <span>  bootstrap_seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bootstrap_parallel <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>  bootstrap_parallel_num_worker <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span>,</span>
+<span>  bootstrap_parallel_num_worker <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  CI_level <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  store_bootstrap_rain <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -105,7 +105,7 @@ Default is "PREB1".</p></dd>
 
 
 <dt id="arg-bootstrap-parallel-num-worker">bootstrap_parallel_num_worker<a class="anchor" aria-label="anchor" href="#arg-bootstrap-parallel-num-worker"></a></dt>
-<dd><p>An integer specifying the number of parallel workers to use when <code>bootstrap_parallel = TRUE</code>. Default is <code>parallel::detectCores() - 1</code>.</p></dd>
+<dd><p>An integer specifying the number of parallel workers to use when <code>bootstrap_parallel = TRUE</code>. By default, one fewer worker than the number of cores returned by <code><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">parallel::detectCores()</a></code> is used, with a minimum of one worker. If <code><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">parallel::detectCores()</a></code> returns <code>NA</code>, one worker is used.</p></dd>
 
 
 <dt id="arg-ci-level">CI_level<a class="anchor" aria-label="anchor" href="#arg-ci-level"></a></dt>
@@ -152,13 +152,14 @@ Default is "PREB1".</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ CI_level                     : num 0.95</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ store_bootstrap_rain         : logi FALSE</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">#Bootstrap option with parallelization over</span></span></span>
-<span class="r-in"><span><span class="co">#(parallel::detectCores() - 1) number of workers</span></span></span>
-<span class="r-in"><span><span class="co">#and seed = 1 for reproducibility</span></span></span>
+<span class="r-in"><span><span class="co">#Bootstrap option with parallelization using one fewer worker than the</span></span></span>
+<span class="r-in"><span><span class="co"># number of detected cores, with a minimum of one worker.</span></span></span>
+<span class="r-in"><span><span class="co"># Use one worker if the number of cores cannot be detected.</span></span></span>
+<span class="r-in"><span><span class="co"># Set bootstrap_seed = 1 for reproducibility.</span></span></span>
 <span class="r-in"><span><span class="va">boot_options_parallel</span> <span class="op">=</span> <span class="fu">bootstrap_opt</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  bootstrap_seed <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>  bootstrap_parallel <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  bootstrap_parallel_num_worker <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span></span>
+<span class="r-in"><span>  bootstrap_parallel_num_worker <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1L</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">boot_options_parallel</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 13</span>
@@ -172,7 +173,7 @@ Default is "PREB1".</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ total_rain_interval          : num [1:2] 6000 60000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ bootstrap_seed               : num 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ bootstrap_parallel           : logi TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ bootstrap_parallel_num_worker: num 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ bootstrap_parallel_num_worker: int 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ CI_level                     : num 0.95</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ store_bootstrap_rain         : logi FALSE</span>
 </code></pre></div>

@@ -413,10 +413,10 @@ end_time = Sys.time()
 
 #
 end_time - start_time
-#> Time difference of 4.778667 mins
+#> Time difference of 4.839595 mins
 ```
 
-The total computational time was 4.78 minutes.
+The total computational time was 4.84 minutes.
 
 In the above example, we use the default PREB1 bootstrap proposed by Tho
 et al. (2025); hence, it is not necessary to explicitly specify
@@ -1873,12 +1873,12 @@ cbind(
 The following attempts to replicate the lower panel of Table 6
 corresponding to `LogRain`. Firstly, the point estimate of SATEs in the
 first row are exactly the same as those in Table 6, except for AIPW due
-to the presence of a coding error in the original implemention which has
-now been corrected in this package. The remaining rows are close to, but
-not exactly the same as, those in Table 6 due to the inherent randomness
-of the bootstrap procedure and a smaller number of bootstrap replicates
-used here (`bootstrap_opt(B_bootstrap = 500)`) to reduce computational
-time.
+to the presence of a coding error in the original implementation which
+has now been corrected in this package. The remaining rows are close to,
+but not exactly the same as, those in Table 6 due to the inherent
+randomness of the bootstrap procedure and a smaller number of bootstrap
+replicates used here (`bootstrap_opt(B_bootstrap = 500)`) to reduce
+computational time.
 
 ``` r
 
@@ -2038,6 +2038,6 @@ Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2025. *A Proportional
 Random Effect Block Bootstrap for General Clustered Data*.
 <https://arxiv.org/abs/2510.07770>.
 
-Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2026. “Bias-Adjusted
-Attribution Estimation for Rainfall Enhancement Trials.” Unpublished
-manuscript.
+Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2026. *Bias-Adjusted
+Attribution Estimation for Rainfall Enhancement Trials*.
+<https://arxiv.org/abs/2607.21991>.

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -466,8 +466,8 @@ each with 500 replicates parallelized over 4 workers:</p>
 <span></span>
 <span><span class="co">#</span></span>
 <span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 4.778667 mins</span></span></code></pre></div>
-<p>The total computational time was 4.78 minutes.</p>
+<span><span class="co">#&gt; Time difference of 4.839595 mins</span></span></code></pre></div>
+<p>The total computational time was 4.84 minutes.</p>
 <p>In the above example, we use the default PREB1 bootstrap proposed by
 <span class="citation">Tho et al. (2025)</span>; hence, it is not
 necessary to explicitly specify
@@ -1808,10 +1808,10 @@ reproduced using the code below.</p>
 corresponding to <code>LogRain</code>. Firstly, the point estimate of
 SATEs in the first row are exactly the same as those in Table 6, except
 for AIPW due to the presence of a coding error in the original
-implemention which has now been corrected in this package. The remaining
-rows are close to, but not exactly the same as, those in Table 6 due to
-the inherent randomness of the bootstrap procedure and a smaller number
-of bootstrap replicates used here
+implementation which has now been corrected in this package. The
+remaining rows are close to, but not exactly the same as, those in Table
+6 due to the inherent randomness of the bootstrap procedure and a
+smaller number of bootstrap replicates used here
 (<code>bootstrap_opt(B_bootstrap = 500)</code>) to reduce computational
 time.</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
@@ -1963,9 +1963,8 @@ Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2025. <em>A Proportional
 Random Effect Block Bootstrap for General Clustered Data</em>. <a href="https://arxiv.org/abs/2510.07770" class="external-link">https://arxiv.org/abs/2510.07770</a>.
 </div>
 <div id="ref-tho2026" class="csl-entry">
-Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2026.
-<span>“Bias-Adjusted Attribution Estimation for Rainfall Enhancement
-Trials.”</span> Unpublished manuscript.
+Tho, Zhi Yang, Ray Chambers, and Alan H. Welsh. 2026. <em>Bias-Adjusted
+Attribution Estimation for Rainfall Enhancement Trials</em>. <a href="https://arxiv.org/abs/2607.21991" class="external-link">https://arxiv.org/abs/2607.21991</a>.
 </div>
 </div>
 </div>

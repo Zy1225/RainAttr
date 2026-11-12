@@ -21,7 +21,7 @@ permutation_opt(
   ionizer_operation_day_column_name = "TrialDay",
   permutation_seed = NULL,
   permutation_parallel = F,
-  permutation_parallel_num_worker = parallel::detectCores() - 1
+  permutation_parallel_num_worker = max(1, parallel::detectCores() - 1, na.rm = TRUE)
 )
 ```
 
@@ -124,8 +124,12 @@ permutation_opt(
 - permutation_parallel_num_worker:
 
   An integer specifying the number of parallel workers to use when
-  `permutation_parallel = TRUE`. Default is
-  `parallel::detectCores() - 1`.
+  `permutation_parallel = TRUE`. By default, one fewer worker than the
+  number of cores returned by
+  [`parallel::detectCores()`](https://rdrr.io/r/parallel/detectCores.html)
+  is used, with a minimum of one worker. If
+  [`parallel::detectCores()`](https://rdrr.io/r/parallel/detectCores.html)
+  returns `NA`, one worker is used.
 
 ## Value
 
@@ -198,12 +202,14 @@ str(perm_options)
 #>  $ permutation_parallel              : logi FALSE
 #>  $ permutation_parallel_num_worker   : num 3
 
-#Permutation option with parallelization over (parallel::detectCores() - 1) number of workers
-# and seed = 1 for reproducibility
+#Permutation option with parallelization using one fewer worker than the
+# number of detected cores, with a minimum of one worker.
+# Use one worker if the number of cores cannot be detected.
+# Set permutation_seed = 1 for reproducibility.
 perm_options_parallel = permutation_opt(
   permutation_seed = 1,
   permutation_parallel = TRUE,
-  permutation_parallel_num_worker = parallel::detectCores() - 1
+  permutation_parallel_num_worker = max(1, parallel::detectCores() - 1, na.rm = TRUE)
 )
 str(perm_options_parallel)
 #> List of 12

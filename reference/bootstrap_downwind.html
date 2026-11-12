@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -230,7 +230,7 @@ Must be one of <code>"REB0"</code>, <code>"REB1"</code>, <code>"REB2"</code>, <c
 <dd><p>Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.</p></dd>
 
 <dt>downwind_LogRain</dt>
-<dd><p>Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as <code>NA</code>.</p></dd>
+<dd><p>Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as <code>NA</code>. This element is <code>NULL</code> when <code>store_bootstrap_rain = FALSE</code>.</p></dd>
 
 
 </dl></div>
@@ -249,7 +249,7 @@ the second-level bootstrap generates bootstrap samples of positive rainfall for 
 $$y_{ij}^* = x_{ij}^\top \hat{\alpha} + z_{ij}^\top \hat{\beta} + u_i^* + e_{ij}^* ,$$
 where \(\hat{\alpha}\) and \(\hat{\beta}\) are estimated fixed effect coefficients from the fitted downwind (second stage) LMM i.e., <code>ori_fitted_models$downwind_lmm_fit</code>, and \(u_i^*\) and \(e_{ij}^*\) are bootstrap samples of the random intercepts and error terms.</p>
 <p>We now explain the procedure for obtaining bootstrap samples of \(u_i^*\) and \(e_{ij}^*\).
-Let \(\hat{r}_{ij} = y_{ij} - x_{ij}^\top \hat{\alpha} - z_{ij}^\top \hat{\beta}\) be the marginal residuals for the subset of observations from <code>ori_data</code> satisfying <code>downwind &amp; ori_positive</code>, \(\hat{u}_i = \sum_{j=1}^{n_i} \hat{r}_{ij}/n_i \) be the day(group)-level average residuals, and \(\hat{e}_{ij} = r_{ij} - \hat{u}_i \) be the gauge(unit)-level residuals, where \(n_i\) denotes the total number of observations in day (group) \(i\) from <code>ori_data</code> satisfying <code>downwind &amp; ori_positive</code>.
+Let \(\hat{r}_{ij} = y_{ij} - x_{ij}^\top \hat{\alpha} - z_{ij}^\top \hat{\beta}\) be the marginal residuals for the subset of observations from <code>ori_data</code> satisfying <code>downwind &amp; ori_positive</code>, \(\hat{u}_i = \sum_{j=1}^{n_i} \hat{r}_{ij}/n_i \) be the day(group)-level average residuals, and \(\hat{e}_{ij} = \hat{r}_{ij} - \hat{u}_i \) be the gauge(unit)-level residuals, where \(n_i\) denotes the total number of observations in day (group) \(i\) from <code>ori_data</code> satisfying <code>downwind &amp; ori_positive</code>.
 Depending on the chosen <code>bootstrap_type</code>, bootstrap samples of \(u_i^*\) and \(e_{ij}^*\) are generated via:</p><dl><dt><code>REB0</code></dt>
 <dd>
 <ul><li><p>\(u_i^* = SRSWR( (\hat{u}_1, \ldots, \hat{u}_D ), 1 )\) for \(i=1,\ldots, D^*\), where \(D\) is the number of unique days (groups) from <code>ori_data</code> satisfying <code>downwind &amp; ori_positive</code>, \(D^*\) is the number of unique days (groups) from <code>ori_data</code> satisfying <code>downwind</code> and \(L_{ij}^* = 1\), and \(SRSWR(a,c)\) denote the outcome of \(c\) independent draws based on simple random sampling with replacement from the vector \(a\).</p></li>
@@ -260,7 +260,7 @@ Depending on the chosen <code>bootstrap_type</code>, bootstrap samples of \(u_i^
 
 <dt><code>REB1</code></dt>
 <dd><p>Replaces \(\hat{u}_i\) and \(\hat{e}_{ij}\) in <code>REB0</code> with
-$$\hat{u}_{ij}^{cs} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} \hat{u}_i^2 \}^{-1/2} $$ and
+$$\hat{u}_{i}^{cs} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} \hat{u}_{i'}^2 \}^{-1/2} $$ and
 $$\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2},$$ respectively,
 where \( \hat{u}_i^c = \hat{u}_i - D^{-1} \sum_{i'=1}^{D} \hat{u}_{i'} \), \(\hat{\sigma}^2_u\) and \(\hat{\sigma}^2_e\) are the estimated variances of random intercepts and error terms from the fitted downwind (second stage) LMM, and \(N = \sum_{i=1}^{D} n_i\) is the total number of observations from <code>ori_data</code> satisfying <code>downwind &amp; ori_positive</code>.</p></dd>
 
@@ -272,7 +272,7 @@ where \( \hat{u}_i^c = \hat{u}_i - D^{-1} \sum_{i'=1}^{D} \hat{u}_{i'} \), \(\ha
 <dt><code>PREB0</code></dt>
 <dd>
 <ul><li><p>\(u_i^* = SRSWR( (\hat{u}_1, \ldots, \hat{u}_D ), 1 )\) for \(i=1,\ldots, D^*\).</p></li>
-<li><p>First, sample the donor cluster \(d_i^* = PPSWR{ (1,\ldots,D), (n_1,\cdots, n_D), 1 } \) for \(i = 1,\ldots, D^*\),
+<li><p>First, sample the donor cluster \(d_i^* = PPSWR( (1,\ldots,D), (n_1,\cdots, n_D), 1 ) \) for \(i = 1,\ldots, D^*\),
 where \(PPSWR(a,b,c)\) denotes the outcome of \(c\) independent draws based on probability-proportional-to-size sampling with replacement from the vector \(a = (a_1,\ldots, a_D)\) with corresponding sizes given by the vector \(b = (b_1,\ldots,b_D)\),
 i.e., the probability of \(a_i\) being selected is given as \(b_i / \sum_{i' = 1}^{D} b_{i'}\).
 Then, sample
@@ -282,7 +282,7 @@ Then, sample
 
 <dt><code>PREB1</code></dt>
 <dd><p>Replaces \(\hat{u}_i\) and \(\hat{e}_{ij}\) in <code>PREB0</code> with
-$$\hat{u}_{ij}^{sc} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} (\hat{u}_i^c)^2 \}^{-1/2} $$ and
+$$\hat{u}_{i}^{sc} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} (\hat{u}_{i'}^c)^2 \}^{-1/2} $$ and
 $$\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2},$$ respectively.</p></dd>
 
 
@@ -292,7 +292,7 @@ $$\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \su
 
 <dt><code>MREB1</code></dt>
 <dd><p>Replaces \(\hat{u}_i\) and \(\hat{e}_{ij}\) in <code>REB0</code> with
-\(\hat{u}_{ij}^{sc}\) defined under <code>PREB1</code> and
+\(\hat{u}_{i}^{sc}\) defined under <code>PREB1</code> and
 $$\tilde{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{  \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } D^{-1} n_{i'}^{-1} \hat{e}_{i'j'}^2  \}^{-1/2},$$ respectively.</p></dd>
 
 

@@ -151,9 +151,12 @@ permutation_ionizer(
   frame must match that of `gaugeday_downwind_input`. (Internal argument
   set automatically when using
   [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md))
-  @param downwind A logical vector indicating which observation in
-  `data` would be used in the downwind (second stage) LMM fitting.
-  (Internal argument set automatically when using
+
+- downwind:
+
+  A logical vector indicating which observation in `data` would be used
+  in the downwind (second stage) LMM fitting. (Internal argument set
+  automatically when using
   [`rain_attr`](https://zy1225.github.io/RainAttr/reference/rain_attr.md))
 
 - positive:

@@ -9,7 +9,7 @@ It allows for flexible permutation schemes, including permutations between ioniz
 
     <a class="navbar-brand me-2" href="../index.html">RainAttr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -140,8 +140,11 @@ The order of names in this vector must match the column order of the correspondi
 <dd><p>A data frame containing the original dataset used in <code><a href="rain_attr.html">rain_attr</a></code>, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 Its column names should contain <code>data_target_column_names</code> (binary target indicators) and <code>ionizer_operation_day_column_name</code> (day).
 The row order of this data frame must match that of <code>gaugeday_downwind_input</code>.
-(Internal argument set automatically when using <code><a href="rain_attr.html">rain_attr</a></code>)
-@param downwind A logical vector indicating which observation in <code>data</code> would be used in the downwind (second stage) LMM fitting.
+(Internal argument set automatically when using <code><a href="rain_attr.html">rain_attr</a></code>)</p></dd>
+
+
+<dt id="arg-downwind">downwind<a class="anchor" aria-label="anchor" href="#arg-downwind"></a></dt>
+<dd><p>A logical vector indicating which observation in <code>data</code> would be used in the downwind (second stage) LMM fitting.
 (Internal argument set automatically when using <code><a href="rain_attr.html">rain_attr</a></code>)</p></dd>
 
 

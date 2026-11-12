@@ -3,6 +3,10 @@
 `RainAttr` provides tools for estimation and inference of attribution
 and sample average treatment effect in rainfall enhancement trials using
 a two-stage linear mixed model approach based on Chambers et al. (2022).
+It includes bias-adjusted attribution estimators, bootstrap confidence
+intervals and p-values, and permutation p-values based on permuting the
+ionizer operating schedule. It also provides tools for exploratory data
+analysis and model diagnostics.
 
 ## Details
 
@@ -43,7 +47,7 @@ Useful links:
 
 ## Author
 
-**Maintainer**: Zhi Yang Tho <zhiyang.tho@anu.edu.au>
+**Maintainer**: Zhi Yang Tho <tzhiyang1995@hotmail.com>
 
 Authors:
 
