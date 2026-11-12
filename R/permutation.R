@@ -38,7 +38,7 @@
 #'   Its column names should contain \code{data_target_column_names} (binary target indicators) and \code{ionizer_operation_day_column_name} (day).
 #'   The row order of this data frame must match that of \code{gaugeday_downwind_input}.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
-#'  @param downwind A logical vector indicating which observation in \code{data} would be used in the downwind (second stage) LMM fitting.
+#' @param downwind A logical vector indicating which observation in \code{data} would be used in the downwind (second stage) LMM fitting.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
 #' @param positive A logical vector indicating which observation in \code{data} has positive rainfall.
 #'   (Internal argument set automatically when using \code{\link{rain_attr}})
@@ -399,7 +399,7 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 #' @param ionizer_operation_day_column_name A character string specifying the column name of \code{ionizer_operation_input} containing the day of each observation. The same column name should also be found in the original dataset supplied to \code{\link{rain_attr}}. Default is \code{'TrialDay'}.
 #' @param permutation_seed An integer specifying the random seed for the permutation-based procedure. Reproducibility is guaranteed only if \code{permutation_parallel} is the same, since parallel execution changes the order of random number generation. Default is \code{NULL}, meaning no seed is set internally and users should call \code{set.seed()} beforehand to ensure reproducibility.
 #' @param permutation_parallel Logical. If \code{TRUE}, each permutation run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.
-#' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{permutation\_\discretionary{}{}{}parallel = TRUE}}}{\code{permutation_parallel = TRUE}}. Default is \code{parallel::detectCores() - 1}.
+#' @param permutation_parallel_num_worker An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{permutation\_\discretionary{}{}{}parallel = TRUE}}}{\code{permutation_parallel = TRUE}}. By default, one fewer worker than the number of cores returned by \code{parallel::detectCores()} is used, with a minimum of one worker. If \code{parallel::detectCores()} returns \code{NA}, one worker is used.
 #'
 #' @return A list containing all permutation options, suitable for passing to \code{\link{rain_attr}}.
 #'
@@ -426,12 +426,14 @@ permutation_ionizer = function(B_permutation, permute_between_ionizer, permute_a
 #' perm_options = permutation_opt()
 #' str(perm_options)
 #'
-#' #Permutation option with parallelization over (parallel::detectCores() - 1) number of workers
-#' # and seed = 1 for reproducibility
+#' #Permutation option with parallelization using one fewer worker than the
+#' # number of detected cores, with a minimum of one worker.
+#' # Use one worker if the number of cores cannot be detected.
+#' # Set permutation_seed = 1 for reproducibility.
 #' perm_options_parallel = permutation_opt(
 #'   permutation_seed = 1,
 #'   permutation_parallel = TRUE,
-#'   permutation_parallel_num_worker = parallel::detectCores() - 1
+#'   permutation_parallel_num_worker = max(1, parallel::detectCores() - 1, na.rm = TRUE)
 #' )
 #' str(perm_options_parallel)
 #'
@@ -448,7 +450,7 @@ permutation_opt = function(B_permutation = 10000,
                            ionizer_operation_day_column_name = 'TrialDay',
                            permutation_seed = NULL,
                            permutation_parallel = F,
-                           permutation_parallel_num_worker = parallel::detectCores() - 1){
+                           permutation_parallel_num_worker = max(1, parallel::detectCores() - 1, na.rm = TRUE)){
   return(list(
     B_permutation = B_permutation,
     permute_between_ionizer = permute_between_ionizer,

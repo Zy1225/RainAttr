@@ -18,7 +18,7 @@ permutation_opt(
   ionizer_operation_day_column_name = "TrialDay",
   permutation_seed = NULL,
   permutation_parallel = F,
-  permutation_parallel_num_worker = parallel::detectCores() - 1
+  permutation_parallel_num_worker = max(1, parallel::detectCores() - 1, na.rm = TRUE)
 )
 }
 \arguments{
@@ -50,7 +50,7 @@ The order of names in this vector must match the column order of the correspondi
 
 \item{permutation_parallel}{Logical. If \code{TRUE}, each permutation run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.}
 
-\item{permutation_parallel_num_worker}{An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{permutation\_\discretionary{}{}{}parallel = TRUE}}}{\code{permutation_parallel = TRUE}}. Default is \code{parallel::detectCores() - 1}.}
+\item{permutation_parallel_num_worker}{An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{permutation\_\discretionary{}{}{}parallel = TRUE}}}{\code{permutation_parallel = TRUE}}. By default, one fewer worker than the number of cores returned by \code{parallel::detectCores()} is used, with a minimum of one worker. If \code{parallel::detectCores()} returns \code{NA}, one worker is used.}
 }
 \value{
 A list containing all permutation options, suitable for passing to \code{\link{rain_attr}}.
@@ -79,12 +79,14 @@ It is important to ensure that
 perm_options = permutation_opt()
 str(perm_options)
 
-#Permutation option with parallelization over (parallel::detectCores() - 1) number of workers
-# and seed = 1 for reproducibility
+#Permutation option with parallelization using one fewer worker than the
+# number of detected cores, with a minimum of one worker.
+# Use one worker if the number of cores cannot be detected.
+# Set permutation_seed = 1 for reproducibility.
 perm_options_parallel = permutation_opt(
   permutation_seed = 1,
   permutation_parallel = TRUE,
-  permutation_parallel_num_worker = parallel::detectCores() - 1
+  permutation_parallel_num_worker = max(1, parallel::detectCores() - 1, na.rm = TRUE)
 )
 str(perm_options_parallel)
 

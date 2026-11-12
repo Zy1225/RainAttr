@@ -1,12 +1,12 @@
 Package: RainAttr
 Title: Attribution and Sample Average Treatment Effect for Rainfall Enhancement Trial Data
-Version: 0.0.0.9001
-Date: 2026-09-26
+Version: 0.1.0
+Date: 2026-11-09
 Authors@R: 
-    c(person("Zhi Yang", "Tho", , "zhiyang.tho@anu.edu.au", role = c("aut", "cre")),
+    c(person("Zhi Yang", "Tho", , "tzhiyang1995@hotmail.com", role = c("aut", "cre")),
       person("Raymond", "Chambers", , "Raymond.Chambers@anu.edu.au", role = "aut"),
       person("A. H.", "Welsh", , "Alan.Welsh@anu.edu.au", role = "aut"))
-Description: This package performs analyses on attribution and sample average treatment effect based on fitting a two-stage linear mixed model to rainfall enhancement trial data.
+Description: Provides tools for estimating rainfall attribution and the sample average treatment effect in rainfall enhancement trials using a two-stage linear mixed model approach. Includes bias-adjusted attribution estimators, bootstrap confidence intervals and p-values, and permutation p-values based on permuting the ionizer operation schedule. Also provides tools for exploratory data analysis and model diagnostics.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

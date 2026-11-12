@@ -342,7 +342,7 @@ daily_lograin_by_gauge
 ```
 
 Spatial maps of annual average rainfall (on log scale) facetted by year, with map polygon layer for Oman added using `input_sf = rnaturalearth::ne_countries(scale = "large", country = "Oman", returnclass = "sf")`, ionizer locations plotted using `ionizer_location_df = ionizer_location`, and elevation contour lines added using `elev_contour = TRUE`:
-```{r, out.width="100%", fig.height= 6}
+```{r, out.width="100%", fig.height= 6, eval = !in_cran_check}
 annual_map = eda(eda_type = "map_static",
               data = oman,
               rain_col_name = 'Rain.Gauge.Measurement',
@@ -743,7 +743,7 @@ cbind(
   'Pct of total' = downwind_control_varcomp/sum(downwind_control_varcomp) * 100
 )
 ```
-The following attempts to replicate the lower panel of Table 6 corresponding to `LogRain`. Firstly, the point estimate of SATEs in the first row are exactly the same as those in Table 6, except for AIPW due to the presence of a coding error in the original implemention which has now been corrected in this package. The remaining rows are close to, but not exactly the same as, those in Table 6 due to the inherent randomness of the bootstrap procedure and a smaller number of bootstrap replicates used here (`bootstrap_opt(B_bootstrap = 500)`) to reduce computational time.
+The following attempts to replicate the lower panel of Table 6 corresponding to `LogRain`. Firstly, the point estimate of SATEs in the first row are exactly the same as those in Table 6, except for AIPW due to the presence of a coding error in the original implementation which has now been corrected in this package. The remaining rows are close to, but not exactly the same as, those in Table 6 due to the inherent randomness of the bootstrap procedure and a smaller number of bootstrap replicates used here (`bootstrap_opt(B_bootstrap = 500)`) to reduce computational time.
 
 ```{r}
 table6_jrssa_lograin = rbind(

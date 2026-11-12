@@ -15,7 +15,7 @@ bootstrap_opt(
   total_rain_interval = c(6000, 60000),
   bootstrap_seed = NULL,
   bootstrap_parallel = F,
-  bootstrap_parallel_num_worker = parallel::detectCores() - 1,
+  bootstrap_parallel_num_worker = max(1, parallel::detectCores() - 1, na.rm = TRUE),
   CI_level = 0.95,
   store_bootstrap_rain = FALSE
 )
@@ -45,7 +45,7 @@ Default is "PREB1".}
 
 \item{bootstrap_parallel}{Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.}
 
-\item{bootstrap_parallel_num_worker}{An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}parallel = TRUE}}}{\code{bootstrap_parallel = TRUE}}. Default is \code{parallel::detectCores() - 1}.}
+\item{bootstrap_parallel_num_worker}{An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}parallel = TRUE}}}{\code{bootstrap_parallel = TRUE}}. By default, one fewer worker than the number of cores returned by \code{parallel::detectCores()} is used, with a minimum of one worker. If \code{parallel::detectCores()} returns \code{NA}, one worker is used.}
 
 \item{CI_level}{A numeric value between 0 and 1 specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.}
 
@@ -68,13 +68,14 @@ This function is used to configure and store all settings needed for performing 
 boot_options = bootstrap_opt()
 str(boot_options)
 
-#Bootstrap option with parallelization over
-#(parallel::detectCores() - 1) number of workers
-#and seed = 1 for reproducibility
+#Bootstrap option with parallelization using one fewer worker than the
+# number of detected cores, with a minimum of one worker.
+# Use one worker if the number of cores cannot be detected.
+# Set bootstrap_seed = 1 for reproducibility.
 boot_options_parallel = bootstrap_opt(
   bootstrap_seed = 1,
   bootstrap_parallel = TRUE,
-  bootstrap_parallel_num_worker = parallel::detectCores() - 1
+  bootstrap_parallel_num_worker = max(1L, parallel::detectCores() - 1L, na.rm = TRUE)
 )
 str(boot_options_parallel)
 }

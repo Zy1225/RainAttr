@@ -23,7 +23,7 @@
 #' where \eqn{\hat{\alpha}} and \eqn{\hat{\beta}} are estimated fixed effect coefficients from the fitted downwind (second stage) LMM i.e., \code{ori_fitted_models$downwind_lmm_fit}, and \eqn{u_i^*} and \eqn{e_{ij}^*} are bootstrap samples of the random intercepts and error terms.
 #'
 #' We now explain the procedure for obtaining bootstrap samples of \eqn{u_i^*} and \eqn{e_{ij}^*}.
-#' Let \eqn{\hat{r}_{ij} = y_{ij} - x_{ij}^\top \hat{\alpha} - z_{ij}^\top \hat{\beta}} be the marginal residuals for the subset of observations from \code{ori_data} satisfying \code{downwind & ori_positive}, \eqn{\hat{u}_i = \sum_{j=1}^{n_i} \hat{r}_{ij}/n_i } be the day(group)-level average residuals, and \eqn{\hat{e}_{ij} = r_{ij} - \hat{u}_i } be the gauge(unit)-level residuals, where \eqn{n_i} denotes the total number of observations in day (group) \eqn{i} from \code{ori_data} satisfying \code{downwind & ori_positive}.
+#' Let \eqn{\hat{r}_{ij} = y_{ij} - x_{ij}^\top \hat{\alpha} - z_{ij}^\top \hat{\beta}} be the marginal residuals for the subset of observations from \code{ori_data} satisfying \code{downwind & ori_positive}, \eqn{\hat{u}_i = \sum_{j=1}^{n_i} \hat{r}_{ij}/n_i } be the day(group)-level average residuals, and \eqn{\hat{e}_{ij} = \hat{r}_{ij} - \hat{u}_i } be the gauge(unit)-level residuals, where \eqn{n_i} denotes the total number of observations in day (group) \eqn{i} from \code{ori_data} satisfying \code{downwind & ori_positive}.
 #' Depending on the chosen \code{bootstrap_type}, bootstrap samples of \eqn{u_i^*} and \eqn{e_{ij}^*} are generated via:
 #' \describe{
 #' \item{\code{REB0}}{
@@ -36,7 +36,7 @@
 #'
 #' \item{\code{REB1}}{
 #' Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{REB0} with
-#' \deqn{\hat{u}_{ij}^{cs} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} \hat{u}_i^2 \}^{-1/2} } and
+#' \deqn{\hat{u}_{i}^{cs} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} \hat{u}_{i'}^2 \}^{-1/2} } and
 #' \deqn{\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2},} respectively,
 #' where \eqn{ \hat{u}_i^c = \hat{u}_i - D^{-1} \sum_{i'=1}^{D} \hat{u}_{i'} }, \eqn{\hat{\sigma}^2_u} and \eqn{\hat{\sigma}^2_e} are the estimated variances of random intercepts and error terms from the fitted downwind (second stage) LMM, and \eqn{N = \sum_{i=1}^{D} n_i} is the total number of observations from \code{ori_data} satisfying \code{downwind & ori_positive}.
 #' }
@@ -48,7 +48,7 @@
 #' \item{\code{PREB0}}{
 #'    \itemize{
 #'     \item \eqn{u_i^* = SRSWR( (\hat{u}_1, \ldots, \hat{u}_D ), 1 )} for \eqn{i=1,\ldots, D^*}.
-#'     \item First, sample the donor cluster \eqn{d_i^* = PPSWR{ (1,\ldots,D), (n_1,\cdots, n_D), 1 } } for \eqn{i = 1,\ldots, D^*},
+#'     \item First, sample the donor cluster \eqn{d_i^* = PPSWR( (1,\ldots,D), (n_1,\cdots, n_D), 1 ) } for \eqn{i = 1,\ldots, D^*},
 #'     where \eqn{PPSWR(a,b,c)} denotes the outcome of \eqn{c} independent draws based on probability-proportional-to-size sampling with replacement from the vector \ifelse{latex}{\out{\(a = (a_1,\allowbreak\ldots,\allowbreak a_D)\)}}{\eqn{a = (a_1,\ldots, a_D)}} with corresponding sizes given by the vector \eqn{b = (b_1,\ldots,b_D)},
 #'     i.e., the probability of \eqn{a_i} being selected is given as \eqn{b_i / \sum_{i' = 1}^{D} b_{i'}}.
 #'     Then, sample
@@ -58,7 +58,7 @@
 #'
 #' \item{\code{PREB1}}{
 #' Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{PREB0} with
-#' \deqn{\hat{u}_{ij}^{sc} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} (\hat{u}_i^c)^2 \}^{-1/2} } and
+#' \deqn{\hat{u}_{i}^{sc} = \hat{\sigma}_u \hat{u}_i^{c} \{ D^{-1} \sum_{i' =1}^{D} (\hat{u}_{i'}^c)^2 \}^{-1/2} } and
 #' \deqn{\hat{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{ N^{-1} \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } \hat{e}_{i'j'}^2  \}^{-1/2},} respectively.
 #' }
 #'
@@ -68,7 +68,7 @@
 #'
 #' \item{\code{MREB1}}{
 #' Replaces \eqn{\hat{u}_i} and \eqn{\hat{e}_{ij}} in \code{REB0} with
-#' \eqn{\hat{u}_{ij}^{sc}} defined under \code{PREB1} and
+#' \eqn{\hat{u}_{i}^{sc}} defined under \code{PREB1} and
 #' \deqn{\tilde{e}_{ij}^{s} = \hat{\sigma}_e \hat{e}_{ij} \{  \sum_{i' = 1}^{D} \sum_{j' = 1}^{n_{i'}  } D^{-1} n_{i'}^{-1} \hat{e}_{i'j'}^2  \}^{-1/2},} respectively.
 #' }
 #'
@@ -226,7 +226,7 @@
 #'  \item{downwind_propensity_param}{Matrix of bootstrap samples for regression coefficient estimates of downwind propensity score model fitted to the treatment indicators. This is \code{NULL} if \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}zero = FALSE}}}{\code{bootstrap_zero = FALSE}}.}
 #'  \item{downwind_positive_target_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) treatment-only LMM.}
 #'  \item{downwind_positive_control_lmm_param}{Matrix of bootstrap samples for fixed effect coefficient and random effect variance estimates of downwind (second stage) control-only LMM.}
-#'  \item{downwind_LogRain}{Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}.}
+#'  \item{downwind_LogRain}{Matrix of bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations. Observations with zero bootstrapped rainfall are represented as \code{NA}. This element is \code{NULL} when \code{store_bootstrap_rain = FALSE}.}
 #' }
 #'
 #' @seealso \code{\link{rain_attr}} for the main function, \code{\link{bootstrap_opt}} for specifying bootstrap options
@@ -933,7 +933,7 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #' @param total_rain_interval Numeric vector of length 2 specifying the lower and upper bounds for adjusting the total of bootstrapped rainfall values when \code{winsorize_total_rain = TRUE}. Default is \code{c(6000,60000)}.
 #' @param bootstrap_seed An integer specifying the random seed for the bootstrap procedure. Reproducibility is guaranteed only if \code{bootstrap_parallel} is the same, since parallel execution changes the order of random number generation. Default is \code{NULL}, meaning no seed is set internally and users should call \code{set.seed()} beforehand to ensure reproducibility.
 #' @param bootstrap_parallel Logical. If \code{TRUE}, each bootstrap run is executed in parallel across multiple workers. If \code{FALSE}, they are run sequentially. Default is \code{FALSE}.
-#' @param bootstrap_parallel_num_worker An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}parallel = TRUE}}}{\code{bootstrap_parallel = TRUE}}. Default is \code{parallel::detectCores() - 1}.
+#' @param bootstrap_parallel_num_worker An integer specifying the number of parallel workers to use when \ifelse{latex}{\out{\texttt{bootstrap\_\discretionary{}{}{}parallel = TRUE}}}{\code{bootstrap_parallel = TRUE}}. By default, one fewer worker than the number of cores returned by \code{parallel::detectCores()} is used, with a minimum of one worker. If \code{parallel::detectCores()} returns \code{NA}, one worker is used.
 #' @param CI_level A numeric value between 0 and 1 specifying the confidence level of the bootstrap percentile confidence intervals. Default is 0.95.
 #' @param store_bootstrap_rain Logical. If \code{TRUE}, retain bootstrap samples for the log-transformed rainfall of all downwind (second-stage) observations in every bootstrap replicate. If \code{FALSE}, these samples are not retained to reduce memory usage. Default is \code{FALSE}.
 #'
@@ -952,13 +952,14 @@ adjust_bootstrap_var_components = function(bootstrapped_var_components){
 #' boot_options = bootstrap_opt()
 #' str(boot_options)
 #'
-#' #Bootstrap option with parallelization over
-#' #(parallel::detectCores() - 1) number of workers
-#' #and seed = 1 for reproducibility
+#' #Bootstrap option with parallelization using one fewer worker than the
+#' # number of detected cores, with a minimum of one worker.
+#' # Use one worker if the number of cores cannot be detected.
+#' # Set bootstrap_seed = 1 for reproducibility.
 #' boot_options_parallel = bootstrap_opt(
 #'   bootstrap_seed = 1,
 #'   bootstrap_parallel = TRUE,
-#'   bootstrap_parallel_num_worker = parallel::detectCores() - 1
+#'   bootstrap_parallel_num_worker = max(1L, parallel::detectCores() - 1L, na.rm = TRUE)
 #' )
 #' str(boot_options_parallel)
 #' @export
@@ -974,7 +975,7 @@ bootstrap_opt = function(B_bootstrap = 10000,
                          total_rain_interval = c(6000,60000),
                          bootstrap_seed = NULL,
                          bootstrap_parallel = F,
-                         bootstrap_parallel_num_worker = parallel::detectCores() - 1,
+                         bootstrap_parallel_num_worker = max(1, parallel::detectCores() - 1, na.rm = TRUE),
                          CI_level = 0.95,
                          store_bootstrap_rain = FALSE){
   return(list(

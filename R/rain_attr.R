@@ -248,6 +248,7 @@
 #'  \item Tho, Z. Y., Chambers, R., and Welsh, A. H. (2025) A Proportional Random Effect Block Bootstrap for General Clustered Data.
 #'     \href{https://arxiv.org/abs/2510.07770}{arXiv:2510.07770}.
 #'  \item Tho, Z. Y., Chambers, R., and Welsh, A. H. (2026) Bias-Adjusted Attribution Estimation for Rainfall Enhancement Trials.
+#'     \href{https://arxiv.org/abs/2607.21991}{arXiv:2607.21991}.
 #'}
 #'
 #'@export
@@ -297,6 +298,11 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
     #   }
     # }
 
+    if(length(bootstrap_option$B_bootstrap) != 1 || !is.numeric(bootstrap_option$B_bootstrap) ||
+       !is.finite(bootstrap_option$B_bootstrap) || bootstrap_option$B_bootstrap < 1 || bootstrap_option$B_bootstrap != floor(bootstrap_option$B_bootstrap)){
+      stop("bootstrap_option$B_bootstrap must be a positive integer")
+    }
+
     if( bootstrap_option$winsorize_individual_rain &
         (!is.numeric(bootstrap_option$individual_rain_interval) | length(bootstrap_option$individual_rain_interval)!= 2 )
         ){
@@ -315,6 +321,11 @@ rain_attr = function(data, upwind_lmm_formula, instr_pred_name, instr_pred_type,
   }
 
   if(permutation){
+    if(length(permutation_option$B_permutation) != 1L || !is.numeric(permutation_option$B_permutation) ||
+       !is.finite(permutation_option$B_permutation) || permutation_option$B_permutation < 1 || permutation_option$B_permutation != floor(permutation_option$B_permutation)){
+      stop("permutation_option$B_permutation must be a positive integer")
+    }
+
     if(!permutation_option$ionizer_operation_year_column_name %in% colnames(permutation_option$ionizer_operation_input) ){
       stop("The columns of permutation_option$ionizer_operation_input do not contain permutation_option$ionizer_operation_year_column_name")
     }

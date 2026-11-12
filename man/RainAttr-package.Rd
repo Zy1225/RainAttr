@@ -8,7 +8,9 @@
 \description{
 \code{RainAttr} provides tools for estimation and inference of attribution and sample
 average treatment effect in rainfall enhancement trials using a two-stage linear mixed model approach
-based on Chambers et al. (2022).
+based on Chambers et al. (2022). It includes bias-adjusted attribution estimators, bootstrap confidence
+intervals and p-values, and permutation p-values based on permuting the ionizer operating schedule.
+It also provides tools for exploratory data analysis and model diagnostics.
 }
 \details{
 The main functions are:
@@ -39,7 +41,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Zhi Yang Tho \email{zhiyang.tho@anu.edu.au}
+\strong{Maintainer}: Zhi Yang Tho \email{tzhiyang1995@hotmail.com}
 
 Authors:
 \itemize{

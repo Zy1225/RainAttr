@@ -73,8 +73,9 @@ The order of names in this vector must match the column order of the correspondi
 \item{data}{A data frame containing the original dataset used in \code{\link{rain_attr}}, along with an additional column containing the fitted values generated from the upwind (first stage) LMM.
 Its column names should contain \code{data_target_column_names} (binary target indicators) and \code{ionizer_operation_day_column_name} (day).
 The row order of this data frame must match that of \code{gaugeday_downwind_input}.
-(Internal argument set automatically when using \code{\link{rain_attr}})
-@param downwind A logical vector indicating which observation in \code{data} would be used in the downwind (second stage) LMM fitting.
+(Internal argument set automatically when using \code{\link{rain_attr}})}
+
+\item{downwind}{A logical vector indicating which observation in \code{data} would be used in the downwind (second stage) LMM fitting.
 (Internal argument set automatically when using \code{\link{rain_attr}})}
 
 \item{positive}{A logical vector indicating which observation in \code{data} has positive rainfall.

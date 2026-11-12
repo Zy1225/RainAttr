@@ -299,5 +299,6 @@ plot(result, plot_type = "model")
 \item Tho, Z. Y., Chambers, R., and Welsh, A. H. (2025) A Proportional Random Effect Block Bootstrap for General Clustered Data.
 \href{https://arxiv.org/abs/2510.07770}{arXiv:2510.07770}.
 \item Tho, Z. Y., Chambers, R., and Welsh, A. H. (2026) Bias-Adjusted Attribution Estimation for Rainfall Enhancement Trials.
+\href{https://arxiv.org/abs/2607.21991}{arXiv:2607.21991}.
 }
 }
